@@ -78,7 +78,7 @@ private:
     SettingsStringRender* field_334;
     SettingsStringRender* field_335;
     SettingsStringRender* field_336;
-    int64_t field_337;
+    int64_t finishTime;
     int field_338;
     int field_339;
     std::string field_340;
@@ -137,13 +137,11 @@ public:
 
     MenuManager(Micro* var1);
     void initPart(int var1);
-    int getCurrentLevel();
-    int getCurrentTrack();
     bool method_196();
     void repaint();
     int getCanvasHeight();
     int getCanvasWidth();
-    void method_201(int var1);
+    void menuLoop(int var1);
     void method_206(Command* var1, Displayable* var2);
     GameMenu* getGameMenu();
     void method_1(GameMenu* gm, bool var2);
@@ -155,10 +153,10 @@ public:
     void processMenu(IGameMenuElement* menuElement);
     int method_210();
     void method_211(int var1);
-    int method_212();
-    int method_213();
-    int method_214();
-    void method_215(int64_t var1);
+    int getCurrentLevel();
+    int getCurrentTrack();
+    int getCurrentLeague();
+    void setFinishTime(int64_t var1);
     void removeOkAndBackCommands();
     void addOkAndBackCommands();
     /* synchronized */ void method_202(Graphics* var1);

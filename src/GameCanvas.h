@@ -17,7 +17,7 @@ class MenuManager;
 
 class GameCanvas : public Canvas, public CommandListener {
 private:
-    void method_164();
+    void resetActiveKeys();
     void handleUpdatedInput();
     void processTimers();
 
@@ -75,7 +75,7 @@ public:
     void method_124(bool var1);
     void updateSizeAndRepaint();
     int loadSprites(int flags);
-    void method_129();
+    void reset();
     void setViewPosition(int dx, int dy);
     int getDx();
     int addDx(int x);
@@ -101,7 +101,7 @@ public:
     void clearScreenWithWhite();
     void setColor(int red, int green, int blue);
     void drawGame(Graphics* g);
-    void method_161(int var1, bool mode);
+    void drawProgressBar(int var1, bool mode);
     void method_163(int var1);
     void paint(Graphics* g);
     void init(GamePhysics* gamePhysics);

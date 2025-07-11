@@ -37,7 +37,7 @@ LevelLoader::LevelLoader(const std::filesystem::path& mrgFilePath)
     }
 
     loadLevels();
-    method_87();
+    initTrack();
 }
 
 LevelLoader::~LevelLoader()
@@ -78,31 +78,31 @@ std::string LevelLoader::getName(int league, int level)
     return league < 3 && level < static_cast<int>(levelNames[league].size()) ? levelNames[league][level] : "---";
 }
 
-void LevelLoader::method_87()
+void LevelLoader::initTrack()
 {
-    method_88(field_125, field_126 + 1);
+    loadTrack(currentLevel, currentTrack + 1);
 }
 
-int LevelLoader::method_88(int var1, int var2)
+int LevelLoader::loadTrack(int level, int track)
 {
-    field_125 = var1;
-    field_126 = var2;
-    if (field_126 >= static_cast<int>(levelNames[field_125].size())) {
-        field_126 = 0;
+    currentLevel = level;
+    currentTrack = track;
+    if (currentTrack >= static_cast<int>(levelNames[currentLevel].size())) {
+        currentTrack = 0;
     }
 
-    method_89(field_125 + 1, field_126 + 1);
-    return field_126;
+    seekTrackData(currentLevel + 1, currentTrack + 1);
+    return currentTrack;
 }
 
-void LevelLoader::method_89(int var1, int var2)
+void LevelLoader::seekTrackData(int level, int track)
 {
-    levelFileStream->setPos(levelOffsetInFile[var1 - 1][var2 - 1]);
+    levelFileStream->setPos(levelOffsetInFile[level - 1][track - 1]);
     if (gameLevel == nullptr) {
         gameLevel = new GameLevel();
     }
     gameLevel->load(levelFileStream);
-    method_96(gameLevel);
+    readLevelData(gameLevel);
 }
 
 void LevelLoader::method_90(int var1)
@@ -137,7 +137,7 @@ int LevelLoader::method_95(int var1)
     return gameLevel->method_181(var1 >> 1);
 }
 
-void LevelLoader::method_96(GameLevel* gameLevel)
+void LevelLoader::readLevelData(GameLevel* gameLevel)
 {
     field_131 = INT_MIN;
     this->gameLevel = gameLevel;

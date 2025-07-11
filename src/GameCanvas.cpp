@@ -85,7 +85,7 @@ int GameCanvas::loadSprites(int flags)
         fenderImage = nullptr;
         engineImage = nullptr;
     }
-    
+
     if (flags & 2) {
         if (!bodyPartsImages[1]) {
             bodyPartsImages[1] = std::make_unique<Image>("blueleg.png");
@@ -112,9 +112,9 @@ int GameCanvas::loadSprites(int flags)
     return flags;
 }
 
-void GameCanvas::method_129()
+void GameCanvas::reset()
 {
-    method_164();
+    resetActiveKeys();
 }
 
 void GameCanvas::setViewPosition(int dx, int dy)
@@ -384,7 +384,7 @@ void GameCanvas::setColor(int red, int green, int blue)
 void GameCanvas::drawGame(Graphics* g)
 {
     // synchronized (objectForSyncronization) {
-    if (Micro::field_249 && !micro->field_242) {
+    if (Micro::isGameLoopRunning && !micro->isAboutToExit) {
         graphics = g;
 
         int var3;
@@ -406,7 +406,7 @@ void GameCanvas::drawGame(Graphics* g)
             }
 
             var3 = (int)(((int64_t)(Micro::gameLoadingStateStage << 16) << 32) / 655360L >> 16);
-            method_161(var3, true);
+            drawProgressBar(var3, true);
         } else {
             if (height != getHeight()) {
                 updateSizeAndRepaint();
@@ -440,7 +440,7 @@ void GameCanvas::drawGame(Graphics* g)
             // graphics->drawString("FPS: " + std::to_string(fps), defaultFontWidth00, height2 - 5, 36);
 
             var3 = gamePhysics->method_52();
-            method_161(var3, false);
+            drawProgressBar(var3, false);
         }
 
         graphics = nullptr;
@@ -448,7 +448,7 @@ void GameCanvas::drawGame(Graphics* g)
     // }
 }
 
-void GameCanvas::method_161(int var1, bool mode)
+void GameCanvas::drawProgressBar(int var1, bool mode)
 {
     int h = mode ? height : height2;
     setColor(0, 0, 0);
@@ -482,7 +482,7 @@ void GameCanvas::paint(Graphics* graphics)
     }
 }
 
-void GameCanvas::method_164()
+void GameCanvas::resetActiveKeys()
 {
     int var1;
     for (var1 = 0; var1 < 10; ++var1) {

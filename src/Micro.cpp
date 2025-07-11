@@ -8,7 +8,7 @@
 #include "lcdui/CanvasImpl.h"
 #include "rms/RecordStore.h"
 
-bool Micro::field_249 = false;
+bool Micro::isGameLoopRunning = false;
 int Micro::gameLoadingStateStage = 0;
 
 Micro::Micro()
@@ -83,7 +83,7 @@ int64_t Micro::goLoadingStep()
 
         // try {
         //     Thread.sleep(100L);
-        // } catch (InterruptedException var3) {
+        // } catch (InterruptedException e) {
         // }
         Time::sleep(100LL);
     }
@@ -122,24 +122,24 @@ void Micro::init()
     isInited = true;
 }
 
-void Micro::restart(bool var1)
+void Micro::restart(bool scheduleTimerTask)
 {
     gamePhysics->resetSmth(true);
     timeMs = 0;
     gameTimeMs = 0;
-    field_246 = 0;
-    if (var1) {
+    crashRestartTimeMs = 0;
+    if (scheduleTimerTask) {
         gameCanvas->scheduleGameTimerTask(levelLoader->getName(menuManager->getCurrentLevel(), menuManager->getCurrentTrack()), 3000);
     }
 
-    gameCanvas->method_129();
+    gameCanvas->reset();
 }
 
-void Micro::destroyApp(bool var1)
+void Micro::destroyApp(bool var1) // TODO: unused parameter
 {
     (void)var1;
-    field_249 = false;
-    field_242 = true;
+    isGameLoopRunning = false;
+    isAboutToExit = true;
     menuManager->saveSmthToRecordStoreAndCloseIt();
 }
 
@@ -158,7 +158,7 @@ void Micro::startApp(int argc, char** argv)
 
     RecordStore::setRecordStoreDir(argv[0]);
 
-    field_249 = true;
+    isGameLoopRunning = true;
     // if (thread == null) {
     //     thread = new Thread(this);
     //     thread.start();
@@ -175,32 +175,32 @@ void Micro::run()
 
     gameCanvas->setCommandListener(gameCanvas);
     restart(false);
-    menuManager->method_201(0);
+    menuManager->menuLoop(0);
     if (menuManager->method_196()) {
         restart(true);
     }
 
-    int64_t var3 = 0L;
+    int64_t lastMillis = 0L;
 
-    while (field_249) {
-        int var5;
+    while (isGameLoopRunning) {
+        int physicsState;
         if (gamePhysics->method_21() != menuManager->method_210()) {
-            var5 = gameCanvas->loadSprites(menuManager->method_210());
-            gamePhysics->method_22(var5);
-            menuManager->method_211(var5);
+            physicsState = gameCanvas->loadSprites(menuManager->method_210());
+            gamePhysics->method_22(physicsState);
+            menuManager->method_211(physicsState);
         }
 
-        bool var10000;
+        bool shouldContinueLoop;
         try {
             if (isInGameMenu) {
-                menuManager->method_201(1);
+                menuManager->menuLoop(1);
                 if (menuManager->method_196()) {
                     restart(true);
                 }
             }
 
             for (int i = numPhysicsLoops; i > 0; --i) {
-                if (field_248) {
+                if (advanceGameTime) {
                     gameTimeMs += 20L;
                 }
 
@@ -208,94 +208,94 @@ void Micro::run()
                     timeMs = Time::currentTimeMillis();
                 }
 
-                if ((var5 = gamePhysics->updatePhysics()) == 3 && field_246 == 0L) {
-                    field_246 = Time::currentTimeMillis() + 3000L;
+                if ((physicsState = gamePhysics->updatePhysics()) == 3 && crashRestartTimeMs == 0L) {
+                    crashRestartTimeMs = Time::currentTimeMillis() + 3000L;
                     gameCanvas->scheduleGameTimerTask("Crashed", 3000);
                     gameCanvas->repaint();
                     gameCanvas->serviceRepaints();
                 }
 
-                if (field_246 != 0L && field_246 < Time::currentTimeMillis()) {
+                if (crashRestartTimeMs != 0L && crashRestartTimeMs < Time::currentTimeMillis()) {
                     restart(true);
                 }
 
-                if (var5 == 5) {
+                if (physicsState == 5) {
                     gameCanvas->scheduleGameTimerTask("Crashed", 3000);
                     gameCanvas->repaint();
                     gameCanvas->serviceRepaints();
 
                     // try {
                     //     long var7 = 1000L;
-                    //     if (this.field_246 > 0L) {
-                    //         var7 = Math.min(this.field_246 - System.currentTimeMillis(), 1000L);
+                    //     if (this.crashRestartTimeMs > 0L) {
+                    //         var7 = Math.min(this.crashRestartTimeMs - System.currentTimeMillis(), 1000L);
                     //     }
 
                     //     if (var7 > 0L) {
                     //         Thread.sleep(var7);
                     //     }
-                    // } catch (InterruptedException var12) {
+                    // } catch (InterruptedException e) {
                     // }
-                    int64_t var7 = 1000L;
-                    if (field_246 > 0L) {
-                        var7 = std::min(field_246 - Time::currentTimeMillis(), static_cast<int64_t>(1000));
+                    int64_t crashRestartDelay = 1000L;
+                    if (crashRestartTimeMs > 0L) {
+                        crashRestartDelay = std::min(crashRestartTimeMs - Time::currentTimeMillis(), static_cast<int64_t>(1000));
                     }
 
-                    if (var7 > 0L) {
-                        Time::sleep(var7);
+                    if (crashRestartDelay > 0L) {
+                        Time::sleep(crashRestartDelay);
                     }
 
                     restart(true);
-                } else if (var5 == 4) {
+                } else if (physicsState == 4) {
                     timeMs = 0L;
                     gameTimeMs = 0L;
-                } else if (var5 == 1 || var5 == 2) {
-                    if (var5 == 2) {
+                } else if (physicsState == 1 || physicsState == 2) {
+                    if (physicsState == 2) {
                         gameTimeMs -= 10L;
                     }
 
                     goalLoop();
-                    menuManager->method_215(gameTimeMs / 10L);
-                    menuManager->method_201(2);
+                    menuManager->setFinishTime(gameTimeMs / 10L);
+                    menuManager->menuLoop(2);
                     if (menuManager->method_196()) {
                         restart(true);
                     }
 
-                    if (!field_249) {
+                    if (!isGameLoopRunning) {
                         break;
                     }
                 }
 
-                field_248 = var5 != 4;
+                advanceGameTime = physicsState != 4;
             }
 
-            var10000 = field_249;
-        } catch (std::exception& var15) {
+            shouldContinueLoop = isGameLoopRunning;
+        } catch (std::exception& e) {
             continue;
         }
 
-        if (!var10000) {
+        if (!shouldContinueLoop) {
             break;
         }
 
         try {
             gamePhysics->method_53();
-            int64_t var1;
-            if ((var1 = Time::currentTimeMillis()) - var3 < 30L) {
+            int64_t curMillis;
+            if ((curMillis = Time::currentTimeMillis()) - lastMillis < 30L) {
                 // try {
                 //     synchronized (this) {
                 //         wait(Math.max(30L - (var1 - var3), 1L));
                 //     }
-                // } catch (InterruptedException var11) {
+                // } catch (InterruptedException e) {
                 // }
-                Time::sleep(std::max(30LL - (var1 - var3), 1LL));
+                Time::sleep(std::max(30LL - (curMillis - lastMillis), 1LL));
 
-                var3 = Time::currentTimeMillis();
+                lastMillis = Time::currentTimeMillis();
             } else {
-                var3 = var1;
+                lastMillis = curMillis;
             }
 
             gameCanvas->repaint();
-        } catch (std::exception& var14) {
+        } catch (std::exception& e) {
         }
     }
 
@@ -304,7 +304,7 @@ void Micro::run()
 
 void Micro::goalLoop()
 {
-    int64_t var4 = 0L;
+    int64_t lastFrameTime = 0L;
     if (!gamePhysics->field_69) {
         gameCanvas->scheduleGameTimerTask("Wheelie!", 1000);
     } else {
@@ -326,7 +326,7 @@ void Micro::goalLoop()
                 //     }
 
                 //     return;
-                // } catch (InterruptedException var12) {
+                // } catch (InterruptedException e) {
                 //     return;
                 // }
                 int64_t deltaTime;
@@ -339,19 +339,19 @@ void Micro::goalLoop()
         }
 
         gamePhysics->method_53();
-        int64_t var2;
-        if ((var2 = Time::currentTimeMillis()) - var4 < 30L) {
+        int64_t currentTime = Time::currentTimeMillis();
+        if (currentTime - lastFrameTime < 30L) {
             // try {
             //     synchronized (this) {
-            //         wait(Math.max(30L - (var2 - var4), 1L));
+            //         wait(Math.max(30L - (currentTime - lastFrameTime), 1L));
             //     }
-            // } catch (InterruptedException var14) {
+            // } catch (InterruptedException e) {
             // }
-            Time::sleep(std::max(30LL - (var2 - var4), 1LL));
+            Time::sleep(std::max(30LL - (currentTime - lastFrameTime), 1LL));
 
-            var4 = Time::currentTimeMillis();
+            lastFrameTime = Time::currentTimeMillis();
         } else {
-            var4 = var2;
+            lastFrameTime = currentTime;
         }
     }
 }

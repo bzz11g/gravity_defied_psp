@@ -27,7 +27,7 @@ void MenuManager::initPart(int var1)
         field_374 = { "On", "Off" };
         field_375 = { "Keyset 1", "Keyset 2", "Keyset 3" };
         recordManager = new RecordManager();
-        field_337 = -1L;
+        finishTime = -1L;
         field_338 = -1;
         field_339 = -1;
         field_340.clear();
@@ -322,16 +322,6 @@ void MenuManager::addTextRender(GameMenu* gameMenu, std::string text)
     }
 }
 
-int MenuManager::getCurrentLevel()
-{
-    return settingStringLevel->getCurrentOptionPos();
-}
-
-int MenuManager::getCurrentTrack()
-{
-    return settingsStringTrack->getCurrentOptionPos();
-}
-
 bool MenuManager::method_196()
 {
     if (field_357) {
@@ -344,7 +334,7 @@ bool MenuManager::method_196()
 
 void MenuManager::method_197()
 {
-    recordManager->method_17(settingsStringLeague->getCurrentOptionPos(), field_341, field_337);
+    recordManager->method_17(settingsStringLeague->getCurrentOptionPos(), field_341, finishTime);
     recordManager->writeRecordInfo();
     field_356 = false;
     gameMenuFinished->clearVector();
@@ -456,15 +446,17 @@ int MenuManager::getCanvasWidth()
     return micro->gameCanvas->getWidth();
 }
 
-void MenuManager::method_201(int var1)
+void MenuManager::menuLoop(int var1)
 {
     field_377 = false;
     switch (var1) {
+    // main menu
     case 0:
         method_1(gameMenuMain, false);
         micro->gamePhysics->enableGenerateInputAI();
         field_357 = true;
         break;
+    // in-game menu
     case 1:
         field_354 = settingStringLevel->getCurrentOptionPos();
         field_355 = settingsStringTrack->getCurrentOptionPos();
@@ -472,14 +464,15 @@ void MenuManager::method_201(int var1)
         field_357 = false;
         method_1(gameMenuIngame, false);
         break;
+    // finished track menu
     case 2: {
         field_362 = Time::currentTimeMillis();
         gameMenuFinished->clearVector();
         field_354 = settingStringLevel->getCurrentOptionPos();
         field_355 = settingsStringTrack->getCurrentOptionPos();
         recordManager->method_8(settingStringLevel->getCurrentOptionPos(), settingsStringTrack->getCurrentOptionPos());
-        int var2 = recordManager->getPosOfNewRecord(settingsStringLeague->getCurrentOptionPos(), field_337);
-        field_340 = timeToString(field_337);
+        int var2 = recordManager->getPosOfNewRecord(settingsStringLeague->getCurrentOptionPos(), finishTime);
+        field_340 = timeToString(finishTime);
         if (var2 >= 0 && var2 <= 2) {
             TextRender* var3 = new TextRender("", micro);
             var3->setDx(GameCanvas::spriteSizeX[5] + 1);
@@ -521,7 +514,7 @@ void MenuManager::method_201(int var1)
     micro->gamePhysics->method_53();
     micro->gameToMenu();
 
-    while (Micro::isInGameMenu && Micro::field_249 && currentGameMenu != nullptr) {
+    while (Micro::isInGameMenu && Micro::isGameLoopRunning && currentGameMenu != nullptr) {
         int64_t var20;
         if (micro->gamePhysics->isGenerateInputAI) {
             int var9;
@@ -570,7 +563,7 @@ void MenuManager::method_201(int var1)
     micro->timeMs += Time::currentTimeMillis() - currentTimeMillis;
     micro->gameCanvas->isDrawingTime = true;
     if (currentGameMenu == nullptr) {
-        Micro::field_249 = false;
+        Micro::isGameLoopRunning = false;
     }
 }
 
@@ -808,7 +801,7 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
     if (menuElement == taskStart) {
         if (settingStringLevel->getCurrentOptionPos() <= settingStringLevel->getMaxAvailableOptionPos() && settingsStringTrack->getCurrentOptionPos() <= settingsStringTrack->getMaxAvailableOptionPos() && settingsStringLeague->getCurrentOptionPos() <= settingsStringLeague->getMaxAvailableOptionPos()) {
             micro->gamePhysics->disableGenerateInputAI();
-            micro->levelLoader->method_88(settingStringLevel->getCurrentOptionPos(), settingsStringTrack->getCurrentOptionPos());
+            micro->levelLoader->loadTrack(settingStringLevel->getCurrentOptionPos(), settingsStringTrack->getCurrentOptionPos());
             micro->gamePhysics->setMotoLeague(settingsStringLeague->getCurrentOptionPos());
             field_357 = true;
             micro->menuToGame();
@@ -903,7 +896,7 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
                         settingsStringTrack->menuElemMethod(2);
                     }
 
-                    micro->levelLoader->method_88(settingStringLevel->getCurrentOptionPos(), settingsStringTrack->getCurrentOptionPos());
+                    micro->levelLoader->loadTrack(settingStringLevel->getCurrentOptionPos(), settingsStringTrack->getCurrentOptionPos());
                     micro->gamePhysics->setMotoLeague(settingsStringLeague->getCurrentOptionPos());
                     method_208();
                     field_357 = true;
@@ -993,24 +986,24 @@ void MenuManager::method_211(int var1)
     }
 }
 
-int MenuManager::method_212()
+int MenuManager::getCurrentLevel()
 {
     return settingStringLevel->getCurrentOptionPos();
 }
 
-int MenuManager::method_213()
+int MenuManager::getCurrentTrack()
 {
     return settingsStringTrack->getCurrentOptionPos();
 }
 
-int MenuManager::method_214()
+int MenuManager::getCurrentLeague()
 {
     return settingsStringLeague->getCurrentOptionPos();
 }
 
-void MenuManager::method_215(int64_t var1)
+void MenuManager::setFinishTime(int64_t var1)
 {
-    field_337 = var1;
+    finishTime = var1;
 }
 
 std::vector<int8_t> MenuManager::method_216(int var1, int8_t var2)

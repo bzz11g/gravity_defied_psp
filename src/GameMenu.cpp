@@ -17,7 +17,7 @@ GameMenu::GameMenu(std::string var1, Micro* micro, GameMenu* var3, char* inputSt
     gameMenu = var3;
     canvasWidth = micro->gameCanvas->getWidth();
     canvasHeight = micro->gameCanvas->getHeight();
-    
+
     font = FontStorage::getFont(Font::STYLE_BOLD, Font::SIZE_LARGE);
     font3 = FontStorage::getFont(Font::STYLE_PLAIN, Font::SIZE_SMALL);
 

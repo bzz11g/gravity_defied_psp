@@ -397,10 +397,10 @@ void GamePhysics::method_35()
                 var9 = (int)((int64_t)var1 * (int64_t)var7 >> 16);
                 var10 = (int)((int64_t)var1 * (int64_t)var7 >> 16);
                 var11 = (int)((int64_t)var2 * (int64_t)var7 >> 16);
-                if (field_37 > 32768) {
-                    field_37 = field_37 - 1638 < 0 ? 0 : field_37 - 1638;
+                if (lean > 32768) {
+                    lean = lean - 1638 < 0 ? 0 : lean - 1638;
                 } else {
-                    field_37 = field_37 - 3276 < 0 ? 0 : field_37 - 3276;
+                    lean = lean - 3276 < 0 ? 0 : lean - 3276;
                 }
 
                 var10000 = field_29[4]->motoComponents[index01].get();
@@ -428,10 +428,10 @@ void GamePhysics::method_35()
                 var9 = (int)((int64_t)var1 * (int64_t)var7 >> 16);
                 var10 = (int)((int64_t)var1 * (int64_t)var7 >> 16);
                 var11 = (int)((int64_t)var2 * (int64_t)var7 >> 16);
-                if (field_37 > 32768) {
-                    field_37 = field_37 + 1638 < 65536 ? field_37 + 1638 : 65536;
+                if (lean > 32768) {
+                    lean = lean + 1638 < 65536 ? lean + 1638 : 65536;
                 } else {
-                    field_37 = field_37 + 3276 < 65536 ? field_37 + 3276 : 65536;
+                    lean = lean + 3276 < 65536 ? lean + 3276 : 65536;
                 }
 
                 var10000 = field_29[4]->motoComponents[index01].get();
@@ -451,17 +451,17 @@ void GamePhysics::method_35()
             return;
         }
 
-        if (field_37 < 26214) {
-            field_37 += 3276;
+        if (lean < 26214) {
+            lean += 3276;
             return;
         }
 
-        if (field_37 > 39321) {
-            field_37 -= 3276;
+        if (lean > 39321) {
+            lean -= 3276;
             return;
         }
 
-        field_37 = 32768;
+        lean = 32768;
     }
 }
 
@@ -497,7 +497,7 @@ bool GamePhysics::isTrackStarted()
     return field_29[1]->motoComponents[index01]->xF16 < levelLoader->method_92();
 }
 
-bool GamePhysics::method_38()
+bool GamePhysics::isTrackFinished()
 {
     return field_29[1]->motoComponents[index10]->xF16 > levelLoader->method_91() || field_29[2]->motoComponents[index10]->xF16 > levelLoader->method_91();
 }
@@ -513,7 +513,7 @@ label77:
         int var5;
         while (var3 < var1) {
             method_45(var4 - var3);
-            if (!var2 && method_38()) {
+            if (!var2 && isTrackFinished()) {
                 var5 = 3;
             } else {
                 var5 = method_46(index10);
@@ -1025,27 +1025,27 @@ void GamePhysics::renderSmth(GameCanvas* gameCanvas, int var2, int var3, int var
     int y5F16 = 0;
     std::vector<std::vector<int>> var27, var28, var29;
     if (field_46) {
-        if (field_37 < 32768) {
+        if (lean < 32768) {
             var28 = hardcodedArr2;
             var29 = hardcodedArr1;
-            var7 = (int)((int64_t)field_37 * 131072L >> 16);
-        } else if (field_37 > 32768) {
+            var7 = (int)((int64_t)lean * 131072L >> 16);
+        } else if (lean > 32768) {
             var6 = 1;
             var28 = hardcodedArr1;
             var29 = hardcodedArr3;
-            var7 = (int)((int64_t)(field_37 - 32768) * 131072L >> 16);
+            var7 = (int)((int64_t)(lean - 32768) * 131072L >> 16);
         } else {
             var27 = hardcodedArr1;
         }
-    } else if (field_37 < 32768) {
+    } else if (lean < 32768) {
         var28 = hardcodedArr5;
         var29 = hardcodedArr4;
-        var7 = (int)((int64_t)field_37 * 131072L >> 16);
-    } else if (field_37 > 32768) {
+        var7 = (int)((int64_t)lean * 131072L >> 16);
+    } else if (lean > 32768) {
         var6 = 1;
         var28 = hardcodedArr4;
         var29 = hardcodedArr6;
-        var7 = (int)((int64_t)(field_37 - 32768) * 131072L >> 16);
+        var7 = (int)((int64_t)(lean - 32768) * 131072L >> 16);
     } else {
         var27 = hardcodedArr4;
     }
@@ -1105,7 +1105,7 @@ void GamePhysics::renderSmth(GameCanvas* gameCanvas, int var2, int var3, int var
         gameCanvas->renderBodyPart(x3F16 << 2, y3F16 << 2, x4F16 << 2, y4F16 << 2, 2, var26);
         gameCanvas->renderBodyPart(x4F16 << 2, y4F16 << 2, x5F16 << 2, y5F16 << 2, 0);
         int var30 = MathF16::atan2F16(var2, var3);
-        if (field_37 > 32768) {
+        if (lean > 32768) {
             var30 += 20588;
         }
 

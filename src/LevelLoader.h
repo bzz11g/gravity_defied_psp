@@ -37,8 +37,8 @@ public:
     static bool isEnabledPerspective;
     static bool isEnabledShadows;
     GameLevel* gameLevel = nullptr;
-    int field_125 = 0;
-    int field_126 = -1;
+    int currentLevel = 0;
+    int currentTrack = -1;
     std::vector<std::vector<std::string>> levelNames = std::vector<std::vector<std::string>>(3);
     int field_129;
     int field_130;
@@ -51,9 +51,9 @@ public:
 
     std::string getName(int league, int level);
 
-    void method_87();
-    int method_88(int var1, int var2);
-    void method_89(int var1, int var2);
+    void initTrack();
+    int loadTrack(int var1, int var2);
+    void seekTrackData(int var1, int var2);
 
     void method_90(int var1);
     int method_91();
@@ -61,7 +61,7 @@ public:
     int method_93();
     int method_94();
     int method_95(int var1);
-    void method_96(GameLevel* gameLevel);
+    void readLevelData(GameLevel* gameLevel);
     void setMinMaxX(int minX, int maxX);
     void renderLevel3D(GameCanvas* gameCanvas, int xF16, int yF16);
     void renderTrackNearestLine(GameCanvas* canvas);

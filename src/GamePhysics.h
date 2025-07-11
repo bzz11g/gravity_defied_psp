@@ -21,14 +21,23 @@ private:
     int field_34 = 0;
     bool field_35 = false;
     bool field_36 = false;
-    int field_37 = 32768;
+    /**
+     * Lean back/forward
+     * 0     - back
+     * 32768 - center
+     * 65536 - forward
+     */
+    int lean = 32768;
     const int field_38 = 3276;
     int field_39 = 0;
     bool field_42 = false;
     /**
-     * 1 - forward wheel
+     * 0 - center
+     * 1 - front wheel
      * 2 - back wheel
      * 3 - handlebar
+     * 4 - seat
+     * 5 - player
      */
     std::vector<std::unique_ptr<TimerOrMotoPartOrMenuElem>> motoComponents = std::vector<std::unique_ptr<TimerOrMotoPartOrMenuElem>>(6);
     int field_44;
@@ -114,7 +123,7 @@ public:
     void disableGenerateInputAI();
     int updatePhysics();
     bool isTrackStarted();
-    bool method_38();
+    bool isTrackFinished();
     static int getSmthLikeMaxAbs(int xF16, int yF16);
     void setEnableLookAhead(bool value);
     void setMinimalScreenWH(int minWH);
