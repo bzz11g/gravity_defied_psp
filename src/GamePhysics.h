@@ -5,7 +5,7 @@
 #include "TimerOrMotoPartOrMenuElem.h"
 
 class LevelLoader;
-class class_10;
+class MotoComponent;
 class GameCanvas;
 
 class GamePhysics {
@@ -67,7 +67,7 @@ private:
     void method_35();
     int method_39(int var1);
     void method_40(int var1);
-    void method_42(class_10* var1, TimerOrMotoPartOrMenuElem* var2, class_10* var3, int var4, int var5);
+    void method_42(MotoComponent* var1, TimerOrMotoPartOrMenuElem* var2, MotoComponent* var3, int var4, int var5);
     void method_43(int var1, int var2, int var3);
     void method_44(int var1, int var2, int var3);
     void method_45(int var1);
@@ -100,7 +100,7 @@ public:
     inline static int motoParam7;
     inline static int motoParam8;
     inline static int motoParam9;
-    std::vector<std::unique_ptr<class_10>> field_29;
+    std::vector<std::unique_ptr<MotoComponent>> field_29;
     bool field_41 = false;
     int field_45;
     bool field_46;
@@ -129,7 +129,7 @@ public:
     void setMinimalScreenWH(int minWH);
     int getCamPosX();
     int getCamPosY();
-    int method_52();
+    int getRawXDistance();
     void method_53();
     void setMotoComponents();
     void renderGame(GameCanvas* gameCanvas);

@@ -1,7 +1,7 @@
 #include "GamePhysics.h"
 
 #include "LevelLoader.h"
-#include "class_10.h"
+#include "MotoComponent.h"
 #include "MathF16.h"
 #include <algorithm>
 
@@ -169,7 +169,7 @@ void GamePhysics::method_26(bool var1)
 void GamePhysics::method_27(int var1, int var2)
 {
     if (field_29.empty()) {
-        field_29 = std::vector<std::unique_ptr<class_10>>(6);
+        field_29 = std::vector<std::unique_ptr<MotoComponent>>(6);
     }
 
     if (field_30.empty()) {
@@ -224,18 +224,18 @@ void GamePhysics::method_27(int var1, int var2)
         }
 
         if (field_29[i] == nullptr) {
-            field_29[i] = std::make_unique<class_10>();
+            field_29[i] = std::make_unique<MotoComponent>();
         }
 
         field_29[i]->reset();
-        field_29[i]->field_257 = const175_1_half[var5];
-        field_29[i]->field_258 = var5;
-        field_29[i]->field_259 = (int)((int64_t)((int)(281474976710656L / (int64_t)var4 >> 16)) * (int64_t)field_14 >> 16);
+        field_29[i]->radiusF16 = const175_1_half[var5];
+        field_29[i]->radiusIndex = var5;
+        field_29[i]->inverseMassF16 = (int)((int64_t)((int)(281474976710656L / (int64_t)var4 >> 16)) * (int64_t)field_14 >> 16);
         field_29[i]->motoComponents[index01]->xF16 = var1 + var6;
         field_29[i]->motoComponents[index01]->yF16 = var2 + var7;
         field_29[i]->motoComponents[5]->xF16 = var1 + var6;
         field_29[i]->motoComponents[5]->yF16 = var2 + var7;
-        field_29[i]->field_260 = var8;
+        field_29[i]->leanInfluenceF16 = var8;
     }
 
     for (i = 0; i < 10; ++i) {
@@ -356,25 +356,25 @@ void GamePhysics::method_35()
             }
         }
 
-        field_29[0]->field_259 = (int)(11915L * (int64_t)field_14 >> 16);
-        field_29[0]->field_259 = (int)(11915L * (int64_t)field_14 >> 16);
-        field_29[4]->field_259 = (int)(18724L * (int64_t)field_14 >> 16);
-        field_29[3]->field_259 = (int)(18724L * (int64_t)field_14 >> 16);
-        field_29[1]->field_259 = (int)(43690L * (int64_t)field_14 >> 16);
-        field_29[2]->field_259 = (int)(11915L * (int64_t)field_14 >> 16);
-        field_29[5]->field_259 = (int)(14563L * (int64_t)field_14 >> 16);
+        field_29[0]->inverseMassF16 = (int)(11915L * (int64_t)field_14 >> 16);
+        field_29[0]->inverseMassF16 = (int)(11915L * (int64_t)field_14 >> 16);
+        field_29[4]->inverseMassF16 = (int)(18724L * (int64_t)field_14 >> 16);
+        field_29[3]->inverseMassF16 = (int)(18724L * (int64_t)field_14 >> 16);
+        field_29[1]->inverseMassF16 = (int)(43690L * (int64_t)field_14 >> 16);
+        field_29[2]->inverseMassF16 = (int)(11915L * (int64_t)field_14 >> 16);
+        field_29[5]->inverseMassF16 = (int)(14563L * (int64_t)field_14 >> 16);
         if (isInputBack) {
-            field_29[0]->field_259 = (int)(18724L * (int64_t)field_14 >> 16);
-            field_29[4]->field_259 = (int)(14563L * (int64_t)field_14 >> 16);
-            field_29[3]->field_259 = (int)(18724L * (int64_t)field_14 >> 16);
-            field_29[1]->field_259 = (int)(43690L * (int64_t)field_14 >> 16);
-            field_29[2]->field_259 = (int)(10082L * (int64_t)field_14 >> 16);
+            field_29[0]->inverseMassF16 = (int)(18724L * (int64_t)field_14 >> 16);
+            field_29[4]->inverseMassF16 = (int)(14563L * (int64_t)field_14 >> 16);
+            field_29[3]->inverseMassF16 = (int)(18724L * (int64_t)field_14 >> 16);
+            field_29[1]->inverseMassF16 = (int)(43690L * (int64_t)field_14 >> 16);
+            field_29[2]->inverseMassF16 = (int)(10082L * (int64_t)field_14 >> 16);
         } else if (isInputForward) {
-            field_29[0]->field_259 = (int)(18724L * (int64_t)field_14 >> 16);
-            field_29[4]->field_259 = (int)(18724L * (int64_t)field_14 >> 16);
-            field_29[3]->field_259 = (int)(14563L * (int64_t)field_14 >> 16);
-            field_29[1]->field_259 = (int)(26214L * (int64_t)field_14 >> 16);
-            field_29[2]->field_259 = (int)(11915L * (int64_t)field_14 >> 16);
+            field_29[0]->inverseMassF16 = (int)(18724L * (int64_t)field_14 >> 16);
+            field_29[4]->inverseMassF16 = (int)(18724L * (int64_t)field_14 >> 16);
+            field_29[3]->inverseMassF16 = (int)(14563L * (int64_t)field_14 >> 16);
+            field_29[1]->inverseMassF16 = (int)(26214L * (int64_t)field_14 >> 16);
+            field_29[2]->inverseMassF16 = (int)(11915L * (int64_t)field_14 >> 16);
         }
 
         if (isInputBack || isInputForward) {
@@ -572,13 +572,13 @@ void GamePhysics::method_40(int var1)
     TimerOrMotoPartOrMenuElem* var3;
     int var4;
     for (var4 = 0; var4 < 6; ++var4) {
-        class_10* var2 = field_29[var4].get();
+        MotoComponent* var2 = field_29[var4].get();
         var3 = var2->motoComponents[var1].get();
         var3->field_385 = 0;
 
         var3->field_386 = 0;
         var3->field_387 = 0;
-        var3->field_386 -= (int)(((int64_t)field_8 << 32) / (int64_t)var2->field_259 >> 16);
+        var3->field_386 -= (int)(((int64_t)field_8 << 32) / (int64_t)var2->inverseMassF16 >> 16);
     }
 
     if (!field_35) {
@@ -656,7 +656,7 @@ int GamePhysics::getSmthLikeMaxAbs(int xF16, int yF16)
     return (int)(64448L * (int64_t)maxAbs >> 16) + (int)(28224L * (int64_t)minAbs >> 16);
 }
 
-void GamePhysics::method_42(class_10* var1, TimerOrMotoPartOrMenuElem* var2, class_10* var3, int var4, int var5)
+void GamePhysics::method_42(MotoComponent* var1, TimerOrMotoPartOrMenuElem* var2, MotoComponent* var3, int var4, int var5)
 {
     TimerOrMotoPartOrMenuElem* var6 = var1->motoComponents[var4].get();
     TimerOrMotoPartOrMenuElem* var7 = var3->motoComponents[var4].get();
@@ -690,7 +690,7 @@ void GamePhysics::method_43(int var1, int var2, int var3)
         TimerOrMotoPartOrMenuElem* var5;
         (var5 = field_29[var7]->motoComponents[var2].get())->xF16 = (int)((int64_t)var4->velocityXF16 * (int64_t)var3 >> 16);
         var5->yF16 = (int)((int64_t)var4->velocityYF16 * (int64_t)var3 >> 16);
-        int var6 = (int)((int64_t)var3 * (int64_t)field_29[var7]->field_259 >> 16);
+        int var6 = (int)((int64_t)var3 * (int64_t)field_29[var7]->inverseMassF16 >> 16);
         var5->velocityXF16 = (int)((int64_t)var4->field_385 * (int64_t)var6 >> 16);
         var5->velocityYF16 = (int)((int64_t)var4->field_386 * (int64_t)var6 >> 16);
     }
@@ -724,7 +724,7 @@ void GamePhysics::method_45(int var1)
         TimerOrMotoPartOrMenuElem* var2 = field_29[var4]->motoComponents[index01].get();
         TimerOrMotoPartOrMenuElem* var3;
         (var3 = field_29[var4]->motoComponents[index10].get())->angleF16 = var2->angleF16 + (int)((int64_t)var1 * (int64_t)var2->field_384 >> 16);
-        var3->field_384 = var2->field_384 + (int)((int64_t)var1 * (int64_t)((int)((int64_t)field_29[var4]->field_260 * (int64_t)var2->field_387 >> 16)) >> 16);
+        var3->field_384 = var2->field_384 + (int)((int64_t)var1 * (int64_t)((int)((int64_t)field_29[var4]->leanInfluenceF16 * (int64_t)var2->field_387 >> 16)) >> 16);
     }
 }
 
@@ -749,7 +749,7 @@ int GamePhysics::method_46(int var1)
                 var3->yF16 += (int)((int64_t)var10 * 65536L >> 16);
             }
 
-            int var12 = levelLoader->checkSegmentCollisions(var3, field_29[var11]->field_258);
+            int var12 = levelLoader->checkSegmentCollisions(var3, field_29[var11]->radiusIndex);
             if (var11 == 0) {
                 var3->xF16 -= (int)((int64_t)var9 * 65536L >> 16);
                 var3->yF16 -= (int)((int64_t)var10 * 65536L >> 16);
@@ -781,7 +781,7 @@ int GamePhysics::method_46(int var1)
 
 void GamePhysics::method_47(int var1)
 {
-    class_10* var2;
+    MotoComponent* var2;
     TimerOrMotoPartOrMenuElem* var3;
     TimerOrMotoPartOrMenuElem* var10000 = var3 = (var2 = field_29[field_28].get())->motoComponents[var1].get();
     var10000->xF16 += (int)((int64_t)field_33 * 3276L >> 16);
@@ -812,8 +812,8 @@ void GamePhysics::method_47(int var1)
     int var11 = var3->velocityYF16;
     int var12 = -((int)((int64_t)var10 * (int64_t)field_33 >> 16) + (int)((int64_t)var11 * (int64_t)field_34 >> 16));
     int var13 = -((int)((int64_t)var10 * (int64_t)(-field_34) >> 16) + (int)((int64_t)var11 * (int64_t)field_33 >> 16));
-    int var14 = (int)((int64_t)var4 * (int64_t)var3->field_384 >> 16) - (int)((int64_t)var5 * (int64_t)((int)(((int64_t)var13 << 32) / (int64_t)var2->field_257 >> 16)) >> 16);
-    int var15 = (int)((int64_t)var7 * (int64_t)var13 >> 16) - (int)((int64_t)var6 * (int64_t)((int)((int64_t)var3->field_384 * (int64_t)var2->field_257 >> 16)) >> 16);
+    int var14 = (int)((int64_t)var4 * (int64_t)var3->field_384 >> 16) - (int)((int64_t)var5 * (int64_t)((int)(((int64_t)var13 << 32) / (int64_t)var2->radiusF16 >> 16)) >> 16);
+    int var15 = (int)((int64_t)var7 * (int64_t)var13 >> 16) - (int)((int64_t)var6 * (int64_t)((int)((int64_t)var3->field_384 * (int64_t)var2->radiusF16 >> 16)) >> 16);
     int var16 = -((int)((int64_t)var8 * (int64_t)var12 >> 16));
     int var17 = (int)((int64_t)(-var15) * (int64_t)(-field_34) >> 16);
     int var18 = (int)((int64_t)(-var15) * (int64_t)field_33 >> 16);
@@ -861,7 +861,7 @@ int GamePhysics::getCamPosY()
     return (motoComponents[0]->yF16 + camShiftY) << 2 >> 16;
 }
 
-int GamePhysics::method_52()
+int GamePhysics::getRawXDistance()
 {
     int var1 = motoComponents[1]->xF16 < motoComponents[2]->xF16 ? motoComponents[2]->xF16 : motoComponents[1]->xF16;
     return field_35 ? levelLoader->getTrackProgressRatio(motoComponents[0]->xF16) : levelLoader->getTrackProgressRatio(var1);
@@ -943,7 +943,7 @@ void GamePhysics::renderWheelTires(GameCanvas* canvas)
 void GamePhysics::renderWheelSpokes(GameCanvas* gameCanvas)
 {
     int var2;
-    int xxxF16 = (int)((int64_t)(var2 = field_29[1]->field_257) * 58982L >> 16);
+    int xxxF16 = (int)((int64_t)(var2 = field_29[1]->radiusF16) * 58982L >> 16);
     int yyyF16 = (int)((int64_t)var2 * 45875L >> 16);
     gameCanvas->setColor(0, 0, 0);
     if (Micro::isInGameMenu) {

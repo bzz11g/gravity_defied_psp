@@ -27,7 +27,7 @@ set(SOURCES
     src/GameCanvas.cpp
     src/GamePhysics.cpp
     src/TimerOrMotoPartOrMenuElem.cpp
-    src/class_10.cpp
+    src/MotoComponent.cpp
     src/GameLevel.cpp
     src/LevelLoader.cpp
     src/Micro.cpp

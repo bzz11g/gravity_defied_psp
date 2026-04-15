@@ -439,7 +439,7 @@ void GameCanvas::drawGame(Graphics* g)
             // graphics->setFont(font);
             // graphics->drawString("FPS: " + std::to_string(fps), defaultFontWidth00, height2 - 5, 36);
 
-            var3 = gamePhysics->method_52();
+            var3 = gamePhysics->getRawXDistance();
             drawProgressBar(var3, false);
         }
 
