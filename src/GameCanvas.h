@@ -91,7 +91,7 @@ public:
     void drawHelmet(int var1, int var2, int var3);
     void drawTime(int64_t time10Ms);
     void method_150(int var1);
-    static void method_151();
+    static void flagAnimation();
     void renderStartFlag(int x, int y);
     void renderFinishFlag(int x, int y);
     void drawWheelTires(int x, int y, int wheelIsThin);

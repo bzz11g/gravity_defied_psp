@@ -112,22 +112,22 @@ void LevelLoader::method_90(int var1)
     field_130 = gameLevel->startPosY << 1;
 }
 
-int LevelLoader::method_91()
+int LevelLoader::getFinishFlagPointX()
 {
     return gameLevel->pointPositions[gameLevel->finishFlagPoint][0] << 1;
 }
 
-int LevelLoader::method_92()
+int LevelLoader::getStartFlagPointX()
 {
     return gameLevel->pointPositions[gameLevel->startFlagPoint][0] << 1;
 }
 
-int LevelLoader::method_93()
+int LevelLoader::getStartPosX()
 {
     return gameLevel->startPosX << 1;
 }
 
-int LevelLoader::method_94()
+int LevelLoader::getStartPosY()
 {
     return gameLevel->startPosY << 1;
 }

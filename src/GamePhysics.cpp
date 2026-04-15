@@ -77,7 +77,7 @@ void GamePhysics::setMode(int mode)
 
 void GamePhysics::setMotoLeague(int league)
 {
-    curentMotoLeague = league;
+    currentLeague = league;
     field_9 = 45875;
     field_10 = 13107;
     field_11 = 39321;
@@ -142,7 +142,7 @@ void GamePhysics::resetSmth(bool unused)
 {
     (void)unused;
     field_44 = 0;
-    method_27(levelLoader->method_93(), levelLoader->method_94());
+    method_27(levelLoader->getStartPosX(), levelLoader->getStartPosY());
     field_31 = 0;
     field_39 = 0;
     field_35 = false;
@@ -276,22 +276,22 @@ void GamePhysics::processPointerReleased()
     isInputUp = isInputDown = isInputRight = isInputLeft = false;
 }
 
-void GamePhysics::method_30(int var1, int var2)
+void GamePhysics::updateInputs(int upDown, int leftRight)
 {
     if (!isGenerateInputAI) {
         isInputUp = isInputDown = isInputRight = isInputLeft = false;
-        if (var1 > 0) {
+        if (upDown > 0) {
             isInputUp = true;
-        } else if (var1 < 0) {
+        } else if (upDown < 0) {
             isInputDown = true;
         }
 
-        if (var2 > 0) {
+        if (leftRight > 0) {
             isInputRight = true;
             return;
         }
 
-        if (var2 < 0) {
+        if (leftRight < 0) {
             isInputLeft = true;
         }
     }
@@ -475,7 +475,7 @@ int GamePhysics::updatePhysics()
         setInputFromAI();
     }
 
-    GameCanvas::method_151();
+    GameCanvas::flagAnimation();
     method_35();
     int var1;
     if ((var1 = method_39(field_7)) != 5 && !field_36) {
@@ -494,12 +494,12 @@ int GamePhysics::updatePhysics()
 
 bool GamePhysics::isTrackStarted()
 {
-    return field_29[1]->motoComponents[index01]->xF16 < levelLoader->method_92();
+    return field_29[1]->motoComponents[index01]->xF16 < levelLoader->getStartFlagPointX();
 }
 
 bool GamePhysics::isTrackFinished()
 {
-    return field_29[1]->motoComponents[index10]->xF16 > levelLoader->method_91() || field_29[2]->motoComponents[index10]->xF16 > levelLoader->method_91();
+    return field_29[1]->motoComponents[index10]->xF16 > levelLoader->getFinishFlagPointX() || field_29[2]->motoComponents[index10]->xF16 > levelLoader->getFinishFlagPointX();
 }
 
 int GamePhysics::method_39(int var1)
@@ -924,7 +924,7 @@ void GamePhysics::renderWheelTires(GameCanvas* canvas)
 {
     int8_t backWheelIsThin = 1;
     int8_t forwardWheelIsThin = 1;
-    switch (curentMotoLeague) {
+    switch (currentLeague) {
     case 1:
         backWheelIsThin = 0;
         break;
@@ -990,9 +990,9 @@ void GamePhysics::renderWheelSpokes(GameCanvas* gameCanvas)
         dyF16 = (int)((int64_t)sinF16 * (int64_t)var10 >> 16) + (int)((int64_t)cosF16 * (int64_t)dyF16 >> 16);
     }
 
-    if (curentMotoLeague > 0) {
+    if (currentLeague > 0) {
         gameCanvas->setColor(255, 0, 0);
-        if (curentMotoLeague > 2) {
+        if (currentLeague > 2) {
             gameCanvas->setColor(100, 100, 255);
         }
 

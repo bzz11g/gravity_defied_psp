@@ -56,10 +56,10 @@ public:
     void seekTrackData(int var1, int var2);
 
     void method_90(int var1);
-    int method_91();
-    int method_92();
-    int method_93();
-    int method_94();
+    int getFinishFlagPointX();
+    int getStartFlagPointX();
+    int getStartPosX();
+    int getStartPosY();
     int method_95(int var1);
     void readLevelData(GameLevel* gameLevel);
     void setMinMaxX(int minX, int maxX);

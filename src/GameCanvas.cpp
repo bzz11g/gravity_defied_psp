@@ -267,7 +267,7 @@ void GameCanvas::method_150(int var1)
     }
 }
 
-void GameCanvas::method_151()
+void GameCanvas::flagAnimation()
 {
     field_226 += 655;
     int var0 = 32768 + ((MathF16::sinF16(field_226) < 0 ? -MathF16::sinF16(field_226) : MathF16::sinF16(field_226)) >> 1);
@@ -496,26 +496,26 @@ void GameCanvas::resetActiveKeys()
 
 void GameCanvas::handleUpdatedInput()
 {
-    int var1 = 0;
-    int var2 = 0;
+    int upDown = 0;
+    int leftRight = 0;
     int var3 = field_232;
 
     int var4;
     for (var4 = 0; var4 < 10; ++var4) {
         if (activeKeys[var4]) {
-            var1 += field_231[var3][var4][0];
-            var2 += field_231[var3][var4][1];
+            upDown += field_231[var3][var4][0];
+            leftRight += field_231[var3][var4][1];
         }
     }
 
     for (var4 = 0; var4 < 7; ++var4) {
         if (activeActions[var4]) {
-            var1 += field_230[var4][0];
-            var2 += field_230[var4][1];
+            upDown += field_230[var4][0];
+            leftRight += field_230[var4][1];
         }
     }
 
-    gamePhysics->method_30(var1, var2);
+    gamePhysics->updateInputs(upDown, leftRight);
 }
 
 void GameCanvas::processTimers()

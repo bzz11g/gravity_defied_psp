@@ -105,7 +105,7 @@ public:
     int field_45;
     bool field_46;
     bool isRenderMotoWithSprites;
-    inline static int curentMotoLeague = 0;
+    inline static int currentLeague = 0;
     bool field_69;
     bool isGenerateInputAI = false;
 
@@ -118,7 +118,7 @@ public:
     void method_26(bool var1);
     void setRenderMinMaxX(int minX, int maxX);
     void processPointerReleased();
-    void method_30(int var1, int var2);
+    void updateInputs(int var1, int var2);
     void enableGenerateInputAI();
     void disableGenerateInputAI();
     int updatePhysics();
