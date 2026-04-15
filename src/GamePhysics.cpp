@@ -268,7 +268,7 @@ void GamePhysics::method_27(int var1, int var2)
 
 void GamePhysics::setRenderMinMaxX(int minX, int maxX)
 {
-    levelLoader->setMinMaxX(minX, maxX);
+    levelLoader->setLevelBounds(minX, maxX);
 }
 
 void GamePhysics::processPointerReleased()
@@ -324,7 +324,7 @@ void GamePhysics::setInputFromAI()
     }
 
     bool var4;
-    if ((!(var4 = (field_29[2]->motoComponents[index01]->yF16 - field_29[0]->motoComponents[index01]->yF16 > 0 ? 1 : -1) * (field_29[2]->motoComponents[index01]->field_382 - field_29[0]->motoComponents[index01]->field_382 > 0 ? 1 : -1) > 0) || !isInputForward) && (var4 || !isInputBack)) {
+    if ((!(var4 = (field_29[2]->motoComponents[index01]->yF16 - field_29[0]->motoComponents[index01]->yF16 > 0 ? 1 : -1) * (field_29[2]->motoComponents[index01]->velocityXF16 - field_29[0]->motoComponents[index01]->velocityXF16 > 0 ? 1 : -1) > 0) || !isInputForward) && (var4 || !isInputBack)) {
         isInputAcceleration = false;
     } else {
         isInputAcceleration = true;
@@ -404,17 +404,17 @@ void GamePhysics::method_35()
                 }
 
                 var10000 = field_29[4]->motoComponents[index01].get();
-                var10000->field_382 -= var8;
+                var10000->velocityXF16 -= var8;
                 var10000 = field_29[4]->motoComponents[index01].get();
-                var10000->field_383 -= var9;
+                var10000->velocityYF16 -= var9;
                 var10000 = field_29[3]->motoComponents[index01].get();
-                var10000->field_382 += var8;
+                var10000->velocityXF16 += var8;
                 var10000 = field_29[3]->motoComponents[index01].get();
-                var10000->field_383 += var9;
+                var10000->velocityYF16 += var9;
                 var10000 = field_29[5]->motoComponents[index01].get();
-                var10000->field_382 -= var10;
+                var10000->velocityXF16 -= var10;
                 var10000 = field_29[5]->motoComponents[index01].get();
-                var10000->field_383 -= var11;
+                var10000->velocityYF16 -= var11;
             }
 
             if (isInputForward && field_39 < motoParam9) {
@@ -435,17 +435,17 @@ void GamePhysics::method_35()
                 }
 
                 var10000 = field_29[4]->motoComponents[index01].get();
-                var10000->field_382 += var8;
+                var10000->velocityXF16 += var8;
                 var10000 = field_29[4]->motoComponents[index01].get();
-                var10000->field_383 += var9;
+                var10000->velocityYF16 += var9;
                 var10000 = field_29[3]->motoComponents[index01].get();
-                var10000->field_382 -= var8;
+                var10000->velocityXF16 -= var8;
                 var10000 = field_29[3]->motoComponents[index01].get();
-                var10000->field_383 -= var9;
+                var10000->velocityYF16 -= var9;
                 var10000 = field_29[5]->motoComponents[index01].get();
-                var10000->field_382 += var10;
+                var10000->velocityXF16 += var10;
                 var10000 = field_29[5]->motoComponents[index01].get();
-                var10000->field_383 += var11;
+                var10000->velocityYF16 += var11;
             }
 
             return;
@@ -494,12 +494,12 @@ int GamePhysics::updatePhysics()
 
 bool GamePhysics::isTrackStarted()
 {
-    return field_29[1]->motoComponents[index01]->xF16 < levelLoader->getStartFlagPointX();
+    return field_29[1]->motoComponents[index01]->xF16 < levelLoader->getStartFlagX();
 }
 
 bool GamePhysics::isTrackFinished()
 {
-    return field_29[1]->motoComponents[index10]->xF16 > levelLoader->getFinishFlagPointX() || field_29[2]->motoComponents[index10]->xF16 > levelLoader->getFinishFlagPointX();
+    return field_29[1]->motoComponents[index10]->xF16 > levelLoader->getFinishFlagX() || field_29[2]->motoComponents[index10]->xF16 > levelLoader->getFinishFlagX();
 }
 
 int GamePhysics::method_39(int var1)
@@ -610,8 +610,8 @@ void GamePhysics::method_40(int var1)
 
     int var6;
     for (var6 = 0; var6 < 6; ++var6) {
-        var4 += field_29[var6]->motoComponents[var1]->field_382;
-        var5 += field_29[var6]->motoComponents[var1]->field_383;
+        var4 += field_29[var6]->motoComponents[var1]->velocityXF16;
+        var5 += field_29[var6]->motoComponents[var1]->velocityYF16;
     }
 
     var4 = (int)(((int64_t)var4 << 32) / 393216L >> 16);
@@ -620,18 +620,18 @@ void GamePhysics::method_40(int var1)
 
     int var11;
     for (var11 = 0; var11 < 6; ++var11) {
-        var6 = field_29[var11]->motoComponents[var1]->field_382 - var4;
-        int var7 = field_29[var11]->motoComponents[var1]->field_383 - var5;
+        var6 = field_29[var11]->motoComponents[var1]->velocityXF16 - var4;
+        int var7 = field_29[var11]->motoComponents[var1]->velocityYF16 - var5;
         if ((var10 = getSmthLikeMaxAbs(var6, var7)) > 1966080) {
             int var8 = (int)(((int64_t)var6 << 32) / (int64_t)var10 >> 16);
             int var9 = (int)(((int64_t)var7 << 32) / (int64_t)var10 >> 16);
-            field_29[var11]->motoComponents[var1]->field_382 -= var8;
-            field_29[var11]->motoComponents[var1]->field_383 -= var9;
+            field_29[var11]->motoComponents[var1]->velocityXF16 -= var8;
+            field_29[var11]->motoComponents[var1]->velocityYF16 -= var9;
         }
     }
 
     var11 = field_29[2]->motoComponents[var1]->yF16 - field_29[0]->motoComponents[var1]->yF16 >= 0 ? 1 : -1;
-    int var12 = field_29[2]->motoComponents[var1]->field_382 - field_29[0]->motoComponents[var1]->field_382 >= 0 ? 1 : -1;
+    int var12 = field_29[2]->motoComponents[var1]->velocityXF16 - field_29[0]->motoComponents[var1]->velocityXF16 >= 0 ? 1 : -1;
     if (var11 * var12 > 0) {
         field_39 = var10;
     } else {
@@ -669,8 +669,8 @@ void GamePhysics::method_42(class_10* var1, TimerOrMotoPartOrMenuElem* var2, cla
         int var11 = var10 - var2->yF16;
         int var12 = (int)((int64_t)var8 * (int64_t)((int)((int64_t)var11 * (int64_t)var2->xF16 >> 16)) >> 16);
         int var13 = (int)((int64_t)var9 * (int64_t)((int)((int64_t)var11 * (int64_t)var2->xF16 >> 16)) >> 16);
-        int var14 = var6->field_382 - var7->field_382;
-        int var15 = var6->field_383 - var7->field_383;
+        int var14 = var6->velocityXF16 - var7->velocityXF16;
+        int var15 = var6->velocityYF16 - var7->velocityYF16;
         int var16 = (int)((int64_t)((int)((int64_t)var8 * (int64_t)var14 >> 16) + (int)((int64_t)var9 * (int64_t)var15 >> 16)) * (int64_t)var2->angleF16 >> 16);
         var12 += (int)((int64_t)var8 * (int64_t)var16 >> 16);
         var13 += (int)((int64_t)var9 * (int64_t)var16 >> 16);
@@ -688,11 +688,11 @@ void GamePhysics::method_43(int var1, int var2, int var3)
     for (int var7 = 0; var7 < 6; ++var7) {
         TimerOrMotoPartOrMenuElem* var4 = field_29[var7]->motoComponents[var1].get();
         TimerOrMotoPartOrMenuElem* var5;
-        (var5 = field_29[var7]->motoComponents[var2].get())->xF16 = (int)((int64_t)var4->field_382 * (int64_t)var3 >> 16);
-        var5->yF16 = (int)((int64_t)var4->field_383 * (int64_t)var3 >> 16);
+        (var5 = field_29[var7]->motoComponents[var2].get())->xF16 = (int)((int64_t)var4->velocityXF16 * (int64_t)var3 >> 16);
+        var5->yF16 = (int)((int64_t)var4->velocityYF16 * (int64_t)var3 >> 16);
         int var6 = (int)((int64_t)var3 * (int64_t)field_29[var7]->field_259 >> 16);
-        var5->field_382 = (int)((int64_t)var4->field_385 * (int64_t)var6 >> 16);
-        var5->field_383 = (int)((int64_t)var4->field_386 * (int64_t)var6 >> 16);
+        var5->velocityXF16 = (int)((int64_t)var4->field_385 * (int64_t)var6 >> 16);
+        var5->velocityYF16 = (int)((int64_t)var4->field_386 * (int64_t)var6 >> 16);
     }
 }
 
@@ -704,8 +704,8 @@ void GamePhysics::method_44(int var1, int var2, int var3)
         TimerOrMotoPartOrMenuElem* var6 = field_29[var7]->motoComponents[var3].get();
         var4->xF16 = var5->xF16 + (var6->xF16 >> 1);
         var4->yF16 = var5->yF16 + (var6->yF16 >> 1);
-        var4->field_382 = var5->field_382 + (var6->field_382 >> 1);
-        var4->field_383 = var5->field_383 + (var6->field_383 >> 1);
+        var4->velocityXF16 = var5->velocityXF16 + (var6->velocityXF16 >> 1);
+        var4->velocityYF16 = var5->velocityYF16 + (var6->velocityYF16 >> 1);
     }
 }
 
@@ -733,7 +733,7 @@ int GamePhysics::method_46(int var1)
     int8_t var2 = 2;
     int var4 = std::max({ field_29[1]->motoComponents[var1]->xF16, field_29[2]->motoComponents[var1]->xF16, field_29[5]->motoComponents[var1]->xF16 });
     int var5 = std::min({ field_29[1]->motoComponents[var1]->xF16, field_29[2]->motoComponents[var1]->xF16, field_29[5]->motoComponents[var1]->xF16 });
-    levelLoader->method_100(var5 - const175_1_half[0], var4 + const175_1_half[0], field_29[5]->motoComponents[var1]->yF16);
+    levelLoader->updateVisibleSegmentRange(var5 - const175_1_half[0], var4 + const175_1_half[0], field_29[5]->motoComponents[var1]->yF16);
     int var6 = field_29[1]->motoComponents[var1]->xF16 - field_29[2]->motoComponents[var1]->xF16;
     int var7 = field_29[1]->motoComponents[var1]->yF16 - field_29[2]->motoComponents[var1]->yF16;
     int var8 = getSmthLikeMaxAbs(var6, var7);
@@ -749,14 +749,14 @@ int GamePhysics::method_46(int var1)
                 var3->yF16 += (int)((int64_t)var10 * 65536L >> 16);
             }
 
-            int var12 = levelLoader->method_101(var3, field_29[var11]->field_258);
+            int var12 = levelLoader->checkSegmentCollisions(var3, field_29[var11]->field_258);
             if (var11 == 0) {
                 var3->xF16 -= (int)((int64_t)var9 * 65536L >> 16);
                 var3->yF16 -= (int)((int64_t)var10 * 65536L >> 16);
             }
 
-            field_33 = levelLoader->field_137;
-            field_34 = levelLoader->field_138;
+            field_33 = levelLoader->lastCollisionNormalXF16;
+            field_34 = levelLoader->lastCollisionNormalYF16;
             if (var11 == 5 && var12 != 2) {
                 field_36 = true;
             }
@@ -808,8 +808,8 @@ void GamePhysics::method_47(int var1)
     int var9 = getSmthLikeMaxAbs(field_33, field_34);
     field_33 = (int)(((int64_t)field_33 << 32) / (int64_t)var9 >> 16);
     field_34 = (int)(((int64_t)field_34 << 32) / (int64_t)var9 >> 16);
-    int var10 = var3->field_382;
-    int var11 = var3->field_383;
+    int var10 = var3->velocityXF16;
+    int var11 = var3->velocityYF16;
     int var12 = -((int)((int64_t)var10 * (int64_t)field_33 >> 16) + (int)((int64_t)var11 * (int64_t)field_34 >> 16));
     int var13 = -((int)((int64_t)var10 * (int64_t)(-field_34) >> 16) + (int)((int64_t)var11 * (int64_t)field_33 >> 16));
     int var14 = (int)((int64_t)var4 * (int64_t)var3->field_384 >> 16) - (int)((int64_t)var5 * (int64_t)((int)(((int64_t)var13 << 32) / (int64_t)var2->field_257 >> 16)) >> 16);
@@ -820,8 +820,8 @@ void GamePhysics::method_47(int var1)
     int var19 = (int)((int64_t)(-var16) * (int64_t)field_33 >> 16);
     int var20 = (int)((int64_t)(-var16) * (int64_t)field_34 >> 16);
     var3->field_384 = var14;
-    var3->field_382 = var17 + var19;
-    var3->field_383 = var18 + var20;
+    var3->velocityXF16 = var17 + var19;
+    var3->velocityYF16 = var18 + var20;
 }
 
 void GamePhysics::setEnableLookAhead(bool value)
@@ -837,7 +837,7 @@ void GamePhysics::setMinimalScreenWH(int minWH)
 int GamePhysics::getCamPosX()
 {
     if (isEnableLookAhead) {
-        camShiftX = (int)(((int64_t)motoComponents[0]->field_382 << 32) / 1572864L >> 16) + (int)((int64_t)camShiftX * 57344L >> 16);
+        camShiftX = (int)(((int64_t)motoComponents[0]->velocityXF16 << 32) / 1572864L >> 16) + (int)((int64_t)camShiftX * 57344L >> 16);
     } else {
         camShiftX = 0;
     }
@@ -851,7 +851,7 @@ int GamePhysics::getCamPosX()
 int GamePhysics::getCamPosY()
 {
     if (isEnableLookAhead) {
-        camShiftY = (int)(((int64_t)motoComponents[0]->field_383 << 32) / 1572864L >> 16) + (int)((int64_t)camShiftY * 57344L >> 16);
+        camShiftY = (int)(((int64_t)motoComponents[0]->velocityYF16 << 32) / 1572864L >> 16) + (int)((int64_t)camShiftY * 57344L >> 16);
     } else {
         camShiftY = 0;
     }
@@ -864,7 +864,7 @@ int GamePhysics::getCamPosY()
 int GamePhysics::method_52()
 {
     int var1 = motoComponents[1]->xF16 < motoComponents[2]->xF16 ? motoComponents[2]->xF16 : motoComponents[1]->xF16;
-    return field_35 ? levelLoader->method_95(motoComponents[0]->xF16) : levelLoader->method_95(var1);
+    return field_35 ? levelLoader->getTrackProgressRatio(motoComponents[0]->xF16) : levelLoader->getTrackProgressRatio(var1);
 }
 
 void GamePhysics::method_53()
@@ -876,8 +876,8 @@ void GamePhysics::method_53()
         field_29[var2]->motoComponents[5]->angleF16 = field_29[var2]->motoComponents[index01]->angleF16;
     }
 
-    field_29[0]->motoComponents[5]->field_382 = field_29[0]->motoComponents[index01]->field_382;
-    field_29[0]->motoComponents[5]->field_383 = field_29[0]->motoComponents[index01]->field_383;
+    field_29[0]->motoComponents[5]->velocityXF16 = field_29[0]->motoComponents[index01]->velocityXF16;
+    field_29[0]->motoComponents[5]->velocityYF16 = field_29[0]->motoComponents[index01]->velocityYF16;
     field_29[2]->motoComponents[5]->field_384 = field_29[2]->motoComponents[index01]->field_384;
     // }
 }
@@ -891,8 +891,8 @@ void GamePhysics::setMotoComponents()
         motoComponents[i]->angleF16 = field_29[i]->motoComponents[5]->angleF16;
     }
 
-    motoComponents[0]->field_382 = field_29[0]->motoComponents[5]->field_382;
-    motoComponents[0]->field_383 = field_29[0]->motoComponents[5]->field_383;
+    motoComponents[0]->velocityXF16 = field_29[0]->motoComponents[5]->velocityXF16;
+    motoComponents[0]->velocityYF16 = field_29[0]->motoComponents[5]->velocityYF16;
     motoComponents[2]->field_384 = field_29[2]->motoComponents[5]->field_384;
     // }
 }
@@ -1207,7 +1207,7 @@ void GamePhysics::renderGame(GameCanvas* gameCanvas)
     }
 
     if (LevelLoader::isEnabledPerspective) {
-        levelLoader->renderLevel3D(gameCanvas, motoComponents[0]->xF16, motoComponents[0]->yF16);
+        levelLoader->renderTrack3D(gameCanvas, motoComponents[0]->xF16, motoComponents[0]->yF16);
     }
 
     if (isRenderMotoWithSprites) {
@@ -1235,5 +1235,5 @@ void GamePhysics::renderGame(GameCanvas* gameCanvas)
         renderMotoAsLines(gameCanvas, xxF16, yyF16, var5, xxF16);
     }
 
-    levelLoader->renderTrackNearestLine(gameCanvas);
+    levelLoader->renderTrackCenterline(gameCanvas);
 }

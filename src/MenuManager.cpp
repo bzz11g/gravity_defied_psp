@@ -11,7 +11,6 @@
 #include "SettingsStringRender.h"
 #include "utils/Time.h"
 
-
 MenuManager::MenuManager(Micro* var1)
 {
     micro = var1;
@@ -85,9 +84,9 @@ void MenuManager::initPart(int var1)
         if (field_341[0] == 82 && field_341[1] == 75 && field_341[2] == 69) {
             availableLeagues = 3;
             field_344 = 2;
-            field_342[0] = (int8_t)(micro->levelLoader->levelNames[0].size() - 1);
-            field_342[1] = (int8_t)(micro->levelLoader->levelNames[1].size() - 1);
-            field_342[2] = (int8_t)(micro->levelLoader->levelNames[2].size() - 1);
+            field_342[0] = (int8_t)(micro->levelLoader->trackNames[0].size() - 1);
+            field_342[1] = (int8_t)(micro->levelLoader->trackNames[1].size() - 1);
+            field_342[2] = (int8_t)(micro->levelLoader->trackNames[2].size() - 1);
             return;
         }
 
@@ -135,7 +134,7 @@ void MenuManager::initPart(int var1)
         micro->gameCanvas->method_163(field_367);
         micro->gameCanvas->method_124(field_372 == 0);
         leagueNamesAll4 = { "100cc", "175cc", "220cc", "325cc" };
-        levelNames = micro->levelLoader->levelNames;
+        levelNames = micro->levelLoader->trackNames;
         if (availableLeagues < 3) {
             this->leagueNames = { "100cc", "175cc", "220cc" };
         } else {
@@ -154,7 +153,7 @@ void MenuManager::initPart(int var1)
         settingStringGoToMain = new SettingsStringRender("Go to Main", 0, this, std::vector<std::string>(), false, micro, gameMenuMain, true);
         settingStringContinue = new SettingsStringRender("Continue", 0, this, std::vector<std::string>(), false, micro, gameMenuMain, true);
         settingStringPlayMenu = new SettingsStringRender("Play Menu", 0, this, std::vector<std::string>(), false, micro, gameMenuMain, true);
-        
+
         std::shared_ptr boldSmallFont = FontStorage::getFont(Font::STYLE_BOLD, Font::SIZE_SMALL);
         if (gameMenuAbout->xPos + boldSmallFont->stringWidth("http://www.codebrew.se/") >= getCanvasWidth()) {
             textRenderCodeBrewLink = new TextRender("www.codebrew.se", micro);
@@ -410,7 +409,7 @@ void MenuManager::method_197()
             bool var4 = true;
 
             for (int var5 = 0; var5 < 3; ++var5) {
-                if (field_342[var5] != static_cast<int>(micro->levelLoader->levelNames[var5].size() - 1)) {
+                if (field_342[var5] != static_cast<int>(micro->levelLoader->trackNames[var5].size() - 1)) {
                     var4 = false;
                 }
             }
@@ -674,7 +673,7 @@ void MenuManager::method_1(GameMenu* gm, bool var2)
         field_341 = gameMenuEnterName->getStrArr();
         field_336->setText("Name - " + std::string(field_341));
     } else if (gm == gameMenuPlay) {
-        settingsStringTrack->setOptionsList(micro->levelLoader->levelNames[settingStringLevel->getCurrentOptionPos()]);
+        settingsStringTrack->setOptionsList(micro->levelLoader->trackNames[settingStringLevel->getCurrentOptionPos()]);
         if (currentGameMenu == field_299) {
             field_345[settingStringLevel->getCurrentOptionPos()] = settingsStringTrack->getCurrentOptionPos();
         }
@@ -941,7 +940,7 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
                         gameMenuStringLevel->method_83(settingStringLevel->getCurrentOptionPos());
                     }
 
-                    settingsStringTrack->setOptionsList(micro->levelLoader->levelNames[settingStringLevel->getCurrentOptionPos()]);
+                    settingsStringTrack->setOptionsList(micro->levelLoader->trackNames[settingStringLevel->getCurrentOptionPos()]);
                     settingsStringTrack->setAvailableOptions(field_342[settingStringLevel->getCurrentOptionPos()]);
                     settingsStringTrack->setCurentOptionPos(field_345[settingStringLevel->getCurrentOptionPos()]);
                     settingsStringTrack->init();
