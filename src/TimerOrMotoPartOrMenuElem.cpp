@@ -25,8 +25,8 @@ TimerOrMotoPartOrMenuElem::TimerOrMotoPartOrMenuElem(std::string text, GameMenu*
 void TimerOrMotoPartOrMenuElem::setToZeros()
 {
     xF16 = yF16 = angleF16 = 0;
-    velocityXF16 = velocityYF16 = field_384 = 0;
-    field_385 = field_386 = field_387 = 0;
+    velocityXF16 = velocityYF16 = angularVelocityF16 = 0;
+    forceAccumXF16 = forceAccumYF16 = torqueF16 = 0;
 }
 
 void TimerOrMotoPartOrMenuElem::setText(std::string text)

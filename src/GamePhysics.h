@@ -114,7 +114,7 @@ public:
     void method_22(int var1);
     void setMode(int mode);
     void setMotoLeague(int league);
-    void resetSmth(bool unused);
+    void resetPhysicsState(bool unused);
     void method_26(bool var1);
     void setRenderMinMaxX(int minX, int maxX);
     void processPointerReleased();
@@ -130,7 +130,7 @@ public:
     int getCamPosX();
     int getCamPosY();
     int getRawXDistance();
-    void method_53();
+    void syncBuffer5ToCurrent();
     void setMotoComponents();
     void renderGame(GameCanvas* gameCanvas);
 };

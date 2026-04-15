@@ -510,7 +510,7 @@ void MenuManager::menuLoop(int var1)
     micro->gameCanvas->isDrawingTime = false;
     int64_t var6 = 0L;
     int8_t var8 = 50;
-    micro->gamePhysics->method_53();
+    micro->gamePhysics->syncBuffer5ToCurrent();
     micro->gameToMenu();
 
     while (Micro::isInGameMenu && Micro::isGameLoopRunning && currentGameMenu != nullptr) {
@@ -518,10 +518,10 @@ void MenuManager::menuLoop(int var1)
         if (micro->gamePhysics->isGenerateInputAI) {
             int var9;
             if ((var9 = micro->gamePhysics->updatePhysics()) != 0 && var9 != 4) {
-                micro->gamePhysics->resetSmth(true);
+                micro->gamePhysics->resetPhysicsState(true);
             }
 
-            micro->gamePhysics->method_53();
+            micro->gamePhysics->syncBuffer5ToCurrent();
             repaint();
             if ((var20 = Time::currentTimeMillis()) - var6 < (int64_t)var8) {
                 // try {

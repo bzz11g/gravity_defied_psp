@@ -21,10 +21,14 @@ public:
     int angleF16;
     int velocityXF16;
     int velocityYF16;
-    int field_384;
-    int field_385;
-    int field_386;
-    int field_387;
+    // Angular velocity
+    int angularVelocityF16;
+    // Force accumulator X
+    int forceAccumXF16;
+    // Force accumulator Y
+    int forceAccumYF16;
+    // Torque
+    int torqueF16;
     int timerNo;
     Micro* micro;
 
@@ -35,7 +39,7 @@ public:
     void setText(std::string text);
     std::string getText();
     bool isNotTextRender();
-    void menuElemMethod(int var1);
+    void menuElemMethod(int action);
     void setGameMenu(GameMenu* gameMenu);
     void render(Graphics* graphics, int y, int x);
 };

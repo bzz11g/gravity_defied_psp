@@ -124,7 +124,7 @@ void Micro::init()
 
 void Micro::restart(bool scheduleTimerTask)
 {
-    gamePhysics->resetSmth(true);
+    gamePhysics->resetPhysicsState(true);
     timeMs = 0;
     gameTimeMs = 0;
     crashRestartTimeMs = 0;
@@ -278,7 +278,7 @@ void Micro::run()
         }
 
         try {
-            gamePhysics->method_53();
+            gamePhysics->syncBuffer5ToCurrent();
             int64_t curMillis;
             if ((curMillis = Time::currentTimeMillis()) - lastMillis < 30L) {
                 // try {
@@ -338,9 +338,9 @@ void Micro::goalLoop()
             }
         }
 
-        gamePhysics->method_53();
-        int64_t currentTime = Time::currentTimeMillis();
-        if (currentTime - lastFrameTime < 30L) {
+        gamePhysics->syncBuffer5ToCurrent();
+        int64_t currentTime;
+        if ((currentTime = Time::currentTimeMillis()) - lastFrameTime < 30L) {
             // try {
             //     synchronized (this) {
             //         wait(Math.max(30L - (currentTime - lastFrameTime), 1L));

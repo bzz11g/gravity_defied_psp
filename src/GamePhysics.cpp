@@ -32,9 +32,9 @@ GamePhysics::GamePhysics(LevelLoader* levelLoader)
 
     field_80 = { { 45875 }, { 32768 }, { 52428 } };
     this->levelLoader = levelLoader;
-    resetSmth(true);
+    resetPhysicsState(true);
     isGenerateInputAI = false;
-    method_53();
+    syncBuffer5ToCurrent();
     field_35 = false;
 }
 
@@ -71,7 +71,7 @@ void GamePhysics::setMode(int mode)
         field_7 = 1310;
         field_8 = 1638400;
         setMotoLeague(1);
-        resetSmth(true);
+        resetPhysicsState(true);
     }
 }
 
@@ -135,10 +135,10 @@ void GamePhysics::setMotoLeague(int league)
         motoParam10 = 21626880;
     }
 
-    resetSmth(true);
+    resetPhysicsState(true);
 }
 
-void GamePhysics::resetSmth(bool unused)
+void GamePhysics::resetPhysicsState(bool unused)
 {
     (void)unused;
     field_44 = 0;
@@ -299,7 +299,7 @@ void GamePhysics::updateInputs(int upDown, int leftRight)
 
 void GamePhysics::enableGenerateInputAI()
 {
-    resetSmth(true);
+    resetPhysicsState(true);
     isGenerateInputAI = true;
 }
 
@@ -345,14 +345,14 @@ void GamePhysics::method_35()
 
         if (isInputBreak) {
             field_31 = 0;
-            field_29[1]->motoComponents[index01]->field_384 = (int)((int64_t)field_29[1]->motoComponents[index01]->field_384 * (int64_t)(65536 - motoParam6) >> 16);
-            field_29[2]->motoComponents[index01]->field_384 = (int)((int64_t)field_29[2]->motoComponents[index01]->field_384 * (int64_t)(65536 - motoParam6) >> 16);
-            if (field_29[1]->motoComponents[index01]->field_384 < 6553) {
-                field_29[1]->motoComponents[index01]->field_384 = 0;
+            field_29[1]->motoComponents[index01]->angularVelocityF16 = (int)((int64_t)field_29[1]->motoComponents[index01]->angularVelocityF16 * (int64_t)(65536 - motoParam6) >> 16);
+            field_29[2]->motoComponents[index01]->angularVelocityF16 = (int)((int64_t)field_29[2]->motoComponents[index01]->angularVelocityF16 * (int64_t)(65536 - motoParam6) >> 16);
+            if (field_29[1]->motoComponents[index01]->angularVelocityF16 < 6553) {
+                field_29[1]->motoComponents[index01]->angularVelocityF16 = 0;
             }
 
-            if (field_29[2]->motoComponents[index01]->field_384 < 6553) {
-                field_29[2]->motoComponents[index01]->field_384 = 0;
+            if (field_29[2]->motoComponents[index01]->angularVelocityF16 < 6553) {
+                field_29[2]->motoComponents[index01]->angularVelocityF16 = 0;
             }
         }
 
@@ -574,11 +574,11 @@ void GamePhysics::method_40(int var1)
     for (var4 = 0; var4 < 6; ++var4) {
         MotoComponent* var2 = field_29[var4].get();
         var3 = var2->motoComponents[var1].get();
-        var3->field_385 = 0;
+        var3->forceAccumXF16 = 0;
 
-        var3->field_386 = 0;
-        var3->field_387 = 0;
-        var3->field_386 -= (int)(((int64_t)field_8 << 32) / (int64_t)var2->inverseMassF16 >> 16);
+        var3->forceAccumYF16 = 0;
+        var3->torqueF16 = 0;
+        var3->forceAccumYF16 -= (int)(((int64_t)field_8 << 32) / (int64_t)var2->inverseMassF16 >> 16);
     }
 
     if (!field_35) {
@@ -596,13 +596,13 @@ void GamePhysics::method_40(int var1)
     method_42(field_29[5].get(), field_30[9].get(), field_29[0].get(), var1, 65536);
     var3 = field_29[2]->motoComponents[var1].get();
     field_31 = (int)((int64_t)field_31 * (int64_t)(65536 - field_19) >> 16);
-    var3->field_387 = field_31;
-    if (var3->field_384 > motoParam3) {
-        var3->field_384 = motoParam3;
+    var3->torqueF16 = field_31;
+    if (var3->angularVelocityF16 > motoParam3) {
+        var3->angularVelocityF16 = motoParam3;
     }
 
-    if (var3->field_384 < -motoParam3) {
-        var3->field_384 = -motoParam3;
+    if (var3->angularVelocityF16 < -motoParam3) {
+        var3->angularVelocityF16 = -motoParam3;
     }
 
     var4 = 0;
@@ -676,10 +676,10 @@ void GamePhysics::method_42(MotoComponent* var1, TimerOrMotoPartOrMenuElem* var2
         var13 += (int)((int64_t)var9 * (int64_t)var16 >> 16);
         var12 = (int)((int64_t)var12 * (int64_t)var5 >> 16);
         var13 = (int)((int64_t)var13 * (int64_t)var5 >> 16);
-        var6->field_385 -= var12;
-        var6->field_386 -= var13;
-        var7->field_385 += var12;
-        var7->field_386 += var13;
+        var6->forceAccumXF16 -= var12;
+        var6->forceAccumYF16 -= var13;
+        var7->forceAccumXF16 += var12;
+        var7->forceAccumYF16 += var13;
     }
 }
 
@@ -691,8 +691,8 @@ void GamePhysics::method_43(int var1, int var2, int var3)
         (var5 = field_29[var7]->motoComponents[var2].get())->xF16 = (int)((int64_t)var4->velocityXF16 * (int64_t)var3 >> 16);
         var5->yF16 = (int)((int64_t)var4->velocityYF16 * (int64_t)var3 >> 16);
         int var6 = (int)((int64_t)var3 * (int64_t)field_29[var7]->inverseMassF16 >> 16);
-        var5->velocityXF16 = (int)((int64_t)var4->field_385 * (int64_t)var6 >> 16);
-        var5->velocityYF16 = (int)((int64_t)var4->field_386 * (int64_t)var6 >> 16);
+        var5->velocityXF16 = (int)((int64_t)var4->forceAccumXF16 * (int64_t)var6 >> 16);
+        var5->velocityYF16 = (int)((int64_t)var4->forceAccumYF16 * (int64_t)var6 >> 16);
     }
 }
 
@@ -723,8 +723,8 @@ void GamePhysics::method_45(int var1)
     for (int var4 = 1; var4 <= 2; ++var4) {
         TimerOrMotoPartOrMenuElem* var2 = field_29[var4]->motoComponents[index01].get();
         TimerOrMotoPartOrMenuElem* var3;
-        (var3 = field_29[var4]->motoComponents[index10].get())->angleF16 = var2->angleF16 + (int)((int64_t)var1 * (int64_t)var2->field_384 >> 16);
-        var3->field_384 = var2->field_384 + (int)((int64_t)var1 * (int64_t)((int)((int64_t)field_29[var4]->leanInfluenceF16 * (int64_t)var2->field_387 >> 16)) >> 16);
+        (var3 = field_29[var4]->motoComponents[index10].get())->angleF16 = var2->angleF16 + (int)((int64_t)var1 * (int64_t)var2->angularVelocityF16 >> 16);
+        var3->angularVelocityF16 = var2->angularVelocityF16 + (int)((int64_t)var1 * (int64_t)((int)((int64_t)field_29[var4]->leanInfluenceF16 * (int64_t)var2->torqueF16 >> 16)) >> 16);
     }
 }
 
@@ -791,7 +791,7 @@ void GamePhysics::method_47(int var1)
     int var6;
     int var7;
     int var8;
-    if (isInputBreak && (field_28 == 2 || field_28 == 1) && var3->field_384 < 6553) {
+    if (isInputBreak && (field_28 == 2 || field_28 == 1) && var3->angularVelocityF16 < 6553) {
         var4 = field_9 - motoParam7;
         var5 = 13107;
         var6 = 39321;
@@ -812,14 +812,14 @@ void GamePhysics::method_47(int var1)
     int var11 = var3->velocityYF16;
     int var12 = -((int)((int64_t)var10 * (int64_t)field_33 >> 16) + (int)((int64_t)var11 * (int64_t)field_34 >> 16));
     int var13 = -((int)((int64_t)var10 * (int64_t)(-field_34) >> 16) + (int)((int64_t)var11 * (int64_t)field_33 >> 16));
-    int var14 = (int)((int64_t)var4 * (int64_t)var3->field_384 >> 16) - (int)((int64_t)var5 * (int64_t)((int)(((int64_t)var13 << 32) / (int64_t)var2->radiusF16 >> 16)) >> 16);
-    int var15 = (int)((int64_t)var7 * (int64_t)var13 >> 16) - (int)((int64_t)var6 * (int64_t)((int)((int64_t)var3->field_384 * (int64_t)var2->radiusF16 >> 16)) >> 16);
+    int var14 = (int)((int64_t)var4 * (int64_t)var3->angularVelocityF16 >> 16) - (int)((int64_t)var5 * (int64_t)((int)(((int64_t)var13 << 32) / (int64_t)var2->radiusF16 >> 16)) >> 16);
+    int var15 = (int)((int64_t)var7 * (int64_t)var13 >> 16) - (int)((int64_t)var6 * (int64_t)((int)((int64_t)var3->angularVelocityF16 * (int64_t)var2->radiusF16 >> 16)) >> 16);
     int var16 = -((int)((int64_t)var8 * (int64_t)var12 >> 16));
     int var17 = (int)((int64_t)(-var15) * (int64_t)(-field_34) >> 16);
     int var18 = (int)((int64_t)(-var15) * (int64_t)field_33 >> 16);
     int var19 = (int)((int64_t)(-var16) * (int64_t)field_33 >> 16);
     int var20 = (int)((int64_t)(-var16) * (int64_t)field_34 >> 16);
-    var3->field_384 = var14;
+    var3->angularVelocityF16 = var14;
     var3->velocityXF16 = var17 + var19;
     var3->velocityYF16 = var18 + var20;
 }
@@ -867,7 +867,7 @@ int GamePhysics::getRawXDistance()
     return field_35 ? levelLoader->getTrackProgressRatio(motoComponents[0]->xF16) : levelLoader->getTrackProgressRatio(var1);
 }
 
-void GamePhysics::method_53()
+void GamePhysics::syncBuffer5ToCurrent()
 {
     // synchronized (field_29) {
     for (int var2 = 0; var2 < 6; ++var2) {
@@ -878,7 +878,7 @@ void GamePhysics::method_53()
 
     field_29[0]->motoComponents[5]->velocityXF16 = field_29[0]->motoComponents[index01]->velocityXF16;
     field_29[0]->motoComponents[5]->velocityYF16 = field_29[0]->motoComponents[index01]->velocityYF16;
-    field_29[2]->motoComponents[5]->field_384 = field_29[2]->motoComponents[index01]->field_384;
+    field_29[2]->motoComponents[5]->angularVelocityF16 = field_29[2]->motoComponents[index01]->angularVelocityF16;
     // }
 }
 
@@ -893,7 +893,7 @@ void GamePhysics::setMotoComponents()
 
     motoComponents[0]->velocityXF16 = field_29[0]->motoComponents[5]->velocityXF16;
     motoComponents[0]->velocityYF16 = field_29[0]->motoComponents[5]->velocityYF16;
-    motoComponents[2]->field_384 = field_29[2]->motoComponents[5]->field_384;
+    motoComponents[2]->angularVelocityF16 = field_29[2]->motoComponents[5]->angularVelocityF16;
     // }
 }
 
