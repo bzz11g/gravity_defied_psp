@@ -203,11 +203,11 @@ void GameCanvas::fillRect(int x, int y, int w, int h)
     graphics->fillRect(var5, var6, w, h);
 }
 
-void GameCanvas::drawForthSpriteByCenter(int centerX, int centerY)
+void GameCanvas::drawAttachmentPointSprite(int x, int y)
 {
     int halfSizeX = spriteSizeX[4] / 2;
     int halfSizeY = spriteSizeY[4] / 2;
-    drawSprite(graphics, 4, addDx(centerX - halfSizeX), addDy(centerY + halfSizeY));
+    drawSprite(graphics, 4, addDx(x - halfSizeX), addDy(y + halfSizeY));
 }
 
 void GameCanvas::drawHelmet(int x, int y, int angleF16)
@@ -412,7 +412,8 @@ void GameCanvas::drawGame(Graphics* g)
                 updateSizeAndRepaint();
             }
 
-            gamePhysics->setMotoComponents();
+            gamePhysics->prepareRenderCache();
+            // Apply camera offsets for view adjustment
             setViewPosition(-gamePhysics->getCamPosX() + field_178 + width / 2, gamePhysics->getCamPosY() + field_179 + height2 / 2);
             gamePhysics->renderGame(this);
             if (isDrawingTime) {

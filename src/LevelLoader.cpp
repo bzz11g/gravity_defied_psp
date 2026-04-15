@@ -16,8 +16,8 @@ bool LevelLoader::isEnabledShadows = true;
 LevelLoader::LevelLoader(const std::filesystem::path& mrgFilePath)
 {
     for (int i = 0; i < 3; ++i) {
-        collisionRadiusSqOuter[i] = (int)((int64_t)((GamePhysics::const175_1_half[i] + 19660) >> 1) * (int64_t)((GamePhysics::const175_1_half[i] + 19660) >> 1) >> 16);
-        collisionRadiusSqInner[i] = (int)((int64_t)((GamePhysics::const175_1_half[i] - 19660) >> 1) * (int64_t)((GamePhysics::const175_1_half[i] - 19660) >> 1) >> 16);
+        collisionRadiusSqOuter[i] = (int)((int64_t)((GamePhysics::wheelRadiusValuesF16[i] + 19660) >> 1) * (int64_t)((GamePhysics::wheelRadiusValuesF16[i] + 19660) >> 1) >> 16);
+        collisionRadiusSqInner[i] = (int)((int64_t)((GamePhysics::wheelRadiusValuesF16[i] - 19660) >> 1) * (int64_t)((GamePhysics::wheelRadiusValuesF16[i] - 19660) >> 1) >> 16);
     }
 
     if (!mrgFilePath.string().empty()) {
@@ -171,7 +171,7 @@ void LevelLoader::precomputeTrackGeometry(GameLevel* level)
 
         // Compute normal vector (perpendicular to segment)
         int nx = -dy;
-        int length = GamePhysics::getSmthLikeMaxAbs(nx, dx);
+        int length = GamePhysics::fastVectorLengthF16(nx, dx);
         trackSegmentNormals[i][0] = (int)(((int64_t)nx << 32) / (int64_t)length >> 16);
         trackSegmentNormals[i][1] = (int)(((int64_t)dx << 32) / (int64_t)length >> 16);
 

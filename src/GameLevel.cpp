@@ -129,7 +129,7 @@ void GameLevel::renderLevel3D(GameCanvas* gameCanvas, int xF16, int yF16)
     }
     int var9 = xF16 - pointPositions[lineNo][0];
     int var10 = yF16 + 3276800 - pointPositions[lineNo][1];
-    int var11 = GamePhysics::getSmthLikeMaxAbs(var9, var10);
+    int var11 = GamePhysics::fastVectorLengthF16(var9, var10);
     var9 = (int)(((int64_t)var9 << 32) / (int64_t)(var11 >> 1 >> 1) >> 16);
     var10 = (int)(((int64_t)var10 << 32) / (int64_t)(var11 >> 1 >> 1) >> 16);
     gameCanvas->setColor(0, 170, 0);
@@ -139,7 +139,7 @@ void GameLevel::renderLevel3D(GameCanvas* gameCanvas, int xF16, int yF16)
         int var5 = var10;
         var9 = xF16 - pointPositions[lineNo + 1][0];
         var10 = yF16 + 3276800 - pointPositions[lineNo + 1][1];
-        var11 = GamePhysics::getSmthLikeMaxAbs(var9, var10);
+        var11 = GamePhysics::fastVectorLengthF16(var9, var10);
         var9 = (int)(((int64_t)var9 << 32) / (int64_t)(var11 >> 1 >> 1) >> 16);
         var10 = (int)(((int64_t)var10 << 32) / (int64_t)(var11 >> 1 >> 1) >> 16);
         // far line

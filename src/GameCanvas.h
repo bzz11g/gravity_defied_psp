@@ -87,7 +87,7 @@ public:
     void method_142(int var1, int var2, int var3, int var4);
     void drawCircle(int x, int y, int size);
     void fillRect(int x, int y, int w, int h);
-    void drawForthSpriteByCenter(int centerX, int centerY);
+    void drawAttachmentPointSprite(int x, int y);
     void drawHelmet(int var1, int var2, int var3);
     void drawTime(int64_t time10Ms);
     void method_150(int var1);

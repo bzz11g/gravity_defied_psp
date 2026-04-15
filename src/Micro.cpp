@@ -184,9 +184,9 @@ void Micro::run()
 
     while (isGameLoopRunning) {
         int physicsState;
-        if (gamePhysics->method_21() != menuManager->method_210()) {
+        if (gamePhysics->getRenderModeIndex() != menuManager->method_210()) {
             physicsState = gameCanvas->loadSprites(menuManager->method_210());
-            gamePhysics->method_22(physicsState);
+            gamePhysics->setRenderFlags(physicsState);
             menuManager->method_211(physicsState);
         }
 
@@ -278,7 +278,7 @@ void Micro::run()
         }
 
         try {
-            gamePhysics->syncBuffer5ToCurrent();
+            gamePhysics->captureRenderSnapshot();
             int64_t curMillis;
             if ((curMillis = Time::currentTimeMillis()) - lastMillis < 30L) {
                 // try {
@@ -305,7 +305,7 @@ void Micro::run()
 void Micro::goalLoop()
 {
     int64_t lastFrameTime = 0L;
-    if (!gamePhysics->field_69) {
+    if (!gamePhysics->frontWheelContactLatch) {
         gameCanvas->scheduleGameTimerTask("Wheelie!", 1000);
     } else {
         gameCanvas->scheduleGameTimerTask("Finished", 1000);
@@ -338,7 +338,7 @@ void Micro::goalLoop()
             }
         }
 
-        gamePhysics->syncBuffer5ToCurrent();
+        gamePhysics->captureRenderSnapshot();
         int64_t currentTime;
         if ((currentTime = Time::currentTimeMillis()) - lastFrameTime < 30L) {
             // try {

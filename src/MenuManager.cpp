@@ -509,8 +509,8 @@ void MenuManager::menuLoop(int var1)
     int64_t currentTimeMillis = Time::currentTimeMillis();
     micro->gameCanvas->isDrawingTime = false;
     int64_t var6 = 0L;
-    int8_t var8 = 50;
-    micro->gamePhysics->syncBuffer5ToCurrent();
+    int8_t var8 = 50; // 20 FPS target
+    micro->gamePhysics->captureRenderSnapshot();
     micro->gameToMenu();
 
     while (Micro::isInGameMenu && Micro::isGameLoopRunning && currentGameMenu != nullptr) {
@@ -521,7 +521,7 @@ void MenuManager::menuLoop(int var1)
                 micro->gamePhysics->resetPhysicsState(true);
             }
 
-            micro->gamePhysics->syncBuffer5ToCurrent();
+            micro->gamePhysics->captureRenderSnapshot();
             repaint();
             if ((var20 = Time::currentTimeMillis()) - var6 < (int64_t)var8) {
                 // try {
@@ -808,7 +808,7 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
             showAlert("GDTR", "Complete more tracks to unlock this track/league combo.", nullptr);
         }
     } else if (menuElement == perspectiveSetting) {
-        micro->gamePhysics->method_26(perspectiveSetting->getCurrentOptionPos() == 0);
+        micro->gamePhysics->invertYPositions(perspectiveSetting->getCurrentOptionPos() == 0);
         LevelLoader::isEnabledPerspective = perspectiveSetting->getCurrentOptionPos() == 0;
     } else if (menuElement == shadowsSetting) {
         LevelLoader::isEnabledShadows = shadowsSetting->getCurrentOptionPos() == 0;
