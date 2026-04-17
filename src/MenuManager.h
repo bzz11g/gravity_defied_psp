@@ -136,7 +136,7 @@ private:
     int8_t lastSelectedTrack = 0;
     int8_t lastSelectedLevel = 0;
     int8_t lastSelectedLeague = 0;
-    int8_t unknownGraphicsSetting = 0; // Graphics setting passed to method_124
+    int8_t unknownGraphicsSetting = 0; // Graphics setting passed to setInputConfigEnabled
     int8_t unknownSetting15 = 0; // Unknown setting from save index 15
     std::vector<std::string> onOffOptions; // {"On", "Off"}
     // {"Keyset 1", "Keyset 2", "Keyset 3"}

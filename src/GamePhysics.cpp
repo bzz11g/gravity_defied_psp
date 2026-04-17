@@ -1339,7 +1339,7 @@ void GamePhysics::renderGame(GameCanvas* gameCanvas)
 
     // Draw the front wheel hub/details
     int frontWheelAngle = MathF16::atan2F16(upXF16, upYF16);
-    gameCanvas->method_142(
+    gameCanvas->drawWheelHub(
         renderCache[1]->xF16 << 2 >> 16,
         renderCache[1]->yF16 << 2 >> 16,
         wheelRadiusValuesF16[0] << 2 >> 16,
