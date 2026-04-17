@@ -28,12 +28,12 @@ void Micro::gameToMenu()
 {
     gameCanvas->removeMenuCommand();
     isInGameMenu = true;
-    menuManager->addOkAndBackCommands();
+    menuManager->addCommands();
 }
 
 void Micro::menuToGame()
 {
-    menuManager->removeOkAndBackCommands();
+    menuManager->removeCommands();
     isInGameMenu = false;
     gameCanvas->addMenuCommand();
 }
@@ -53,25 +53,25 @@ int64_t Micro::goLoadingStep()
         break;
     case 3:
         menuManager = new MenuManager(this);
-        menuManager->initPart(1);
+        menuManager->initializePhase(1);
         break;
     case 4:
-        menuManager->initPart(2);
+        menuManager->initializePhase(2);
         break;
     case 5:
-        menuManager->initPart(3);
+        menuManager->initializePhase(3);
         break;
     case 6:
-        menuManager->initPart(4);
+        menuManager->initializePhase(4);
         break;
     case 7:
-        menuManager->initPart(5);
+        menuManager->initializePhase(5);
         break;
     case 8:
-        menuManager->initPart(6);
+        menuManager->initializePhase(6);
         break;
     case 9:
-        menuManager->initPart(7);
+        menuManager->initializePhase(7);
         break;
     case 10:
         gameCanvas->setMenuManager(menuManager);
@@ -129,7 +129,7 @@ void Micro::restart(bool scheduleTimerTask)
     gameTimeMs = 0;
     crashRestartTimeMs = 0;
     if (scheduleTimerTask) {
-        gameCanvas->scheduleGameTimerTask(levelLoader->getName(menuManager->getCurrentLevel(), menuManager->getCurrentTrack()), 3000);
+        gameCanvas->scheduleGameTimerTask(levelLoader->getName(menuManager->getSelectedLevel(), menuManager->getSelectedTrack()), 3000);
     }
 
     gameCanvas->reset();
@@ -140,7 +140,7 @@ void Micro::destroyApp(bool var1) // TODO: unused parameter
     (void)var1;
     isGameLoopRunning = false;
     isAboutToExit = true;
-    menuManager->saveSmthToRecordStoreAndCloseIt();
+    menuManager->saveStateAndCloseRecordStore();
 }
 
 void Micro::startApp(int argc, char** argv)
@@ -175,8 +175,8 @@ void Micro::run()
 
     gameCanvas->setCommandListener(gameCanvas);
     restart(false);
-    menuManager->menuLoop(0);
-    if (menuManager->method_196()) {
+    menuManager->runMenuLoop(0);
+    if (menuManager->consumeShouldStartRaceFlag()) {
         restart(true);
     }
 
@@ -184,17 +184,17 @@ void Micro::run()
 
     while (isGameLoopRunning) {
         int physicsState;
-        if (gamePhysics->getRenderModeIndex() != menuManager->method_210()) {
-            physicsState = gameCanvas->loadSprites(menuManager->method_210());
+        if (gamePhysics->getRenderModeIndex() != menuManager->getGraphicsFlags()) {
+            physicsState = gameCanvas->loadSprites(menuManager->getGraphicsFlags());
             gamePhysics->setRenderFlags(physicsState);
-            menuManager->method_211(physicsState);
+            menuManager->applyGraphicsFlags(physicsState);
         }
 
         bool shouldContinueLoop;
         try {
             if (isInGameMenu) {
-                menuManager->menuLoop(1);
-                if (menuManager->method_196()) {
+                menuManager->runMenuLoop(1);
+                if (menuManager->consumeShouldStartRaceFlag()) {
                     restart(true);
                 }
             }
@@ -255,8 +255,8 @@ void Micro::run()
 
                     goalLoop();
                     menuManager->setFinishTime(gameTimeMs / 10L);
-                    menuManager->menuLoop(2);
-                    if (menuManager->method_196()) {
+                    menuManager->runMenuLoop(2);
+                    if (menuManager->consumeShouldStartRaceFlag()) {
                         restart(true);
                     }
 

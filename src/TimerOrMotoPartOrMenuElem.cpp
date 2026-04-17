@@ -44,14 +44,14 @@ bool TimerOrMotoPartOrMenuElem::isNotTextRender()
     return true;
 }
 
-void TimerOrMotoPartOrMenuElem::menuElemMethod(int var1)
+void TimerOrMotoPartOrMenuElem::menuElemMethod(int action)
 {
-    switch (var1) {
+    switch (action) {
     case 1:
     case 2:
-        menuManager->processMenu(this);
-        gameMenu->setGameMenu(menuManager->getGameMenu());
-        menuManager->method_1(gameMenu, false);
+        menuManager->handleMenuSelection(this);
+        gameMenu->setGameMenu(menuManager->getCurrentMenu());
+        menuManager->switchToMenu(gameMenu, false);
     case 3:
     default:
         break;

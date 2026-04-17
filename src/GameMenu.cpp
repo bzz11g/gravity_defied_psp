@@ -278,7 +278,7 @@ void GameMenu::processGameActionUpd(int var1)
         switch (var1) {
         case 1:
             if (nameCursorPos == 2) {
-                micro->menuManager->method_1(gameMenu, false);
+                micro->menuManager->switchToMenu(gameMenu, false);
                 return;
             }
 

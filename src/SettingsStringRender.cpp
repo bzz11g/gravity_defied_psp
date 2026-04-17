@@ -98,15 +98,15 @@ bool SettingsStringRender::isNotTextRender()
     return true;
 }
 
-void SettingsStringRender::menuElemMethod(int var1)
+void SettingsStringRender::menuElemMethod(int action)
 {
     if (useColon) {
-        if (var1 == 1) {
-            menuManager->processMenu(this);
+        if (action == 1) {
+            menuManager->handleMenuSelection(this);
             return;
         }
     } else {
-        switch (var1) {
+        switch (action) {
         case 1:
             if (field_146) {
                 ++currentOptionPos;
@@ -120,19 +120,19 @@ void SettingsStringRender::menuElemMethod(int var1)
                     selectedOptionName = "On";
                 }
 
-                menuManager->processMenu(this);
+                menuManager->handleMenuSelection(this);
                 return;
             }
 
             field_147 = true;
-            menuManager->processMenu(this);
+            menuManager->handleMenuSelection(this);
             return;
         case 2:
             if (field_146) {
                 if (currentOptionPos == 1) {
                     currentOptionPos = 0;
                     selectedOptionName = "On";
-                    menuManager->processMenu(this);
+                    menuManager->handleMenuSelection(this);
                 }
 
                 return;
@@ -142,7 +142,7 @@ void SettingsStringRender::menuElemMethod(int var1)
             if (currentOptionPos > static_cast<int>(optionsList.size()) - 1) {
                 currentOptionPos = optionsList.size() - 1;
             } else {
-                menuManager->processMenu(this);
+                menuManager->handleMenuSelection(this);
             }
 
             selectCurrentOptionName();
@@ -152,7 +152,7 @@ void SettingsStringRender::menuElemMethod(int var1)
                 if (currentOptionPos == 0) {
                     currentOptionPos = 1;
                     selectedOptionName = "Off";
-                    menuManager->processMenu(this);
+                    menuManager->handleMenuSelection(this);
                 }
 
                 return;
@@ -163,7 +163,7 @@ void SettingsStringRender::menuElemMethod(int var1)
                 currentOptionPos = 0;
             } else {
                 selectCurrentOptionName();
-                menuManager->processMenu(this);
+                menuManager->handleMenuSelection(this);
             }
 
             selectCurrentOptionName();
@@ -254,33 +254,38 @@ int SettingsStringRender::getCurrentOptionPos()
     return currentOptionPos;
 }
 
-GameMenu* SettingsStringRender::getGameMenu()
+GameMenu* SettingsStringRender::getCurrentMenu()
 {
     return currentGameMenu;
 }
 
-void SettingsStringRender::method_1(GameMenu* var1, bool var2)
+GameMenu* SettingsStringRender::getParentGameMenu()
 {
-    (void)var1;
-    (void)var2;
+    return parentGameMenu;
 }
 
-void SettingsStringRender::saveSmthToRecordStoreAndCloseIt()
+void SettingsStringRender::switchToMenu(GameMenu* menu, bool skipSelectionReset)
+{
+    (void)menu;
+    (void)skipSelectionReset;
+}
+
+void SettingsStringRender::saveStateAndCloseRecordStore()
 {
 }
 
-void SettingsStringRender::processMenu(IGameMenuElement* var1)
+void SettingsStringRender::handleMenuSelection(IGameMenuElement* element)
 {
-    for (int var2 = 0; var2 < static_cast<int>(settingsStringRenders.size()); ++var2) {
-        if (var1 == settingsStringRenders[var2]) {
-            currentOptionPos = var2;
+    for (int i = 0; i < static_cast<int>(settingsStringRenders.size()); ++i) {
+        if (element == settingsStringRenders[i]) {
+            currentOptionPos = i;
             selectCurrentOptionName();
             break;
         }
     }
 
-    menuManager->method_1(parentGameMenu, true);
-    menuManager->processMenu(this);
+    menuManager->switchToMenu(parentGameMenu, true);
+    menuManager->handleMenuSelection(this);
 }
 
 std::vector<SettingsStringRender*> SettingsStringRender::getSettingsStringRenders()

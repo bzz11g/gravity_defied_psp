@@ -46,10 +46,11 @@ public:
     std::vector<std::string> getOptionsList();
     void setCurentOptionPos(int pos);
     int getCurrentOptionPos();
-    GameMenu* getGameMenu();
-    void method_1(GameMenu* var1, bool var2);
-    void saveSmthToRecordStoreAndCloseIt();
-    void processMenu(IGameMenuElement* var1);
+    GameMenu* getCurrentMenu();
+    GameMenu* getParentGameMenu();
+    void switchToMenu(GameMenu* menu, bool skipSelectionReset);
+    void saveStateAndCloseRecordStore();
+    void handleMenuSelection(IGameMenuElement* element);
     std::vector<SettingsStringRender*> getSettingsStringRenders();
     bool method_114();
 };
