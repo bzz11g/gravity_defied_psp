@@ -347,7 +347,7 @@ bool MenuManager::consumeShouldStartRaceFlag()
 void MenuManager::saveHighscoreAndShowResults()
 {
     // Save the record and update progression
-    recordManager->method_17(leagueSetting->getCurrentOptionPos(), playerName, finishTime);
+    recordManager->addRecord(leagueSetting->getCurrentOptionPos(), playerName, finishTime);
     recordManager->writeRecordInfo();
     isAllTracksCompletedAtLevel = false;
     finishedTrackMenu->clearVector();
@@ -484,7 +484,7 @@ void MenuManager::runMenuLoop(int menuType)
         finishedTrackMenu->clearVector();
         savedLevelBeforeMenu = levelSetting->getCurrentOptionPos();
         savedTrackBeforeMenu = trackSetting->getCurrentOptionPos();
-        recordManager->method_8(levelSetting->getCurrentOptionPos(), trackSetting->getCurrentOptionPos());
+        recordManager->openRecordStore(levelSetting->getCurrentOptionPos(), trackSetting->getCurrentOptionPos());
         int newRecordPosition = recordManager->getPosOfNewRecord(leagueSetting->getCurrentOptionPos(), finishTime);
         finishTimeFormatted = formatTime(finishTime);
         if (newRecordPosition >= 0 && newRecordPosition <= 2) {
@@ -576,7 +576,7 @@ void MenuManager::runMenuLoop(int menuType)
     if (currentGameMenu != nullptr && !isMenuRenderingBlocked) {
         micro->gameCanvas->drawGame(graphics);
         tileBackgroundImage(graphics);
-        currentGameMenu->render_76(graphics);
+        currentGameMenu->render(graphics);
     }
 }
 
@@ -694,7 +694,7 @@ void MenuManager::switchToMenu(GameMenu* menu, bool skipSelectionReset)
 
     currentGameMenu = menu;
     if (currentGameMenu != nullptr && !skipSelectionReset) {
-        currentGameMenu->method_70();
+        currentGameMenu->resetToFirstItem();
     }
 
     isMenuRenderingBlocked = false;
@@ -703,7 +703,7 @@ void MenuManager::switchToMenu(GameMenu* menu, bool skipSelectionReset)
 void MenuManager::refreshHighscoreDisplay(int leagueIndex)
 {
     highscoreMenu->clearVector();
-    recordManager->method_8(levelSetting->getCurrentOptionPos(), trackSetting->getCurrentOptionPos());
+    recordManager->openRecordStore(levelSetting->getCurrentOptionPos(), trackSetting->getCurrentOptionPos());
     highscoreMenu->addMenuElement(new TextRender(micro->levelLoader->getName(levelSetting->getCurrentOptionPos(), trackSetting->getCurrentOptionPos()), micro));
     highscoreMenu->addMenuElement(new TextRender("LEAGUE: " + leagueSetting->getOptionsList()[leagueIndex], micro));
     std::vector<std::string> recordDescriptions = recordManager->getRecordDescription(leagueIndex);
@@ -822,18 +822,18 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
         LevelLoader::isEnabledShadows = shadowsSetting->getCurrentOptionPos() == 0;
     } else {
         if (element == driverSpriteSetting) {
-            if (driverSpriteSetting->method_114()) {
+            if (driverSpriteSetting->checkAndClearSelectionFlag()) {
                 driverSpriteSetting->setCurentOptionPos(driverSpriteSetting->getCurrentOptionPos() + 1);
                 return;
             }
         } else if (element == bikeSpriteSetting) {
-            if (bikeSpriteSetting->method_114()) {
+            if (bikeSpriteSetting->checkAndClearSelectionFlag()) {
                 bikeSpriteSetting->setCurentOptionPos(bikeSpriteSetting->getCurrentOptionPos() + 1);
                 return;
             }
         } else {
             if (element == inputSetting) {
-                if (inputSetting->method_114()) {
+                if (inputSetting->checkAndClearSelectionFlag()) {
                     inputSetting->setCurentOptionPos(inputSetting->getCurrentOptionPos() + 1);
                 }
 
@@ -918,7 +918,7 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
                 }
 
                 if (element == nameEntrySetting) {
-                    enterNameMenu->method_70();
+                    enterNameMenu->resetToFirstItem();
                     switchToMenu(enterNameMenu, false);
                     return;
                 }
@@ -929,12 +929,12 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
                 }
 
                 if (element == trackSetting) {
-                    if (trackSetting->method_114()) {
+                    if (trackSetting->checkAndClearSelectionFlag()) {
                         trackSetting->setAvailableOptions(maxUnlockedTracksPerLevel[levelSetting->getCurrentOptionPos()]);
                         trackSetting->init();
                         trackSelectionParentMenu = trackSetting->getParentGameMenu();
                         switchToMenu(trackSelectionParentMenu, false);
-                        trackSelectionParentMenu->method_83(trackSetting->getCurrentOptionPos());
+                        trackSelectionParentMenu->navigateToItem(trackSetting->getCurrentOptionPos());
                     }
 
                     lastSelectedTrackPerLevel[levelSetting->getCurrentOptionPos()] = trackSetting->getCurrentOptionPos();
@@ -942,10 +942,10 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
                 }
 
                 if (element == levelSetting) {
-                    if (levelSetting->method_114()) {
+                    if (levelSetting->checkAndClearSelectionFlag()) {
                         levelSelectionMenu = levelSetting->getParentGameMenu();
                         switchToMenu(levelSelectionMenu, false);
-                        levelSelectionMenu->method_83(levelSetting->getCurrentOptionPos());
+                        levelSelectionMenu->navigateToItem(levelSetting->getCurrentOptionPos());
                     }
 
                     trackSetting->setOptionsList(micro->levelLoader->trackNames[levelSetting->getCurrentOptionPos()]);
@@ -955,11 +955,11 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
                     return;
                 }
 
-                if (element == leagueSetting && leagueSetting->method_114()) {
+                if (element == leagueSetting && leagueSetting->checkAndClearSelectionFlag()) {
                     leagueSelectionMenu = leagueSetting->getParentGameMenu();
                     leagueSetting->setParentGameMenu(currentGameMenu);
                     switchToMenu(leagueSelectionMenu, false);
-                    leagueSelectionMenu->method_83(leagueSetting->getCurrentOptionPos());
+                    leagueSelectionMenu->navigateToItem(leagueSetting->getCurrentOptionPos());
                 }
             }
         }

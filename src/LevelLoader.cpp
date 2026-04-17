@@ -138,7 +138,7 @@ int LevelLoader::getStartPosY()
 int LevelLoader::getTrackProgressRatio(int xF16)
 {
     // Convert from F16 and compute progress ratio along track
-    return gameLevel->method_181(xF16 >> 1);
+    return gameLevel->calculateProgressPercent(xF16 >> 1);
 }
 
 void LevelLoader::precomputeTrackGeometry(GameLevel* level)
@@ -218,7 +218,7 @@ void LevelLoader::renderTrackCenterline(GameCanvas* canvas)
 void LevelLoader::updateVisibleSegmentRange(int minXF16, int maxXF16, int centerYF16)
 {
     // Update level rendering bounds (with margin)
-    gameLevel->method_184((minXF16 + 98304) >> 1, (maxXF16 - 98304) >> 1, centerYF16 >> 1);
+    gameLevel->setShadowBoundaries((minXF16 + 98304) >> 1, (maxXF16 - 98304) >> 1, centerYF16 >> 1);
 
     // Convert bounds from F16 to internal format
     maxXF16 >>= 1;

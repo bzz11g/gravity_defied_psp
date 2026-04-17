@@ -5,7 +5,7 @@
 #include "GameCanvas.h"
 #include "lcdui/Graphics.h"
 
-SettingsStringRender::SettingsStringRender(std::string text, int isDisabled, IMenuManager* menuManager, std::vector<std::string> optionsList, bool var5, Micro* micro, GameMenu* gameMenu, bool useColon)
+SettingsStringRender::SettingsStringRender(std::string text, int isDisabled, IMenuManager* menuManager, std::vector<std::string> optionsList, bool isToggle, Micro* micro, GameMenu* gameMenu, bool useColon)
 {
     this->micro = micro;
     if (useColon) {
@@ -25,9 +25,9 @@ SettingsStringRender::SettingsStringRender(std::string text, int isDisabled, IMe
         }
 
         maxAvailableOption = optionsList.size() - 1;
-        field_146 = var5;
+        isToggleMode = isToggle;
         setCurentOptionPos(isDisabled);
-        if (var5) {
+        if (isToggle) {
             if (isDisabled == 1) {
                 selectedOptionName = "Off";
             } else {
@@ -47,9 +47,9 @@ void SettingsStringRender::setFlags(bool hasSprite, bool isDrawSprite8)
     this->isDrawSprite8 = isDrawSprite8;
 }
 
-void SettingsStringRender::setOptionsList(std::vector<std::string> var1)
+void SettingsStringRender::setOptionsList(std::vector<std::string> options)
 {
-    optionsList = var1;
+    optionsList = options;
     if (currentOptionPos > static_cast<int>(optionsList.size()) - 1) {
         currentOptionPos = optionsList.size() - 1;
     }
@@ -67,15 +67,15 @@ void SettingsStringRender::init()
     currentGameMenu = new GameMenu(text, micro, parentGameMenu);
     settingsStringRenders = std::vector<SettingsStringRender*>(optionsList.size());
 
-    for (int var1 = 0; var1 < static_cast<int>(settingsStringRenders.size()); ++var1) {
-        if (var1 > maxAvailableOption) {
-            settingsStringRenders[var1] = new SettingsStringRender(optionsList[var1], 0, this, std::vector<std::string>(), false, micro, parentGameMenu, true);
-            settingsStringRenders[var1]->setFlags(true, true);
+    for (int i = 0; i < static_cast<int>(settingsStringRenders.size()); ++i) {
+        if (i > maxAvailableOption) {
+            settingsStringRenders[i] = new SettingsStringRender(optionsList[i], 0, this, std::vector<std::string>(), false, micro, parentGameMenu, true);
+            settingsStringRenders[i]->setFlags(true, true);
         } else {
-            settingsStringRenders[var1] = new SettingsStringRender(optionsList[var1], 0, this, std::vector<std::string>(), false, micro, parentGameMenu, true);
+            settingsStringRenders[i] = new SettingsStringRender(optionsList[i], 0, this, std::vector<std::string>(), false, micro, parentGameMenu, true);
         }
 
-        currentGameMenu->addMenuElement(settingsStringRenders[var1]);
+        currentGameMenu->addMenuElement(settingsStringRenders[i]);
     }
 }
 
@@ -108,7 +108,7 @@ void SettingsStringRender::menuElemMethod(int action)
     } else {
         switch (action) {
         case 1:
-            if (field_146) {
+            if (isToggleMode) {
                 ++currentOptionPos;
                 if (currentOptionPos > 1) {
                     currentOptionPos = 0;
@@ -124,11 +124,11 @@ void SettingsStringRender::menuElemMethod(int action)
                 return;
             }
 
-            field_147 = true;
+            isSelectionConfirmed = true;
             menuManager->handleMenuSelection(this);
             return;
         case 2:
-            if (field_146) {
+            if (isToggleMode) {
                 if (currentOptionPos == 1) {
                     currentOptionPos = 0;
                     selectedOptionName = "On";
@@ -148,7 +148,7 @@ void SettingsStringRender::menuElemMethod(int action)
             selectCurrentOptionName();
             return;
         case 3:
-            if (field_146) {
+            if (isToggleMode) {
                 if (currentOptionPos == 0) {
                     currentOptionPos = 1;
                     selectedOptionName = "Off";
@@ -192,7 +192,7 @@ void SettingsStringRender::render(Graphics* graphics, int y, int x)
     } else {
         graphics->drawString(text, x, y, 20);
         int shiftedX = x + graphics->getFont()->stringWidth(text);
-        if (currentOptionPos > maxAvailableOption && !field_146) {
+        if (currentOptionPos > maxAvailableOption && !isToggleMode) {
             micro->gameCanvas->drawSprite(graphics, 8, shiftedX + 1, y - GameCanvas::spriteSizeY[8] / 2 + graphics->getFont()->getHeight() / 2);
             shiftedX += GameCanvas::spriteSizeX[9] + 1;
         }
@@ -293,12 +293,12 @@ std::vector<SettingsStringRender*> SettingsStringRender::getSettingsStringRender
     return settingsStringRenders;
 }
 
-bool SettingsStringRender::method_114()
+bool SettingsStringRender::checkAndClearSelectionFlag()
 {
-    if (field_147) {
-        field_147 = false;
+    if (isSelectionConfirmed) {
+        isSelectionConfirmed = false;
         return true;
     } else {
-        return field_147;
+        return isSelectionConfirmed;
     }
 }

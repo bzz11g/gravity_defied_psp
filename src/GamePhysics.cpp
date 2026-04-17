@@ -156,7 +156,7 @@ void GamePhysics::resetPhysicsState(bool unused)
     isGenerateInputAI = false;
     isTrackStartedFlag2 = false;
     isTrackStartedFlag = false;
-    levelLoader->gameLevel->method_183(motoComponents[2]->stateBuffers[5]->xF16 + 98304 - wheelRadiusValuesF16[0], motoComponents[1]->stateBuffers[5]->xF16 - 98304 + wheelRadiusValuesF16[0]);
+    levelLoader->gameLevel->setShadowBoundariesHalf(motoComponents[2]->stateBuffers[5]->xF16 + 98304 - wheelRadiusValuesF16[0], motoComponents[1]->stateBuffers[5]->xF16 - 98304 + wheelRadiusValuesF16[0]);
 }
 
 void GamePhysics::invertYPositions(bool isInverted)
@@ -1314,9 +1314,9 @@ void GamePhysics::renderGame(GameCanvas* gameCanvas)
         int frontX = renderCache[4]->xF16;
         int rearX = renderCache[3]->xF16;
         if (rearX >= frontX) {
-            levelLoader->gameLevel->method_183(frontX, rearX);
+            levelLoader->gameLevel->setShadowBoundariesHalf(frontX, rearX);
         } else {
-            levelLoader->gameLevel->method_183(rearX, frontX);
+            levelLoader->gameLevel->setShadowBoundariesHalf(rearX, frontX);
         }
     }
 
