@@ -3,7 +3,7 @@
 #include <vector>
 #include <memory>
 
-#include "TimerOrMotoPartOrMenuElem.h"
+#include "PhysicsElemOrMenuItem.h"
 
 // Moto component physics data (bike parts: chassis, wheels, rider, etc.)
 class MotoComponent {
@@ -26,7 +26,7 @@ public:
      * 4 - Midpoint state (predictor-corrector)
      * 5 - Render snapshot (copied to GamePhysics::renderCache)
      */
-    std::vector<std::unique_ptr<TimerOrMotoPartOrMenuElem>> stateBuffers = std::vector<std::unique_ptr<TimerOrMotoPartOrMenuElem>>(6);
+    std::vector<std::unique_ptr<PhysicsElemOrMenuItem>> stateBuffers = std::vector<std::unique_ptr<PhysicsElemOrMenuItem>>(6);
 
     MotoComponent();
     ~MotoComponent() = default;

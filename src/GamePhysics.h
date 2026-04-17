@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <memory>
-#include "TimerOrMotoPartOrMenuElem.h"
+#include "PhysicsElemOrMenuItem.h"
 
 class LevelLoader;
 class MotoComponent;
@@ -46,7 +46,7 @@ private:
      * 8 - rider ↔ handlebar
      * 9 - rider ↔ chassis
      */
-    std::vector<std::unique_ptr<TimerOrMotoPartOrMenuElem>> springConstraints;
+    std::vector<std::unique_ptr<PhysicsElemOrMenuItem>> springConstraints;
 
     // Engine momentum / throttle value (drives wheel torque)
     int engineMomentumF16 = 0;
@@ -82,7 +82,7 @@ private:
      * 4 - seat
      * 5 - player
      */
-    std::vector<std::unique_ptr<TimerOrMotoPartOrMenuElem>> renderCache = std::vector<std::unique_ptr<TimerOrMotoPartOrMenuElem>>(6);
+    std::vector<std::unique_ptr<PhysicsElemOrMenuItem>> renderCache = std::vector<std::unique_ptr<PhysicsElemOrMenuItem>>(6);
     // Physics frame counter - incremented each physics frame
     int physicsFrameCounter;
     bool isInputAcceleration;
@@ -128,7 +128,7 @@ private:
     void processLeanInput();
     int physicsSubstepLoop(int iterations);
     void applyForces(int bufferIndex);
-    void applySpringConstraint(MotoComponent* anchor, TimerOrMotoPartOrMenuElem* spring, MotoComponent* target, int bufferIndex, int stiffnessF16);
+    void applySpringConstraint(MotoComponent* anchor, PhysicsElemOrMenuItem* spring, MotoComponent* target, int bufferIndex, int stiffnessF16);
     void integratePosition(int fromBuffer, int toBuffer, int dtF16);
     void interpolatePosition(int toBuffer, int buf1, int buf2);
     void performPhysicsSubstep(int dtF16);

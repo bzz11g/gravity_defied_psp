@@ -8,7 +8,7 @@
 GamePhysics::GamePhysics(LevelLoader* levelLoader)
 {
     for (int i = 0; i < 6; ++i) {
-        renderCache[i] = std::make_unique<TimerOrMotoPartOrMenuElem>();
+        renderCache[i] = std::make_unique<PhysicsElemOrMenuItem>();
     }
 
     physicsFrameCounter = 0;
@@ -177,7 +177,7 @@ void GamePhysics::resetPhysics(int startX, int startY)
     }
 
     if (springConstraints.empty()) {
-        springConstraints = std::vector<std::unique_ptr<TimerOrMotoPartOrMenuElem>>(10);
+        springConstraints = std::vector<std::unique_ptr<PhysicsElemOrMenuItem>>(10);
     }
 
     int massValue = 0;
@@ -244,7 +244,7 @@ void GamePhysics::resetPhysics(int startX, int startY)
 
     for (i = 0; i < 10; ++i) {
         if (springConstraints[i] == nullptr) {
-            springConstraints[i] = std::make_unique<TimerOrMotoPartOrMenuElem>();
+            springConstraints[i] = std::make_unique<PhysicsElemOrMenuItem>();
         }
 
         springConstraints[i]->setToZeros();
@@ -383,7 +383,7 @@ void GamePhysics::processLeanInput()
 
         if (isInputBack || isInputForward) {
             int negDy = -dy;
-            TimerOrMotoPartOrMenuElem* elem;
+            PhysicsElemOrMenuItem* elem;
             int interpFactor;
             int sensitivity;
             int forceX;
@@ -584,7 +584,7 @@ label77:
 
 void GamePhysics::applyForces(int bufferIndex)
 {
-    TimerOrMotoPartOrMenuElem* elem;
+    PhysicsElemOrMenuItem* elem;
     int i;
 
     for (i = 0; i < 6; ++i) {
@@ -681,10 +681,10 @@ int GamePhysics::fastVectorLengthF16(int xF16, int yF16)
     return (int)(64448L * (int64_t)maxAbs >> 16) + (int)(28224L * (int64_t)minAbs >> 16);
 }
 
-void GamePhysics::applySpringConstraint(MotoComponent* anchor, TimerOrMotoPartOrMenuElem* spring, MotoComponent* target, int bufferIndex, int stiffnessF16)
+void GamePhysics::applySpringConstraint(MotoComponent* anchor, PhysicsElemOrMenuItem* spring, MotoComponent* target, int bufferIndex, int stiffnessF16)
 {
-    TimerOrMotoPartOrMenuElem* anchorElem = anchor->stateBuffers[bufferIndex].get();
-    TimerOrMotoPartOrMenuElem* targetElem = target->stateBuffers[bufferIndex].get();
+    PhysicsElemOrMenuItem* anchorElem = anchor->stateBuffers[bufferIndex].get();
+    PhysicsElemOrMenuItem* targetElem = target->stateBuffers[bufferIndex].get();
     int dx = anchorElem->xF16 - targetElem->xF16;
     int dy = anchorElem->yF16 - targetElem->yF16;
     int dist;
@@ -711,8 +711,8 @@ void GamePhysics::applySpringConstraint(MotoComponent* anchor, TimerOrMotoPartOr
 void GamePhysics::integratePosition(int fromBuffer, int toBuffer, int dtF16)
 {
     for (int i = 0; i < 6; ++i) {
-        TimerOrMotoPartOrMenuElem* fromElem = motoComponents[i]->stateBuffers[fromBuffer].get();
-        TimerOrMotoPartOrMenuElem* toElem;
+        PhysicsElemOrMenuItem* fromElem = motoComponents[i]->stateBuffers[fromBuffer].get();
+        PhysicsElemOrMenuItem* toElem;
         (toElem = motoComponents[i]->stateBuffers[toBuffer].get())->xF16 = (int)((int64_t)fromElem->velocityXF16 * (int64_t)dtF16 >> 16);
         toElem->yF16 = (int)((int64_t)fromElem->velocityYF16 * (int64_t)dtF16 >> 16);
         int invMassDt = (int)((int64_t)dtF16 * (int64_t)motoComponents[i]->inverseMassF16 >> 16);
@@ -724,9 +724,9 @@ void GamePhysics::integratePosition(int fromBuffer, int toBuffer, int dtF16)
 void GamePhysics::interpolatePosition(int toBuffer, int buf1, int buf2)
 {
     for (int i = 0; i < 6; ++i) {
-        TimerOrMotoPartOrMenuElem* toElem = motoComponents[i]->stateBuffers[toBuffer].get();
-        TimerOrMotoPartOrMenuElem* elem1 = motoComponents[i]->stateBuffers[buf1].get();
-        TimerOrMotoPartOrMenuElem* elem2 = motoComponents[i]->stateBuffers[buf2].get();
+        PhysicsElemOrMenuItem* toElem = motoComponents[i]->stateBuffers[toBuffer].get();
+        PhysicsElemOrMenuItem* elem1 = motoComponents[i]->stateBuffers[buf1].get();
+        PhysicsElemOrMenuItem* elem2 = motoComponents[i]->stateBuffers[buf2].get();
         toElem->xF16 = elem1->xF16 + (elem2->xF16 >> 1);
         toElem->yF16 = elem1->yF16 + (elem2->yF16 >> 1);
         toElem->velocityXF16 = elem1->velocityXF16 + (elem2->velocityXF16 >> 1);
@@ -746,8 +746,8 @@ void GamePhysics::performPhysicsSubstep(int dtF16)
     interpolatePosition(writeBufferIndex, writeBufferIndex, 3);
 
     for (int i = 1; i <= 2; ++i) {
-        TimerOrMotoPartOrMenuElem* fromElem = motoComponents[i]->stateBuffers[readBufferIndex].get();
-        TimerOrMotoPartOrMenuElem* toElem;
+        PhysicsElemOrMenuItem* fromElem = motoComponents[i]->stateBuffers[readBufferIndex].get();
+        PhysicsElemOrMenuItem* toElem;
         (toElem = motoComponents[i]->stateBuffers[writeBufferIndex].get())->angleF16 = fromElem->angleF16 + (int)((int64_t)dtF16 * (int64_t)fromElem->angularVelocityF16 >> 16);
         toElem->angularVelocityF16 = fromElem->angularVelocityF16 + (int)((int64_t)dtF16 * (int64_t)((int)((int64_t)motoComponents[i]->leanInfluenceF16 * (int64_t)fromElem->torqueF16 >> 16)) >> 16);
     }
@@ -774,7 +774,7 @@ int GamePhysics::checkTrackCollisions(int bufferIndex)
     for (int compIdx = 0; compIdx < 6; ++compIdx) {
         // Skip handlebar and seat for collision
         if (compIdx != 4 && compIdx != 3) {
-            TimerOrMotoPartOrMenuElem* elem = motoComponents[compIdx]->stateBuffers[bufferIndex].get();
+            PhysicsElemOrMenuItem* elem = motoComponents[compIdx]->stateBuffers[bufferIndex].get();
 
             // Offset chassis position for accurate collision
             if (compIdx == 0) {
@@ -821,7 +821,7 @@ int GamePhysics::checkTrackCollisions(int bufferIndex)
 void GamePhysics::applyCollisionResponse(int bufferIndex)
 {
     MotoComponent* collidedComp = motoComponents[lastCollidedComponentIndex].get();
-    TimerOrMotoPartOrMenuElem* elem = collidedComp->stateBuffers[bufferIndex].get();
+    PhysicsElemOrMenuItem* elem = collidedComp->stateBuffers[bufferIndex].get();
 
     // Push element out of collision along normal
     elem->xF16 += (int)((int64_t)collisionNormalXF16 * 3276L >> 16);

@@ -182,10 +182,10 @@ void MenuManager::initializePhase(int phase)
         enterNameMenu = new GameMenu("Enter Name", micro, finishedTrackMenu, playerName);
         confirmClearHighscoresMenu = new GameMenu("Confirm Clear", micro, optionsMenu);
         confirmFullResetMenu = new GameMenu("Confirm Reset", micro, confirmClearHighscoresMenu);
-        playMenuTask = new TimerOrMotoPartOrMenuElem("Play Menu", playMenu, this);
-        optionsTask = new TimerOrMotoPartOrMenuElem("Options", optionsMenu, this);
-        helpTask = new TimerOrMotoPartOrMenuElem("Help", helpMenu, this);
-        aboutTask = new TimerOrMotoPartOrMenuElem("About", aboutMenu, this);
+        playMenuTask = new PhysicsElemOrMenuItem("Play Menu", playMenu, this);
+        optionsTask = new PhysicsElemOrMenuItem("Options", optionsMenu, this);
+        helpTask = new PhysicsElemOrMenuItem("Help", helpMenu, this);
+        aboutTask = new PhysicsElemOrMenuItem("About", aboutMenu, this);
         exitGameSetting = new SettingsStringRender("Exit Game", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
         mainMenu->addMenuElement(playMenuTask);
         mainMenu->addMenuElement(optionsTask);
@@ -204,7 +204,7 @@ void MenuManager::initializePhase(int phase)
 
         levelSetting->setAvailableOptions(maxAvailableLevels);
         leagueSetting->setAvailableOptions(maxAvailableLeagues);
-        highscoreTask = new TimerOrMotoPartOrMenuElem("Highscore", highscoreMenu, this);
+        highscoreTask = new PhysicsElemOrMenuItem("Highscore", highscoreMenu, this);
         highscoreMenu->addMenuElement(backSetting);
         startTask = new SettingsStringRender("Start>", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
         playMenu->addMenuElement(startTask);
@@ -220,7 +220,7 @@ void MenuManager::initializePhase(int phase)
         bikeSpriteSetting = new SettingsStringRender("Bike sprite", bikeSpriteDisabled, this, onOffOptions, true, micro, optionsMenu, false);
         inputSetting = new SettingsStringRender("Input", inputMethod, this, inputMethodNames, false, micro, optionsMenu, false);
         lookAheadSetting = new SettingsStringRender("Look ahead", lookAheadDisabled, this, onOffOptions, true, micro, optionsMenu, false);
-        clearHighscoreTask = new TimerOrMotoPartOrMenuElem("Clear highscore", confirmClearHighscoresMenu, this);
+        clearHighscoreTask = new PhysicsElemOrMenuItem("Clear highscore", confirmClearHighscoresMenu, this);
         return;
     case 6:
         // Populate options menu and create help menus
@@ -234,7 +234,7 @@ void MenuManager::initializePhase(int phase)
         optionsMenu->addMenuElement(backSetting);
         confirmNoSetting = new SettingsStringRender("No", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
         confirmYesSetting = new SettingsStringRender("Yes", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
-        fullResetTask = new TimerOrMotoPartOrMenuElem("Full Reset", confirmFullResetMenu, this);
+        fullResetTask = new PhysicsElemOrMenuItem("Full Reset", confirmFullResetMenu, this);
         addMultilineTextToMenu(confirmClearHighscoresMenu, "Clearing the highscores can not be undone. It will remove all the registered times on all tracks.");
         addMultilineTextToMenu(confirmClearHighscoresMenu, "Would you like to clear the highscores?");
         confirmClearHighscoresMenu->addMenuElement(confirmNoSetting);
@@ -245,12 +245,12 @@ void MenuManager::initializePhase(int phase)
         confirmFullResetMenu->addMenuElement(confirmNoSetting);
         confirmFullResetMenu->addMenuElement(confirmYesSetting);
         helpObjectiveMenu = new GameMenu("Objective", micro, helpMenu);
-        helpObjectiveTask = new TimerOrMotoPartOrMenuElem("Objective", helpObjectiveMenu, this);
+        helpObjectiveTask = new PhysicsElemOrMenuItem("Objective", helpObjectiveMenu, this);
         addMultilineTextToMenu(helpObjectiveMenu, "Race to the finish line as fast as you can without crashing. By leaning forward and backward you can adjust the rotation of your bike. By landing on both wheels after jumping, your bike won't crash as easily. Beware, the levels tend to get harder and harder...");
         helpObjectiveMenu->addMenuElement(backSetting);
         helpMenu->addMenuElement(helpObjectiveTask);
         helpKeysMenu = new GameMenu("Keys", micro, helpMenu);
-        helpKeysTask = new TimerOrMotoPartOrMenuElem("Keys", helpKeysMenu, this);
+        helpKeysTask = new PhysicsElemOrMenuItem("Keys", helpKeysMenu, this);
         addMultilineTextToMenu(helpKeysMenu, "- " + inputMethodNames[0] + " -");
         addMultilineTextToMenu(helpKeysMenu, "UP accelerates, DOWN brakes, RIGHT leans forward and LEFT leans backward. 1 accelerates and leans backward. 3 accelerates and leans forward. 7 brakes and leans backward. 9 brakes and leans forward.");
         helpKeysMenu->addMenuElement(helpSeparatorText.get());
@@ -262,12 +262,12 @@ void MenuManager::initializePhase(int phase)
         helpKeysMenu->addMenuElement(backSetting);
         helpMenu->addMenuElement(helpKeysTask);
         helpUnlockingMenu = new GameMenu("Unlocking", micro, helpMenu);
-        helpUnlockingTask = new TimerOrMotoPartOrMenuElem("Unlocking", helpUnlockingMenu, this);
+        helpUnlockingTask = new PhysicsElemOrMenuItem("Unlocking", helpUnlockingMenu, this);
         addMultilineTextToMenu(helpUnlockingMenu, "By completing the easier levels, new levels will be unlocked. You will also gain access to higher leagues where more advanced bikes with different characteristics are available.");
         helpUnlockingMenu->addMenuElement(backSetting);
         helpMenu->addMenuElement(helpUnlockingTask);
         helpHighscoreDescriptionMenu = new GameMenu("Highscore", micro, helpMenu);
-        helpHighscoreTask = new TimerOrMotoPartOrMenuElem("Highscore", helpHighscoreDescriptionMenu, this);
+        helpHighscoreTask = new PhysicsElemOrMenuItem("Highscore", helpHighscoreDescriptionMenu, this);
         addMultilineTextToMenu(helpHighscoreDescriptionMenu, "The three best times on every track are saved for each league. When beating a time on a track you will be asked to enter your name. The highscores can be viewed from the Play Menu. By pressing left and right in the highscore view you can view the highscore for a specific league. The highscore can be cleared from the options menu.");
         helpHighscoreDescriptionMenu->addMenuElement(backSetting);
         helpMenu->addMenuElement(helpHighscoreTask);
@@ -275,7 +275,7 @@ void MenuManager::initializePhase(int phase)
     case 7:
         // Create help options description menu
         helpOptionsDescriptionMenu = new GameMenu("Options", micro, helpMenu);
-        helpOptionsTask = new TimerOrMotoPartOrMenuElem("Options", helpOptionsDescriptionMenu, this);
+        helpOptionsTask = new PhysicsElemOrMenuItem("Options", helpOptionsDescriptionMenu, this);
 
         addMultilineTextToMenu(helpOptionsDescriptionMenu, "Perspective: On/Off");
         addMultilineTextToMenu(helpOptionsDescriptionMenu, "Default: <On>. Turns on and off the perspective view of the tracks.");

@@ -1,50 +1,50 @@
-#include "TimerOrMotoPartOrMenuElem.h"
+#include "PhysicsElemOrMenuItem.h"
 
 #include "IMenuManager.h"
 #include "GameMenu.h"
 #include "lcdui/Graphics.h"
 
-TimerOrMotoPartOrMenuElem::TimerOrMotoPartOrMenuElem()
+PhysicsElemOrMenuItem::PhysicsElemOrMenuItem()
 {
     setToZeros();
 }
 
-TimerOrMotoPartOrMenuElem::TimerOrMotoPartOrMenuElem(int timerNo, Micro* micro)
+PhysicsElemOrMenuItem::PhysicsElemOrMenuItem(int timerNo, Micro* micro)
 {
     this->micro = micro;
     this->timerNo = timerNo;
 }
 
-TimerOrMotoPartOrMenuElem::TimerOrMotoPartOrMenuElem(std::string text, GameMenu* gameMenu, IMenuManager* menuManager)
+PhysicsElemOrMenuItem::PhysicsElemOrMenuItem(std::string text, GameMenu* gameMenu, IMenuManager* menuManager)
 {
     this->text = text + ">";
     this->gameMenu = gameMenu;
     this->menuManager = menuManager;
 }
 
-void TimerOrMotoPartOrMenuElem::setToZeros()
+void PhysicsElemOrMenuItem::setToZeros()
 {
     xF16 = yF16 = angleF16 = 0;
     velocityXF16 = velocityYF16 = angularVelocityF16 = 0;
     forceAccumXF16 = forceAccumYF16 = torqueF16 = 0;
 }
 
-void TimerOrMotoPartOrMenuElem::setText(std::string text)
+void PhysicsElemOrMenuItem::setText(std::string text)
 {
     this->text = text + ">";
 }
 
-std::string TimerOrMotoPartOrMenuElem::getText()
+std::string PhysicsElemOrMenuItem::getText()
 {
     return text;
 }
 
-bool TimerOrMotoPartOrMenuElem::isNotTextRender()
+bool PhysicsElemOrMenuItem::isNotTextRender()
 {
     return true;
 }
 
-void TimerOrMotoPartOrMenuElem::menuElemMethod(int action)
+void PhysicsElemOrMenuItem::menuElemMethod(int action)
 {
     switch (action) {
     case 1:
@@ -58,12 +58,12 @@ void TimerOrMotoPartOrMenuElem::menuElemMethod(int action)
     }
 }
 
-void TimerOrMotoPartOrMenuElem::setGameMenu(GameMenu* gameMenu)
+void PhysicsElemOrMenuItem::setGameMenu(GameMenu* gameMenu)
 {
     this->gameMenu = gameMenu;
 }
 
-void TimerOrMotoPartOrMenuElem::render(Graphics* graphics, int y, int x)
+void PhysicsElemOrMenuItem::render(Graphics* graphics, int y, int x)
 {
     graphics->drawString(text, x, y, 20);
 }

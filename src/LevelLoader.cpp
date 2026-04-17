@@ -257,7 +257,7 @@ void LevelLoader::updateVisibleSegmentRange(int minXF16, int maxXF16, int center
     visibleSegmentEndX = gameLevel->pointPositions[visibleSegmentEndIdx][0];
 }
 
-int LevelLoader::checkSegmentCollisions(TimerOrMotoPartOrMenuElem* obj, int radiusIndex)
+int LevelLoader::checkSegmentCollisions(PhysicsElemOrMenuItem* obj, int radiusIndex)
 {
     int collisionCount = 0;
     int8_t collisionType = 2; // 0=deep, 1=surface, 2=none

@@ -26,7 +26,7 @@ set(SOURCES
     src/MathF16.cpp
     src/GameCanvas.cpp
     src/GamePhysics.cpp
-    src/TimerOrMotoPartOrMenuElem.cpp
+    src/PhysicsElemOrMenuItem.cpp
     src/MotoComponent.cpp
     src/GameLevel.cpp
     src/LevelLoader.cpp

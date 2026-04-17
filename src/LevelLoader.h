@@ -9,7 +9,7 @@
 #include "GamePhysics.h"
 #include "GameCanvas.h"
 #include "GameLevel.h"
-#include "TimerOrMotoPartOrMenuElem.h"
+#include "PhysicsElemOrMenuItem.h"
 #include "utils/FileStream.h"
 
 class LevelLoader {
@@ -74,5 +74,5 @@ public:
     void renderTrack3D(GameCanvas* canvas, int cameraXF16, int cameraYF16);
     void renderTrackCenterline(GameCanvas* canvas);
     void updateVisibleSegmentRange(int minXF16, int maxXF16, int centerYF16);
-    int checkSegmentCollisions(TimerOrMotoPartOrMenuElem* obj, int radiusIndex);
+    int checkSegmentCollisions(PhysicsElemOrMenuItem* obj, int radiusIndex);
 };

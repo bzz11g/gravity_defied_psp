@@ -9,7 +9,8 @@ class Graphics;
 class GameMenu;
 class IMenuManager;
 
-class TimerOrMotoPartOrMenuElem : public IGameMenuElement {
+// FIXME: should be split into separate classes PhysicsState / MenuItem
+class PhysicsElemOrMenuItem : public IGameMenuElement {
 private:
     std::string text;
     GameMenu* gameMenu;
@@ -29,12 +30,12 @@ public:
     int forceAccumYF16;
     // Torque
     int torqueF16;
-    int timerNo;
+    int timerNo; // UNUSED
     Micro* micro;
 
-    TimerOrMotoPartOrMenuElem();
-    TimerOrMotoPartOrMenuElem(int timerNo, Micro* micro);
-    TimerOrMotoPartOrMenuElem(std::string text, GameMenu* gameMenu, IMenuManager* menuManager);
+    PhysicsElemOrMenuItem();
+    PhysicsElemOrMenuItem(int timerNo, Micro* micro);
+    PhysicsElemOrMenuItem(std::string text, GameMenu* gameMenu, IMenuManager* menuManager);
     void setToZeros();
     void setText(std::string text);
     std::string getText();
