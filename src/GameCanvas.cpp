@@ -36,9 +36,7 @@ GameCanvas::GameCanvas(Micro* micro)
 void GameCanvas::drawSprite(Graphics* g, int spriteNo, int x, int y)
 {
     if (spritesImage) {
-        g->setClip(x, y, spriteSizeX[spriteNo], spriteSizeY[spriteNo]);
-        g->drawImage(spritesImage.get(), x - spriteOffsetX[spriteNo], y - spriteOffsetY[spriteNo], 20);
-        g->setClip(0, 0, getWidth(), getHeight());
+        g->drawImageRegion(spritesImage.get(), spriteOffsetX[spriteNo], spriteOffsetY[spriteNo], spriteSizeX[spriteNo], spriteSizeY[spriteNo], x, y, 20);
     }
 }
 
@@ -169,9 +167,12 @@ void GameCanvas::renderBodyPart(int x1F16, int y1F16, int x2F16, int y2F16, int 
     if (bodyPartsImages[bodyPartNo]) {
         x -= bodyPartsSpriteWidth[bodyPartNo] / 2;
         y -= bodyPartsSpriteHeight[bodyPartNo] / 2;
-        graphics->setClip(x, y, bodyPartsSpriteWidth[bodyPartNo], bodyPartsSpriteHeight[bodyPartNo]);
-        graphics->drawImage(bodyPartsImages[bodyPartNo].get(), x - bodyPartsSpriteWidth[bodyPartNo] * (spriteNo % 6), y - bodyPartsSpriteHeight[bodyPartNo] * (spriteNo / 6), 20);
-        graphics->setClip(0, 0, width, getHeight());
+        graphics->drawImageRegion(bodyPartsImages[bodyPartNo].get(),
+            bodyPartsSpriteWidth[bodyPartNo] * (spriteNo % 6),
+            bodyPartsSpriteHeight[bodyPartNo] * (spriteNo / 6),
+            bodyPartsSpriteWidth[bodyPartNo],
+            bodyPartsSpriteHeight[bodyPartNo],
+            x, y, 20);
     }
 }
 
@@ -218,9 +219,12 @@ void GameCanvas::drawHelmet(int x, int y, int angleF16)
     if (helmetImage != nullptr) {
         int screenX = addDx(x) - helmetSpriteWidth / 2;
         int screenY = addDy(y) - helmetSpriteHeight / 2;
-        graphics->setClip(screenX, screenY, helmetSpriteWidth, helmetSpriteHeight);
-        graphics->drawImage(helmetImage.get(), screenX - helmetSpriteWidth * (spriteNo % 6), screenY - helmetSpriteHeight * (spriteNo / 6), 20);
-        graphics->setClip(0, 0, width, getHeight());
+        graphics->drawImageRegion(helmetImage.get(),
+            helmetSpriteWidth * (spriteNo % 6),
+            helmetSpriteHeight * (spriteNo / 6),
+            helmetSpriteWidth,
+            helmetSpriteHeight,
+            screenX, screenY, 20);
     }
 }
 
@@ -339,9 +343,12 @@ void GameCanvas::renderEngine(int x, int y, int angleF16)
     int centerX = addDx(x) - engineSpriteWidth / 2;
     int centerY = addDy(y) - engineSpriteHeight / 2;
     if (engineImage != nullptr) {
-        graphics->setClip(centerX, centerY, engineSpriteWidth, engineSpriteHeight);
-        graphics->drawImage(engineImage.get(), centerX - engineSpriteWidth * (spriteNo % 6), centerY - engineSpriteHeight * (spriteNo / 6), 20);
-        graphics->setClip(0, 0, width, getHeight());
+        graphics->drawImageRegion(engineImage.get(),
+            engineSpriteWidth * (spriteNo % 6),
+            engineSpriteHeight * (spriteNo / 6),
+            engineSpriteWidth,
+            engineSpriteHeight,
+            centerX, centerY, 20);
     }
 }
 
@@ -351,9 +358,12 @@ void GameCanvas::renderFender(int x, int y, int angleF16)
     if (fenderImage != nullptr) {
         int centerX = addDx(x) - fenderSpriteWidth / 2;
         int centerY = addDy(y) - fenderSpriteHeight / 2;
-        graphics->setClip(centerX, centerY, fenderSpriteWidth, fenderSpriteHeight);
-        graphics->drawImage(fenderImage.get(), centerX - fenderSpriteWidth * (spriteNo % 6), centerY - fenderSpriteHeight * (spriteNo / 6), 20);
-        graphics->setClip(0, 0, width, getHeight());
+        graphics->drawImageRegion(fenderImage.get(),
+            fenderSpriteWidth * (spriteNo % 6),
+            fenderSpriteHeight * (spriteNo / 6),
+            fenderSpriteWidth,
+            fenderSpriteHeight,
+            centerX, centerY, 20);
     }
 }
 

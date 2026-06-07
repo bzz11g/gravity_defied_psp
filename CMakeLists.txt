@@ -96,7 +96,7 @@ if(WIN32)
     target_link_libraries(GravityDefied 
                          ${SDL2_STATIC_LIBRARIES} 
                          ${SDL2_TTF_STATIC_LIBRARIES}
-                         ${SDL2_IMAGE_STATIC_LIBRARIES} 
+                         ${SDL2_IMAGE_STATIC_LIBRARIES}
                          Assets::Assets)
 else()
     target_link_libraries(GravityDefied 
@@ -108,3 +108,14 @@ endif()
 
 # Copy assets to the build directory
 file(COPY assets/levels.mrg DESTINATION ${CMAKE_BINARY_DIR})
+
+if(COMMAND create_pbp_file)
+    create_pbp_file(
+        TARGET GravityDefied
+        ICON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/assets/psp_logo.png"
+        BACKGROUND_PATH "${CMAKE_CURRENT_SOURCE_DIR}/assets/psp_bg.png"
+        PREVIEW_PATH NULL
+        TITLE GravityDefied
+        VERSION 01.00
+    )
+endif()

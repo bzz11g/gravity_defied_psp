@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <vector>
 #include <string>
-#include <fstream>
 #include <stdexcept>
 
 #include "GamePhysics.h"
@@ -52,7 +51,7 @@ public:
     int lastCollisionNormalXF16;
     int lastCollisionNormalYF16;
 
-    LevelLoader(const std::filesystem::path& mrgFilePath);
+    LevelLoader(const std::string& mrgFilePath);
     ~LevelLoader();
 
     std::string getName(int league, int level);

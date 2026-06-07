@@ -13,17 +13,17 @@ int LevelLoader::visibleSegmentEndX = 0;
 bool LevelLoader::isEnabledPerspective = true;
 bool LevelLoader::isEnabledShadows = true;
 
-LevelLoader::LevelLoader(const std::filesystem::path& mrgFilePath)
+LevelLoader::LevelLoader(const std::string& mrgFilePath)
 {
     for (int i = 0; i < 3; ++i) {
         collisionRadiusSqOuter[i] = (int)((int64_t)((GamePhysics::wheelRadiusValuesF16[i] + 19660) >> 1) * (int64_t)((GamePhysics::wheelRadiusValuesF16[i] + 19660) >> 1) >> 16);
         collisionRadiusSqInner[i] = (int)((int64_t)((GamePhysics::wheelRadiusValuesF16[i] - 19660) >> 1) * (int64_t)((GamePhysics::wheelRadiusValuesF16[i] - 19660) >> 1) >> 16);
     }
 
-    if (!mrgFilePath.string().empty()) {
-        FileStream* fileStream = new FileStream(mrgFilePath, std::ios::in | std::ios::binary);
+    if (!mrgFilePath.empty()) {
+        FileStream* fileStream = new FileStream(mrgFilePath, "rb");
         if (!fileStream->isOpen()) {
-            throw std::system_error(errno, std::system_category(), "Failed to open " + mrgFilePath.string());
+            throw std::runtime_error("Failed to open " + mrgFilePath);
         }
         levelFileStream = fileStream;
     } else {

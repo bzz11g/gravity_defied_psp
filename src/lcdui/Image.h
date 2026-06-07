@@ -6,6 +6,7 @@
 class Image {
 private:
     SDL_Surface* surface;
+    SDL_Texture* texture = nullptr;
 
 public:
     Image(const std::string& embeddedPath);
@@ -15,4 +16,5 @@ public:
     int getWidth() const;
     int getHeight() const;
     SDL_Surface* getSurface() const;
+    SDL_Texture* getOrCreateTexture(SDL_Renderer* renderer);
 };

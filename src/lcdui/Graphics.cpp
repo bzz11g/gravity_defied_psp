@@ -8,10 +8,53 @@ Graphics::Graphics(SDL_Renderer* renderer)
     this->font = nullptr;
 }
 
+void Graphics::clearTextCache()
+{
+    for (auto& pair : textTextureCache) {
+        SDL_DestroyTexture(pair.second);
+    }
+    textTextureCache.clear();
+    textCacheOrder.clear();
+}
+
+SDL_Texture* Graphics::getCachedTextTexture(const std::string& s, SDL_Color color, TTF_Font* font)
+{
+    uint32_t colorPacked = ((uint32_t)color.r << 24) | ((uint32_t)color.g << 16) | ((uint32_t)color.b << 8) | (uint32_t)color.a;
+    TextKey key { s, colorPacked, font };
+
+    auto it = textTextureCache.find(key);
+    if (it != textTextureCache.end()) {
+        return it->second;
+    }
+
+    SDL_Surface* surface = TTF_RenderText_Blended(font, s.c_str(), color);
+    if (!surface) {
+        throw std::runtime_error(TTF_GetError());
+    }
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    if (!texture) {
+        throw std::runtime_error(SDL_GetError());
+    }
+
+    if (textTextureCache.size() >= TEXT_CACHE_MAX) {
+        TextKey& oldest = textCacheOrder.front();
+        auto oldIt = textTextureCache.find(oldest);
+        if (oldIt != textTextureCache.end()) {
+            SDL_DestroyTexture(oldIt->second);
+            textTextureCache.erase(oldIt);
+        }
+        textCacheOrder.erase(textCacheOrder.begin());
+    }
+
+    textTextureCache[key] = texture;
+    textCacheOrder.push_back(key);
+    return texture;
+}
+
 void Graphics::drawString(const std::string& s, int x, int y, int anchor)
 {
-    SDL_Surface* surfaceMessage = TTF_RenderText_Blended(font->getTtfFont(), s.c_str(), currentColor);
-    SDL_Texture* message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    SDL_Texture* message = getCachedTextTexture(s, currentColor, font->getTtfFont());
 
     int width, height;
     if (TTF_SizeText(font->getTtfFont(), s.c_str(), &width, &height) == -1)
@@ -22,9 +65,6 @@ void Graphics::drawString(const std::string& s, int x, int y, int anchor)
     SDL_Rect dstRect { x, y, width, height };
 
     SDL_RenderCopy(renderer, message, nullptr, &dstRect);
-
-    SDL_FreeSurface(surfaceMessage);
-    SDL_DestroyTexture(message);
 }
 
 void Graphics::setColor(int r, int g, int b)
@@ -235,12 +275,21 @@ void Graphics::drawLine(int x1, int y1, int x2, int y2)
 
 void Graphics::drawImage(Image* const image, int x, int y, int anchor)
 {
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, image->getSurface());
+    SDL_Texture* texture = image->getOrCreateTexture(renderer);
     x = getAnchorX(x, image->getWidth(), anchor);
     y = getAnchorY(y, image->getHeight(), anchor);
     SDL_Rect dstRect { x, y, image->getWidth(), image->getHeight() };
     SDL_RenderCopy(renderer, texture, 0, &dstRect);
-    SDL_DestroyTexture(texture);
+}
+
+void Graphics::drawImageRegion(Image* const image, int srcX, int srcY, int srcW, int srcH, int destX, int destY, int anchor)
+{
+    SDL_Texture* texture = image->getOrCreateTexture(renderer);
+    destX = getAnchorX(destX, srcW, anchor);
+    destY = getAnchorY(destY, srcH, anchor);
+    SDL_Rect srcRect { srcX, srcY, srcW, srcH };
+    SDL_Rect dstRect { destX, destY, srcW, srcH };
+    SDL_RenderCopy(renderer, texture, &srcRect, &dstRect);
 }
 
 int Graphics::getAnchorX(int x, int size, int anchor)

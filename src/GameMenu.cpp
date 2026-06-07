@@ -358,9 +358,12 @@ void GameMenu::render(Graphics* graphics)
             if (i == selectedItemIndex && element->isNotTextRender()) {
                 int helmetX = xPos - micro->gameCanvas->helmetSpriteWidth / 2;
                 int helmetY = yPos + font2->getBaselinePosition() / 2 - micro->gameCanvas->helmetSpriteHeight / 2;
-                graphics->setClip(helmetX, helmetY, micro->gameCanvas->helmetSpriteWidth, micro->gameCanvas->helmetSpriteHeight);
-                graphics->drawImage(micro->gameCanvas->helmetImage.get(), helmetX - micro->gameCanvas->helmetSpriteWidth * (helmetAnimFrame % 6), helmetY - micro->gameCanvas->helmetSpriteHeight * (helmetAnimFrame / 6), 20);
-                graphics->setClip(0, 0, canvasWidth, canvasHeight);
+                graphics->drawImageRegion(micro->gameCanvas->helmetImage.get(),
+                    micro->gameCanvas->helmetSpriteWidth * (helmetAnimFrame % 6),
+                    micro->gameCanvas->helmetSpriteHeight * (helmetAnimFrame / 6),
+                    micro->gameCanvas->helmetSpriteWidth,
+                    micro->gameCanvas->helmetSpriteHeight,
+                    helmetX, helmetY, 20);
                 ++helmetAnimFrame;
                 if (helmetAnimFrame > 30) {
                     helmetAnimFrame = 0;

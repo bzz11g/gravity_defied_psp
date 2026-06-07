@@ -1,25 +1,31 @@
 #pragma once
 
-#include <fstream>
+#include <cstdio>
+#include <cstddef>
+#include <string>
 #include <algorithm>
-#include <filesystem>
 
-class FileStream : std::fstream {
+class FileStream {
 public:
     FileStream()
-        : std::fstream()
+        : file(nullptr)
     {
     }
 
-    FileStream(const std::filesystem::path& file, std::ios::openmode mode)
-        : std::fstream(file, mode)
+    FileStream(const std::string& filePath, const char* mode)
+        : file(std::fopen(filePath.c_str(), mode))
     {
     }
 
-    ~FileStream()
+    virtual ~FileStream()
     {
-        std::fstream::close();
+        if (file) {
+            std::fclose(file);
+        }
     }
+
+    FileStream(const FileStream&) = delete;
+    FileStream& operator=(const FileStream&) = delete;
 
     template <class T>
     void readVariable(T* p, bool swapEndianness = false, std::size_t size = 0)
@@ -46,22 +52,30 @@ public:
 
     virtual bool isOpen()
     {
-        return std::fstream::is_open();
+        return file != nullptr;
     }
 
-    virtual void setPos(std::streampos pos)
+    virtual void setPos(long pos)
     {
-        std::fstream::seekg(pos);
+        if (file) {
+            std::fseek(file, pos, SEEK_SET);
+        }
     }
 
 private:
-    virtual void read_impl(char* s, std::streamsize n)
+    virtual void read_impl(char* s, std::size_t n)
     {
-        std::fstream::read(s, n);
+        if (file) {
+            std::fread(s, 1, n, file);
+        }
     }
 
-    virtual void write_impl(char* s, std::streamsize n)
+    virtual void write_impl(char* s, std::size_t n)
     {
-        std::fstream::write(s, n);
+        if (file) {
+            std::fwrite(s, 1, n, file);
+        }
     }
+
+    FILE* file;
 };
