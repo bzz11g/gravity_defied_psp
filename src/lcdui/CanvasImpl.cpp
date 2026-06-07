@@ -9,6 +9,11 @@
 #include "Canvas.h"
 
 CanvasImpl::CanvasImpl(Canvas* canvas)
+    : controller(nullptr)
+    , controllerUpPressed(false)
+    , controllerDownPressed(false)
+    , controllerLeftPressed(false)
+    , controllerRightPressed(false)
 {
     this->canvas = canvas;
 
@@ -44,10 +49,13 @@ CanvasImpl::CanvasImpl(Canvas* canvas)
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
+
+    openFirstController();
 }
 
 CanvasImpl::~CanvasImpl()
 {
+    closeController();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -104,9 +112,153 @@ void CanvasImpl::processEvents()
                 }
             }
         } break;
+        case SDL_CONTROLLERDEVICEADDED:
+            if (!controller) {
+                openFirstController();
+            }
+            break;
+        case SDL_CONTROLLERDEVICEREMOVED:
+            if (e.cdevice.which == SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller))) {
+                closeController();
+            }
+            break;
+        case SDL_CONTROLLERAXISMOTION:
+            handleControllerAxisMotion(e.caxis.axis, e.caxis.value);
+            break;
+        case SDL_CONTROLLERBUTTONDOWN:
+            handleControllerButtonDown(e.cbutton.button);
+            break;
+        case SDL_CONTROLLERBUTTONUP:
+            handleControllerButtonUp(e.cbutton.button);
+            break;
         default:
             break;
         }
+    }
+}
+
+void CanvasImpl::openFirstController()
+{
+    for (int i = 0; i < SDL_NumJoysticks(); ++i) {
+        if (SDL_IsGameController(i)) {
+            controller = SDL_GameControllerOpen(i);
+            if (controller) {
+                std::cout << "Controller connected: " << SDL_GameControllerName(controller) << std::endl;
+                return;
+            }
+        }
+    }
+}
+
+void CanvasImpl::closeController()
+{
+    if (controller) {
+        SDL_GameControllerClose(controller);
+        controller = nullptr;
+        std::cout << "Controller disconnected" << std::endl;
+    }
+}
+
+void CanvasImpl::handleControllerAxisMotion(int axis, int value)
+{
+    switch (axis) {
+    case SDL_CONTROLLER_AXIS_LEFTY:
+    case SDL_CONTROLLER_AXIS_RIGHTY:
+        if (value < -ANALOG_DEADZONE) {
+            if (!controllerUpPressed) {
+                controllerUpPressed = true;
+                canvas->publicKeyPressed(Canvas::Keys::UP);
+            }
+        } else {
+            if (controllerUpPressed) {
+                controllerUpPressed = false;
+                canvas->publicKeyReleased(Canvas::Keys::UP);
+            }
+        }
+        if (value > ANALOG_DEADZONE) {
+            if (!controllerDownPressed) {
+                controllerDownPressed = true;
+                canvas->publicKeyPressed(Canvas::Keys::DOWN);
+            }
+        } else {
+            if (controllerDownPressed) {
+                controllerDownPressed = false;
+                canvas->publicKeyReleased(Canvas::Keys::DOWN);
+            }
+        }
+        break;
+    case SDL_CONTROLLER_AXIS_LEFTX:
+    case SDL_CONTROLLER_AXIS_RIGHTX:
+        if (value < -ANALOG_DEADZONE) {
+            if (!controllerLeftPressed) {
+                controllerLeftPressed = true;
+                canvas->publicKeyPressed(Canvas::Keys::LEFT);
+            }
+        } else {
+            if (controllerLeftPressed) {
+                controllerLeftPressed = false;
+                canvas->publicKeyReleased(Canvas::Keys::LEFT);
+            }
+        }
+        if (value > ANALOG_DEADZONE) {
+            if (!controllerRightPressed) {
+                controllerRightPressed = true;
+                canvas->publicKeyPressed(Canvas::Keys::RIGHT);
+            }
+        } else {
+            if (controllerRightPressed) {
+                controllerRightPressed = false;
+                canvas->publicKeyReleased(Canvas::Keys::RIGHT);
+            }
+        }
+        break;
+    }
+}
+
+void CanvasImpl::handleControllerButtonDown(int button)
+{
+    switch (button) {
+    case SDL_CONTROLLER_BUTTON_DPAD_UP:
+        canvas->publicKeyPressed(Canvas::Keys::UP);
+        break;
+    case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+        canvas->publicKeyPressed(Canvas::Keys::DOWN);
+        break;
+    case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+        canvas->publicKeyPressed(Canvas::Keys::LEFT);
+        break;
+    case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+        canvas->publicKeyPressed(Canvas::Keys::RIGHT);
+        break;
+    case SDL_CONTROLLER_BUTTON_A:
+    case SDL_CONTROLLER_BUTTON_START:
+        canvas->publicKeyPressed(Canvas::Keys::FIRE);
+        break;
+    case SDL_CONTROLLER_BUTTON_B:
+        canvas->pressedEsc();
+        break;
+    }
+}
+
+void CanvasImpl::handleControllerButtonUp(int button)
+{
+    switch (button) {
+    case SDL_CONTROLLER_BUTTON_DPAD_UP:
+        canvas->publicKeyReleased(Canvas::Keys::UP);
+        break;
+    case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+        canvas->publicKeyReleased(Canvas::Keys::DOWN);
+        break;
+    case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+        canvas->publicKeyReleased(Canvas::Keys::LEFT);
+        break;
+    case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+        canvas->publicKeyReleased(Canvas::Keys::RIGHT);
+        break;
+    case SDL_CONTROLLER_BUTTON_A:
+    case SDL_CONTROLLER_BUTTON_START:
+        canvas->publicKeyReleased(Canvas::Keys::FIRE);
+        break;
     }
 }
 

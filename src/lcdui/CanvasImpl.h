@@ -14,11 +14,24 @@ private:
 
     SDL_Window* window;
     SDL_Renderer* renderer;
+    SDL_GameController* controller;
 
-    const int width = 640;
-    const int height = 480;
+    const int width = 480;
+    const int height = 272;
+
+    static const int ANALOG_DEADZONE = 8000;
+
+    bool controllerUpPressed;
+    bool controllerDownPressed;
+    bool controllerLeftPressed;
+    bool controllerRightPressed;
 
     static int convertKeyCharToKeyCode(SDL_Keycode keyCode);
+    void openFirstController();
+    void closeController();
+    void handleControllerAxisMotion(int axis, int value);
+    void handleControllerButtonDown(int button);
+    void handleControllerButtonUp(int button);
 
 public:
     CanvasImpl(Canvas* canvas);
