@@ -17,6 +17,10 @@
 #include <dirent.h>
 #endif
 
+#ifdef PSP
+#include "PSPSavedata.h"
+#endif
+
 #include "RecordStoreException.h"
 #include "../utils/FileStream.h"
 #include "../utils/String.h"
@@ -198,7 +202,10 @@ void RecordStore::log(std::string s)
 
 void RecordStore::setRecordStoreDir([[maybe_unused]] const char* progName)
 {
-#ifdef WIN32
+#ifdef PSP
+    recordStoreDir = "ms0:/PSP/SAVEDATA/GRAVITYDE01";
+    pspEnsureSaveDirectory();
+#elif WIN32
     const char* base = dirname(strdup(progName));
     recordStoreDir = std::string(base) + "/recordStore";
 #else

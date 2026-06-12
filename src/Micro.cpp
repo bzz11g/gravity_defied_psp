@@ -8,6 +8,10 @@
 #include "lcdui/CanvasImpl.h"
 #include "rms/RecordStore.h"
 
+#ifdef PSP
+#include <unistd.h>
+#endif
+
 bool Micro::isGameLoopRunning = false;
 int Micro::gameLoadingStateStage = 0;
 
@@ -155,6 +159,20 @@ void Micro::startApp(int argc, char** argv)
 
         this->mrgFilePath = argv1;
     }
+
+#ifdef PSP
+    if (this->mrgFilePath.empty()) {
+        std::string appPath(argv[0]);
+        auto pos = appPath.find_last_of("/\\");
+        if (pos != std::string::npos) {
+            std::string dir = appPath.substr(0, pos);
+            std::string tryPath = dir + "/levels.mrg";
+            if (access(tryPath.c_str(), F_OK) == 0) {
+                this->mrgFilePath = tryPath;
+            }
+        }
+    }
+#endif
 
     RecordStore::setRecordStoreDir(argv[0]);
 

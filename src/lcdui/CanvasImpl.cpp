@@ -93,23 +93,23 @@ void CanvasImpl::processEvents()
             exit(0); // IMPROVE This is a super dumb way to finish the game, but it works
             break;
         case SDL_KEYDOWN: {
-            int keyCode = convertKeyCharToKeyCode(e.key.keysym.sym);
-            // std::cout << "Key pressed: " << keyCode << std::endl;
+            int sym = e.key.keysym.sym;
+            int keyCode = convertKeyCharToKeyCode(sym);
             if (keyCode != 0) {
                 canvas->publicKeyPressed(keyCode);
+            } else if (sym >= SDLK_0 && sym <= SDLK_9) {
+                canvas->publicKeyPressed(sym);
             }
         } break;
         case SDL_KEYUP: {
-            int sdlCode = e.key.keysym.sym;
-            int keyCode = convertKeyCharToKeyCode(sdlCode);
-            // std::cout << "Key released: " << keyCode << std::endl;
+            int sym = e.key.keysym.sym;
+            int keyCode = convertKeyCharToKeyCode(sym);
             if (keyCode != 0) {
                 canvas->publicKeyReleased(keyCode);
-            } else {
-                if (sdlCode == SDLK_ESCAPE) {
-                    // std::cout << "ESC released" << std::endl;
-                    canvas->pressedEsc();
-                }
+            } else if (sym >= SDLK_0 && sym <= SDLK_9) {
+                canvas->publicKeyReleased(sym);
+            } else if (sym == SDLK_ESCAPE) {
+                canvas->pressedEsc();
             }
         } break;
         case SDL_CONTROLLERDEVICEADDED:
@@ -231,12 +231,26 @@ void CanvasImpl::handleControllerButtonDown(int button)
         canvas->publicKeyPressed(Canvas::Keys::RIGHT);
         break;
     case SDL_CONTROLLER_BUTTON_A:
-    case SDL_CONTROLLER_BUTTON_START:
         canvas->publicKeyPressed(Canvas::Keys::FIRE);
         break;
     case SDL_CONTROLLER_BUTTON_B:
         canvas->pressedEsc();
         break;
+    case SDL_CONTROLLER_BUTTON_START:
+#ifdef PSP
+        canvas->pressedEsc();
+#else
+        canvas->publicKeyPressed(Canvas::Keys::FIRE);
+#endif
+        break;
+#ifdef PSP
+    case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+        canvas->publicKeyPressed(49);
+        break;
+    case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+        canvas->publicKeyPressed(51);
+        break;
+#endif
     }
 }
 
@@ -256,9 +270,23 @@ void CanvasImpl::handleControllerButtonUp(int button)
         canvas->publicKeyReleased(Canvas::Keys::RIGHT);
         break;
     case SDL_CONTROLLER_BUTTON_A:
-    case SDL_CONTROLLER_BUTTON_START:
         canvas->publicKeyReleased(Canvas::Keys::FIRE);
         break;
+    case SDL_CONTROLLER_BUTTON_START:
+#ifdef PSP
+        // START on PSP is handled as pressedEsc in down handler, no release action needed
+#else
+        canvas->publicKeyReleased(Canvas::Keys::FIRE);
+#endif
+        break;
+#ifdef PSP
+    case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+        canvas->publicKeyReleased(49);
+        break;
+    case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+        canvas->publicKeyReleased(51);
+        break;
+#endif
     }
 }
 
