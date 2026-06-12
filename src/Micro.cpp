@@ -10,6 +10,7 @@
 
 #ifdef PSP
 #include <unistd.h>
+#include "rms/PSPSavedata.h"
 #endif
 
 bool Micro::isGameLoopRunning = false;
@@ -100,6 +101,11 @@ void Micro::init()
     int64_t timeToLoading = 3000L;
     // Thread.yield();
     gameCanvas = new GameCanvas(this);
+
+#ifdef PSP
+    pspEnsureSaveDirectory();
+#endif
+
     gameCanvas->requestRepaint(1);
 
     while (!gameCanvas->isShown()) {

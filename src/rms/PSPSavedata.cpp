@@ -75,6 +75,7 @@ void pspRunSaveDialog(int mode)
                    status == PSP_UTILITY_DIALOG_NONE) {
             break;
         }
+        sceKernelDelayThread(0);
     }
 
     if (mode == SCE_UTILITY_SAVEDATA_MAKEDATA) {

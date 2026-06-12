@@ -109,6 +109,7 @@ endif()
 
 # Copy assets to the build directory
 file(COPY assets/levels.mrg DESTINATION ${CMAKE_BINARY_DIR})
+target_compile_options(GravityDefied PRIVATE -g3)
 
 if(COMMAND create_pbp_file)
     create_pbp_file(
