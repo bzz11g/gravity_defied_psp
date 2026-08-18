@@ -35,15 +35,16 @@ jobs:
 
   build-psp:
     runs-on: ubuntu-latest
+    container: pspdev/pspdev:latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          set-safe-directory: true
 
       - name: Build for PSP
-        uses: pspdev/github-action@v2
-        with:
-          run: |
-            psp-cmake -B build-psp
-            make -C build-psp
+        run: |
+          psp-cmake -B build-psp
+          make -C build-psp
 
       - name: Upload for PSP
         uses: actions/upload-artifact@v4
