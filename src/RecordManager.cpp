@@ -44,7 +44,7 @@ void RecordManager::openRecordStore(int playerId, int levelId)
     }
 }
 
-int64_t RecordManager::load5BytesAsLong(std::vector<int8_t> buffer, int offset)
+int64_t RecordManager::load5BytesAsLong(const std::vector<int8_t>& buffer, int offset)
 {
     int64_t result = 0L;
     int64_t mult = 1L;

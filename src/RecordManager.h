@@ -35,7 +35,7 @@ private:
     std::vector<int8_t> packedRecordInfo = std::vector<int8_t>(96);
     std::string str;
 
-    int64_t load5BytesAsLong(std::vector<int8_t> buffer, int offset);
+    int64_t load5BytesAsLong(const std::vector<int8_t>& buffer, int offset);
     void pushLongAs5Bytes(std::vector<int8_t> buffer, int offset, int64_t value);
     void loadRecordInfo(std::vector<int8_t> buffer);
     void getLevelInfo(std::vector<int8_t> buffer);
