@@ -26,6 +26,9 @@ private:
     bool controllerLeftPressed;
     bool controllerRightPressed;
 
+    bool buttonAPressedAsFire = false;
+    bool buttonBPressedAsEsc = false;
+
     static int convertKeyCharToKeyCode(SDL_Keycode keyCode);
     void openFirstController();
     void closeController();

@@ -234,14 +234,26 @@ void CanvasImpl::handleControllerButtonDown(int button)
         break;
     case SDL_CONTROLLER_BUTTON_A:
 #ifdef PSP
-        canvas->publicKeyPressed(Canvas::Keys::DOWN);
+        if (Micro::isInGameMenu) {
+            buttonAPressedAsFire = true;
+            canvas->publicKeyPressed(Canvas::Keys::FIRE);
+        } else {
+            buttonAPressedAsFire = false;
+            canvas->publicKeyPressed(Canvas::Keys::DOWN);
+        }
 #else
         canvas->publicKeyPressed(Canvas::Keys::FIRE);
 #endif
         break;
     case SDL_CONTROLLER_BUTTON_B:
 #ifdef PSP
-        canvas->publicKeyPressed(Canvas::Keys::RIGHT);
+        if (Micro::isInGameMenu) {
+            buttonBPressedAsEsc = true;
+            canvas->pressedEsc();
+        } else {
+            buttonBPressedAsEsc = false;
+            canvas->publicKeyPressed(Canvas::Keys::RIGHT);
+        }
 #else
         canvas->pressedEsc();
 #endif
@@ -293,14 +305,20 @@ void CanvasImpl::handleControllerButtonUp(int button)
         break;
     case SDL_CONTROLLER_BUTTON_A:
 #ifdef PSP
-        canvas->publicKeyReleased(Canvas::Keys::DOWN);
+        if (buttonAPressedAsFire) {
+            canvas->publicKeyReleased(Canvas::Keys::FIRE);
+        } else {
+            canvas->publicKeyReleased(Canvas::Keys::DOWN);
+        }
 #else
         canvas->publicKeyReleased(Canvas::Keys::FIRE);
 #endif
         break;
     case SDL_CONTROLLER_BUTTON_B:
 #ifdef PSP
-        canvas->publicKeyReleased(Canvas::Keys::RIGHT);
+        if (!buttonBPressedAsEsc) {
+            canvas->publicKeyReleased(Canvas::Keys::RIGHT);
+        }
 #endif
         break;
     case SDL_CONTROLLER_BUTTON_X:
