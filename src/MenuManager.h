@@ -75,6 +75,7 @@ private:
     GameMenu* enterNameMenu;
     SettingsStringRender* backSetting;
     SettingsStringRender* playMenuSetting;
+    SettingsStringRender* saveGameSetting;
     SettingsStringRender* continueSetting;
     SettingsStringRender* goToMainSetting;
     SettingsStringRender* exitGameSetting;

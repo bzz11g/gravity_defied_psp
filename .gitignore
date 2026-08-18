@@ -4,3 +4,4 @@ build
 pspbld
 build-psp/
 build-ubuntu/
+build-native/
