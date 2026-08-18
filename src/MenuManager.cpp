@@ -10,6 +10,7 @@
 #include "GameMenu.h"
 #include "SettingsStringRender.h"
 #include "utils/Time.h"
+#include <SDL2/SDL.h>
 
 MenuManager::MenuManager(Micro* micro)
 {
@@ -450,6 +451,15 @@ void MenuManager::requestRepaint()
     micro->gameCanvas->repaint();
 }
 
+void MenuManager::processPendingAlerts()
+{
+    if (!pendingAlertTitle.empty() || !pendingAlertMessage.empty()) {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, pendingAlertTitle.c_str(), pendingAlertMessage.c_str(), nullptr);
+        pendingAlertTitle.clear();
+        pendingAlertMessage.clear();
+    }
+}
+
 int MenuManager::getCanvasHeight()
 {
     return micro->gameCanvas->getHeight();
@@ -538,6 +548,7 @@ void MenuManager::runMenuLoop(int menuType)
             }
 
             micro->gamePhysics->captureRenderSnapshot();
+            processPendingAlerts();
             requestRepaint();
             if ((currentTime = Time::currentTimeMillis()) - lastFrameTime < (int64_t)targetFrameTimeMs) {
                 // Frame limiting - sleep to maintain 20 FPS
@@ -558,6 +569,7 @@ void MenuManager::runMenuLoop(int menuType)
             }
 
             if (Micro::isInGameMenu) {
+                processPendingAlerts();
                 requestRepaint();
             }
         }
@@ -784,23 +796,11 @@ void MenuManager::saveSettingsToBuffer()
     }
 }
 
-void MenuManager::runAlertThread()
-{
-    // TODO: Thread entry point for alert display
-    // if (alert != nullptr) {
-    //     Display.getDisplay(micro).setCurrent(alert);
-    // }
-}
-
 void MenuManager::showAlert(const std::string& title, const std::string& message, Image* image)
 {
-    (void)title;
-    (void)message;
     (void)image;
-    // TODO: Display alert dialog
-    // alert = new Alert(title, message, image, AlertType.INFO);
-    // alert.setTimeout(4000);
-    // (new Thread(this)).start();
+    pendingAlertTitle = title;
+    pendingAlertMessage = message;
 }
 
 void MenuManager::handleMenuSelection(IGameMenuElement* element)

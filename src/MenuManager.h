@@ -143,7 +143,9 @@ private:
     std::vector<std::string> inputMethodNames;
     // Empty text for help menu separators
     std::unique_ptr<TextRender> helpSeparatorText;
-    // Alert alert = nullptr; // TODO
+
+    std::string pendingAlertTitle;
+    std::string pendingAlertMessage;
 
     void addMultilineTextToMenu(GameMenu* menu, const std::string& text);
     void saveHighscoreAndShowResults();
@@ -170,6 +172,7 @@ public:
     // Returns and clears shouldStartRaceImmediately
     bool consumeShouldStartRaceFlag();
     void requestRepaint();
+    void processPendingAlerts();
     int getCanvasHeight();
     int getCanvasWidth();
     // 0=main, 1=ingame, 2=finished
@@ -180,7 +183,6 @@ public:
     void refreshHighscoreDisplay(int leagueIndex);
     /* synchronized */ void saveStateAndCloseRecordStore();
     void saveSettingsToBuffer();
-    void runAlertThread(); // TODO: Thread entry point for alert display
     void showAlert(const std::string& title, const std::string& message, Image* image);
     void handleMenuSelection(IGameMenuElement* element);
     // Bitfield: bit 0=bike sprite, bit 1=driver sprite
