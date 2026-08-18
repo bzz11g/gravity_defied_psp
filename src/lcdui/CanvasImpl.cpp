@@ -1,5 +1,7 @@
 #include "CanvasImpl.h"
 
+#include "../Micro.h"
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
@@ -231,10 +233,40 @@ void CanvasImpl::handleControllerButtonDown(int button)
         canvas->publicKeyPressed(Canvas::Keys::RIGHT);
         break;
     case SDL_CONTROLLER_BUTTON_A:
+#ifdef PSP
+        if (Micro::isInGameMenu) {
+            buttonAPressedAsFire = true;
+            canvas->publicKeyPressed(Canvas::Keys::FIRE);
+        } else {
+            buttonAPressedAsFire = false;
+            canvas->publicKeyPressed(Canvas::Keys::DOWN);
+        }
+#else
         canvas->publicKeyPressed(Canvas::Keys::FIRE);
+#endif
         break;
     case SDL_CONTROLLER_BUTTON_B:
+#ifdef PSP
+        if (Micro::isInGameMenu) {
+            buttonBPressedAsEsc = true;
+            canvas->pressedEsc();
+        } else {
+            buttonBPressedAsEsc = false;
+            canvas->publicKeyPressed(Canvas::Keys::RIGHT);
+        }
+#else
         canvas->pressedEsc();
+#endif
+        break;
+    case SDL_CONTROLLER_BUTTON_X:
+#ifdef PSP
+        canvas->publicKeyPressed(Canvas::Keys::LEFT);
+#endif
+        break;
+    case SDL_CONTROLLER_BUTTON_Y:
+#ifdef PSP
+        canvas->publicKeyPressed(Canvas::Keys::UP);
+#endif
         break;
     case SDL_CONTROLLER_BUTTON_START:
 #ifdef PSP
@@ -245,10 +277,12 @@ void CanvasImpl::handleControllerButtonDown(int button)
         break;
 #ifdef PSP
     case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
-        canvas->publicKeyPressed(49);
+        canvas->publicKeyPressed(Canvas::Keys::UP);
+        canvas->publicKeyPressed(Canvas::Keys::LEFT);
         break;
     case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
-        canvas->publicKeyPressed(51);
+        canvas->publicKeyPressed(Canvas::Keys::UP);
+        canvas->publicKeyPressed(Canvas::Keys::RIGHT);
         break;
 #endif
     }
@@ -270,7 +304,32 @@ void CanvasImpl::handleControllerButtonUp(int button)
         canvas->publicKeyReleased(Canvas::Keys::RIGHT);
         break;
     case SDL_CONTROLLER_BUTTON_A:
+#ifdef PSP
+        if (buttonAPressedAsFire) {
+            canvas->publicKeyReleased(Canvas::Keys::FIRE);
+        } else {
+            canvas->publicKeyReleased(Canvas::Keys::DOWN);
+        }
+#else
         canvas->publicKeyReleased(Canvas::Keys::FIRE);
+#endif
+        break;
+    case SDL_CONTROLLER_BUTTON_B:
+#ifdef PSP
+        if (!buttonBPressedAsEsc) {
+            canvas->publicKeyReleased(Canvas::Keys::RIGHT);
+        }
+#endif
+        break;
+    case SDL_CONTROLLER_BUTTON_X:
+#ifdef PSP
+        canvas->publicKeyReleased(Canvas::Keys::LEFT);
+#endif
+        break;
+    case SDL_CONTROLLER_BUTTON_Y:
+#ifdef PSP
+        canvas->publicKeyReleased(Canvas::Keys::UP);
+#endif
         break;
     case SDL_CONTROLLER_BUTTON_START:
 #ifdef PSP
@@ -281,10 +340,12 @@ void CanvasImpl::handleControllerButtonUp(int button)
         break;
 #ifdef PSP
     case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
-        canvas->publicKeyReleased(49);
+        canvas->publicKeyReleased(Canvas::Keys::UP);
+        canvas->publicKeyReleased(Canvas::Keys::LEFT);
         break;
     case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
-        canvas->publicKeyReleased(51);
+        canvas->publicKeyReleased(Canvas::Keys::UP);
+        canvas->publicKeyReleased(Canvas::Keys::RIGHT);
         break;
 #endif
     }
