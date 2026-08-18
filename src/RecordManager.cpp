@@ -44,7 +44,7 @@ void RecordManager::openRecordStore(int playerId, int levelId)
     }
 }
 
-int64_t RecordManager::load5BytesAsLong(std::vector<int8_t> buffer, int offset)
+int64_t RecordManager::load5BytesAsLong(const std::vector<int8_t>& buffer, int offset)
 {
     int64_t result = 0L;
     int64_t mult = 1L;
@@ -58,7 +58,7 @@ int64_t RecordManager::load5BytesAsLong(std::vector<int8_t> buffer, int offset)
     return result;
 }
 
-void RecordManager::pushLongAs5Bytes(std::vector<int8_t> buffer, int offset, int64_t value)
+void RecordManager::pushLongAs5Bytes(std::vector<int8_t>& buffer, int offset, int64_t value)
 {
     for (int i = offset; i < 5 + offset; ++i) {
         buffer[i] = (int8_t)((int)(value % 256L));
@@ -66,7 +66,7 @@ void RecordManager::pushLongAs5Bytes(std::vector<int8_t> buffer, int offset, int
     }
 }
 
-void RecordManager::loadRecordInfo(std::vector<int8_t> buffer)
+void RecordManager::loadRecordInfo(const std::vector<int8_t>& buffer)
 {
     int offset = 0;
 
@@ -88,7 +88,7 @@ void RecordManager::loadRecordInfo(std::vector<int8_t> buffer)
     }
 }
 
-void RecordManager::getLevelInfo(std::vector<int8_t> buffer)
+void RecordManager::getLevelInfo(std::vector<int8_t>& buffer)
 {
     int shift = 0;
 
