@@ -86,10 +86,6 @@ int64_t Micro::goLoadingStep()
     default:
         --gameLoadingStateStage;
 
-        // try {
-        //     Thread.sleep(100L);
-        // } catch (InterruptedException e) {
-        // }
         Time::sleep(100LL);
     }
 
@@ -99,7 +95,6 @@ int64_t Micro::goLoadingStep()
 void Micro::init()
 {
     int64_t timeToLoading = 3000L;
-    // Thread.yield();
     gameCanvas = new GameCanvas(this);
 
 #ifdef PSP
@@ -183,10 +178,6 @@ void Micro::startApp(int argc, char** argv)
     RecordStore::setRecordStoreDir(argv[0]);
 
     isGameLoopRunning = true;
-    // if (thread == null) {
-    //     thread = new Thread(this);
-    //     thread.start();
-    // }
     run();
 }
 
@@ -248,17 +239,6 @@ void Micro::run()
                     gameCanvas->repaint();
                     gameCanvas->serviceRepaints();
 
-                    // try {
-                    //     long var7 = 1000L;
-                    //     if (this.crashRestartTimeMs > 0L) {
-                    //         var7 = Math.min(this.crashRestartTimeMs - System.currentTimeMillis(), 1000L);
-                    //     }
-
-                    //     if (var7 > 0L) {
-                    //         Thread.sleep(var7);
-                    //     }
-                    // } catch (InterruptedException e) {
-                    // }
                     int64_t crashRestartDelay = 1000L;
                     if (crashRestartTimeMs > 0L) {
                         crashRestartDelay = std::min(crashRestartTimeMs - Time::currentTimeMillis(), static_cast<int64_t>(1000));
@@ -305,12 +285,6 @@ void Micro::run()
             gamePhysics->captureRenderSnapshot();
             int64_t curMillis;
             if ((curMillis = Time::currentTimeMillis()) - lastMillis < 30L) {
-                // try {
-                //     synchronized (this) {
-                //         wait(Math.max(30L - (var1 - var3), 1L));
-                //     }
-                // } catch (InterruptedException e) {
-                // }
                 Time::sleep(std::max(30LL - (curMillis - lastMillis), 1LL));
 
                 lastMillis = Time::currentTimeMillis();
@@ -343,16 +317,6 @@ void Micro::goalLoop()
 
         for (int i = numPhysicsLoops; i > 0; --i) {
             if (gamePhysics->updatePhysics() == 5) {
-                // try {
-                //     long deltaTime;
-                //     if ((deltaTime = timeMs - System.currentTimeMillis()) > 0L) {
-                //         Thread.sleep(deltaTime);
-                //     }
-
-                //     return;
-                // } catch (InterruptedException e) {
-                //     return;
-                // }
                 int64_t deltaTime;
                 if ((deltaTime = timeMs - Time::currentTimeMillis()) > 0L) {
                     Time::sleep(deltaTime);
@@ -365,12 +329,6 @@ void Micro::goalLoop()
         gamePhysics->captureRenderSnapshot();
         int64_t currentTime;
         if ((currentTime = Time::currentTimeMillis()) - lastFrameTime < 30L) {
-            // try {
-            //     synchronized (this) {
-            //         wait(Math.max(30L - (currentTime - lastFrameTime), 1L));
-            //     }
-            // } catch (InterruptedException e) {
-            // }
             Time::sleep(std::max(30LL - (currentTime - lastFrameTime), 1LL));
 
             lastFrameTime = Time::currentTimeMillis();
