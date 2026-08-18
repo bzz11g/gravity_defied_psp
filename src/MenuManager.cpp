@@ -883,7 +883,7 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
             }
 
             if (element == exitGameSetting) {
-                switchToMenu(currentGameMenu->getGameMenu(), false);
+                Micro::isGameLoopRunning = false;
                 return;
             }
 
