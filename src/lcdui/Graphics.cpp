@@ -44,7 +44,7 @@ SDL_Texture* Graphics::getCachedTextTexture(const std::string& s, SDL_Color colo
             SDL_DestroyTexture(oldIt->second);
             textTextureCache.erase(oldIt);
         }
-        textCacheOrder.erase(textCacheOrder.begin());
+        textCacheOrder.pop_front();
     }
 
     textTextureCache[key] = texture;

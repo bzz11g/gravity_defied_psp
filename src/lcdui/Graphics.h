@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <deque>
 #include <map>
 #include <tuple>
 #include <vector>
@@ -35,7 +36,7 @@ private:
         }
     };
     std::map<TextKey, SDL_Texture*> textTextureCache;
-    std::vector<TextKey> textCacheOrder;
+    std::deque<TextKey> textCacheOrder;
     static constexpr size_t TEXT_CACHE_MAX = 48;
 
     void clearTextCache();
