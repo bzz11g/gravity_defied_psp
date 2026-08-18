@@ -451,7 +451,7 @@ void MenuManager::saveHighscoreAndShowResults()
 
     saveSettingsToBuffer();
 #ifdef PSP
-    pspRunSaveDialog(SCE_UTILITY_SAVEDATA_AUTOSAVE);
+    pspRunSaveDialog(PSP_UTILITY_SAVEDATA_AUTOSAVE);
 #endif
 
     switchToMenu(finishedTrackMenu, false);
@@ -926,7 +926,7 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
                 if (element == saveGameSetting) {
                     saveSettingsToBuffer();
 #ifdef PSP
-                    pspRunSaveDialog(SCE_UTILITY_SAVEDATA_SAVE);
+                    pspRunSaveDialog(PSP_UTILITY_SAVEDATA_SAVE);
 #endif
                     requestRepaint();
                     micro->menuToGame();
