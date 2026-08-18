@@ -90,7 +90,7 @@ void pspEnsureSaveDirectory()
 
 void pspAutosave()
 {
-    pspRunSaveDialog(SCE_UTILITY_SAVEDATA_AUTOSAVE);
+    pspRunSaveDialog(PSP_UTILITY_SAVEDATA_AUTOSAVE);
 }
 
 #endif
