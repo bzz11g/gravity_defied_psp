@@ -145,9 +145,8 @@ void Micro::restart(bool scheduleTimerTask)
     gameCanvas->reset();
 }
 
-void Micro::destroyApp(bool var1) // TODO: unused parameter
+void Micro::destroyApp()
 {
-    (void)var1;
     isGameLoopRunning = false;
     isAboutToExit = true;
     menuManager->saveStateAndCloseRecordStore();
@@ -323,7 +322,7 @@ void Micro::run()
         }
     }
 
-    destroyApp(true);
+    destroyApp();
 }
 
 void Micro::goalLoop()
