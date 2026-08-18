@@ -142,12 +142,6 @@ void Graphics::drawArc(int x, int y, int width, int heigth, int startAngle, int 
         return;
     }
 
-    // draw complete ellipse if (0, 360) specified
-    // if (startAngle == 0 && arcAngle == 360) {
-    //     _ellipse(x, y, xradius, yradius);
-    //     return;
-    // }
-
     for (int angle = startAngle; angle < startAngle + arcAngle; angle++) {
         drawLine(x + int(xradius * cos(angle * PI_CONV)),
             y - int(yradius * sin(angle * PI_CONV)),
