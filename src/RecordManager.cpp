@@ -66,7 +66,7 @@ void RecordManager::pushLongAs5Bytes(std::vector<int8_t> buffer, int offset, int
     }
 }
 
-void RecordManager::loadRecordInfo(std::vector<int8_t> buffer)
+void RecordManager::loadRecordInfo(const std::vector<int8_t>& buffer)
 {
     int offset = 0;
 
