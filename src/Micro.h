@@ -10,7 +10,7 @@ class LevelLoader;
 class Micro {
 private:
     int64_t goLoadingStep();
-    void destroyApp(bool var1); // TODO: unused parameter
+    void destroyApp();
     std::string mrgFilePath;
 
 public:
