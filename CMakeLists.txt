@@ -3,15 +3,6 @@ project(gravity_defied_cpp C CXX)
 
 unset(ENV{PKG_CONFIG_PATH})
 
-if(WIN32)
-    include(cmake/mingw-sdl2.cmake)
-    download_mingw_sdl2(
-        "2.26.1"    # SDL2
-        "2.20.1"    # SDL2_ttf
-        "2.6.2"     # SDL2_image
-    )
-endif()
-
 find_package(PkgConfig REQUIRED)
 
 pkg_search_module(SDL2 REQUIRED IMPORTED_TARGET sdl2)
@@ -69,12 +60,6 @@ cmrc_add_resource_library(Assets
     assets/FontSansSerif.ttf
 )
 
-# Compile resources when building for Windows.
-if(WIN32)
-    enable_language(RC)
-    list(APPEND SOURCES winres/res.rc)
-endif()
-
 add_executable(GravityDefied ${SOURCES})
 
 target_compile_features(GravityDefied PRIVATE cxx_std_17)
@@ -92,20 +77,11 @@ target_link_directories(GravityDefied PRIVATE
 
 set_target_properties(GravityDefied PROPERTIES LINK_FLAGS_RELEASE -s)
 
-if(WIN32)
-    target_link_options(GravityDefied PRIVATE -static -mwindows)
-    target_link_libraries(GravityDefied 
-                         ${SDL2_STATIC_LIBRARIES} 
-                         ${SDL2_TTF_STATIC_LIBRARIES}
-                         ${SDL2_IMAGE_STATIC_LIBRARIES}
-                         Assets::Assets)
-else()
-    target_link_libraries(GravityDefied 
-                          ${SDL2_LIBRARIES}
-                          ${SDL2_TTF_LIBRARIES}
-                          ${SDL2_IMAGE_LIBRARIES}
-                          Assets::Assets)
-endif()
+target_link_libraries(GravityDefied
+                      ${SDL2_LIBRARIES}
+                      ${SDL2_TTF_LIBRARIES}
+                      ${SDL2_IMAGE_LIBRARIES}
+                      Assets::Assets)
 
 # Copy assets to the build directory
 file(COPY assets/levels.mrg DESTINATION ${CMAKE_BINARY_DIR})
