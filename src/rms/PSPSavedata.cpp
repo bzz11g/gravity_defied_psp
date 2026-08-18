@@ -88,4 +88,9 @@ void pspEnsureSaveDirectory()
     pspRunSaveDialog(SCE_UTILITY_SAVEDATA_MAKEDATA);
 }
 
+void pspAutosave()
+{
+    pspRunSaveDialog(SCE_UTILITY_SAVEDATA_AUTOSAVE);
+}
+
 #endif

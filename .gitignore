@@ -3,3 +3,4 @@ build
 .vscode
 pspbld
 build-psp/
+/build-psp-test/

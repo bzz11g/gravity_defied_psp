@@ -6,5 +6,6 @@
 
 void pspEnsureSaveDirectory();
 void pspRunSaveDialog(int mode);
+void pspAutosave();
 
 #endif

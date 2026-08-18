@@ -21,6 +21,10 @@
 #include "../utils/FileStream.h"
 #include "../utils/String.h"
 
+#ifdef PSP
+#include "PSPSavedata.h"
+#endif
+
 static bool createDirectories(const std::string& path)
 {
 #ifdef WIN32
@@ -137,6 +141,10 @@ void RecordStore::save()
 {
     FileStream outStream(filePath, "wb");
     records->serialize(&outStream);
+
+#ifdef PSP
+    pspAutosave();
+#endif
 }
 
 RecordEnumerationImpl* RecordStore::load(std::string filePath)
