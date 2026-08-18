@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "Canvas.h"
+#include "../Micro.h"
 
 CanvasImpl::CanvasImpl(Canvas* canvas)
     : controller(nullptr)
@@ -90,7 +91,7 @@ void CanvasImpl::processEvents()
     while (SDL_PollEvent(&e) != 0) {
         switch (e.type) {
         case SDL_QUIT:
-            exit(0); // IMPROVE This is a super dumb way to finish the game, but it works
+            Micro::isGameLoopRunning = false;
             break;
         case SDL_KEYDOWN: {
             int sym = e.key.keysym.sym;
