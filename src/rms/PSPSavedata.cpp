@@ -6,6 +6,9 @@
 #include <psputility.h>
 #include <cstring>
 #include <cstdio>
+#include <cmrc/cmrc.hpp>
+
+CMRC_DECLARE(assets);
 
 #define GAME_NAME  "GRAVITYDE01"
 #define SAVE_NAME  ""
@@ -45,15 +48,19 @@ void pspRunSaveDialog(int mode)
     std::strncpy(params.sfoParam.detail, SAVE_DETAIL, sizeof(params.sfoParam.detail) - 1);
     params.sfoParam.parentalLevel = 1;
 
-    params.icon0FileData.buf = nullptr;
-    params.icon0FileData.bufSize = 0;
-    params.icon0FileData.size = 0;
+    auto fs = cmrc::assets::get_filesystem();
+    auto icon0 = fs.open("assets/psp_logo.png");
+    params.icon0FileData.buf = (void*)icon0.begin();
+    params.icon0FileData.bufSize = icon0.size();
+    params.icon0FileData.size = icon0.size();
     params.icon1FileData.buf = nullptr;
     params.icon1FileData.bufSize = 0;
     params.icon1FileData.size = 0;
-    params.pic1FileData.buf = nullptr;
-    params.pic1FileData.bufSize = 0;
-    params.pic1FileData.size = 0;
+
+    auto pic1 = fs.open("assets/psp_bg.png");
+    params.pic1FileData.buf = (void*)pic1.begin();
+    params.pic1FileData.bufSize = pic1.size();
+    params.pic1FileData.size = pic1.size();
     params.snd0FileData.buf = nullptr;
     params.snd0FileData.bufSize = 0;
     params.snd0FileData.size = 0;

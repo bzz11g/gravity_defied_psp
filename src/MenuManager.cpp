@@ -1,9 +1,5 @@
 #include "MenuManager.h"
 #include "rms/RecordStoreException.h"
-#ifdef PSP
-#include "rms/PSPSavedata.h"
-#include <psputility.h>
-#endif
 #include "rms/RecordStoreNotOpenException.h"
 #include "rms/RecordStore.h"
 #include "lcdui/FontStorage.h"
@@ -168,6 +164,7 @@ void MenuManager::initializePhase(int phase)
         continueSetting = new SettingsStringRender("Continue", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
         playMenuSetting = new SettingsStringRender("Play Menu", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
         saveGameSetting = new SettingsStringRender("Save", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
+        loadGameSetting = new SettingsStringRender("Load", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
 
         std::shared_ptr boldSmallFont = FontStorage::getFont(Font::STYLE_BOLD, Font::SIZE_SMALL);
         if (aboutMenu->xPos + boldSmallFont->stringWidth("http://www.codebrew.se/") >= getCanvasWidth()) {
@@ -193,6 +190,8 @@ void MenuManager::initializePhase(int phase)
         aboutTask = new PhysicsElemOrMenuItem("About", aboutMenu, this);
         exitGameSetting = new SettingsStringRender("Exit Game", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
         mainMenu->addMenuElement(playMenuTask);
+        mainMenu->addMenuElement(saveGameSetting);
+        mainMenu->addMenuElement(loadGameSetting);
         mainMenu->addMenuElement(optionsTask);
         mainMenu->addMenuElement(helpTask);
         mainMenu->addMenuElement(aboutTask);
@@ -313,7 +312,6 @@ void MenuManager::initializePhase(int phase)
         nextTrackSetting = new SettingsStringRender("Track: " + micro->levelLoader->getName(0, 1), 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
         restartTrackSetting = new SettingsStringRender("Restart: " + micro->levelLoader->getName(0, 0), 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
         ingameMenu->addMenuElement(continueSetting);
-        ingameMenu->addMenuElement(saveGameSetting);
         ingameMenu->addMenuElement(restartTrackSetting);
         ingameMenu->addMenuElement(optionsTask);
         ingameMenu->addMenuElement(helpTask);
@@ -449,10 +447,10 @@ void MenuManager::saveHighscoreAndShowResults()
     finishedTrackMenu->addMenuElement(restartTrackSetting);
     finishedTrackMenu->addMenuElement(playMenuSetting);
 
-    saveSettingsToBuffer();
 #ifdef PSP
     pspRunSaveDialog(PSP_UTILITY_SAVEDATA_AUTOSAVE);
 #endif
+    saveSettingsToBuffer();
 
     switchToMenu(finishedTrackMenu, false);
 }
@@ -924,12 +922,22 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
                 }
 
                 if (element == saveGameSetting) {
-                    saveSettingsToBuffer();
 #ifdef PSP
                     pspRunSaveDialog(PSP_UTILITY_SAVEDATA_SAVE);
 #endif
-                    requestRepaint();
-                    micro->menuToGame();
+                    saveSettingsToBuffer();
+                    switchToMenu(currentGameMenu->getGameMenu(), false);
+                    return;
+                }
+
+                if (element == loadGameSetting) {
+#ifdef PSP
+                    pspRunSaveDialog(PSP_UTILITY_SAVEDATA_LOAD);
+#endif
+                    RecordStore::clearCache();
+                    initializePhase(2);
+                    initializePhase(3);
+                    switchToMenu(currentGameMenu->getGameMenu(), false);
                     return;
                 }
 

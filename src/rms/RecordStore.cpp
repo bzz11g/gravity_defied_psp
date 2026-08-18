@@ -115,6 +115,11 @@ void RecordStore::closeRecordStore()
     // nothing
 }
 
+void RecordStore::clearCache()
+{
+    opened.clear();
+}
+
 int RecordStore::addRecord(std::vector<int8_t> arr, int offset, int numBytes)
 {
     log("addRecord()");

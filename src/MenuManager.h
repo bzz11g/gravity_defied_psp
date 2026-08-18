@@ -76,6 +76,7 @@ private:
     SettingsStringRender* backSetting;
     SettingsStringRender* playMenuSetting;
     SettingsStringRender* saveGameSetting;
+    SettingsStringRender* loadGameSetting;
     SettingsStringRender* continueSetting;
     SettingsStringRender* goToMainSetting;
     SettingsStringRender* exitGameSetting;
