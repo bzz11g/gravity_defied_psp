@@ -4,6 +4,8 @@
 
 #include <pspkernel.h>
 #include <psputility.h>
+#include <pspgu.h>
+#include <pspdisplay.h>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
@@ -20,6 +22,25 @@ CMRC_DECLARE(assets);
 
 void pspRunSaveDialog(int mode)
 {
+    // If we're loading, ensure there's actually a save file to prevent hanging
+    if (mode == PSP_UTILITY_SAVEDATA_LOAD || mode == PSP_UTILITY_SAVEDATA_AUTOLOAD) {
+        SceIoStat stat;
+        if (sceIoGetstat("ms0:/PSP/SAVEDATA/GRAVITYDE01/GDTR.DAT", &stat) < 0) {
+            return; // File doesn't exist, skip loading
+        }
+    } else {
+        // If saving, ensure directory exists to prevent crash
+        SceIoStat stat;
+        if (sceIoGetstat("ms0:/PSP/SAVEDATA/GRAVITYDE01", &stat) < 0) {
+            // Try to create directory
+            if (sceIoMkdir("ms0:/PSP/SAVEDATA/GRAVITYDE01", 0777) < 0) {
+                // If mkdir fails but we need intermediate dirs?
+                sceIoMkdir("ms0:/PSP/SAVEDATA", 0777);
+                sceIoMkdir("ms0:/PSP/SAVEDATA/GRAVITYDE01", 0777);
+            }
+        }
+    }
+
     SceUtilitySavedataParam params;
     std::memset(&params, 0, sizeof(params));
     params.base.size = sizeof(params);
@@ -84,14 +105,15 @@ void pspRunSaveDialog(int mode)
     while (true) {
         int status = sceUtilitySavedataGetStatus();
         if (status == PSP_UTILITY_DIALOG_VISIBLE) {
-            sceUtilitySavedataUpdate(1);
+            sceUtilitySavedataUpdate(2); // Fix possible crash by changing to Update(2)
         } else if (status == PSP_UTILITY_DIALOG_QUIT) {
             sceUtilitySavedataShutdownStart();
         } else if (status == PSP_UTILITY_DIALOG_FINISHED ||
                    status == PSP_UTILITY_DIALOG_NONE) {
             break;
         }
-        sceKernelDelayThread(0);
+        sceDisplayWaitVblankStart();
+        sceGuSwapBuffers();
     }
 
     if (params.icon0FileData.buf != nullptr) {

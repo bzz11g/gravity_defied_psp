@@ -915,7 +915,11 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
             } else {
                 if (element == nextTrackSetting) {
                     if (!isAllTracksCompletedAtLevel) {
-                        trackSetting->menuElemMethod(2);
+                        // Manually increment track since menuElemMethod(2) calls handleMenuSelection which might cause loops or ignore if at max
+                        int current = trackSetting->getCurrentOptionPos();
+                        if (current < trackSetting->getMaxAvailableOptionPos()) {
+                            trackSetting->setCurentOptionPos(current + 1);
+                        }
                     }
 
                     micro->levelLoader->loadTrack(levelSetting->getCurrentOptionPos(), trackSetting->getCurrentOptionPos());
