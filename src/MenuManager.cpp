@@ -1,4 +1,9 @@
 #include "MenuManager.h"
+#ifdef PSP
+#include <psputility.h>
+#include "rms/PSPSavedata.h"
+#endif
+
 #include "rms/RecordStoreException.h"
 #include "rms/RecordStoreNotOpenException.h"
 #include "rms/RecordStore.h"
@@ -163,6 +168,8 @@ void MenuManager::initializePhase(int phase)
         goToMainSetting = new SettingsStringRender("Go to Main", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
         continueSetting = new SettingsStringRender("Continue", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
         playMenuSetting = new SettingsStringRender("Play Menu", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
+        saveGameSetting = new SettingsStringRender("Save", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
+        loadGameSetting = new SettingsStringRender("Load", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
 
         std::shared_ptr boldSmallFont = FontStorage::getFont(Font::STYLE_BOLD, Font::SIZE_SMALL);
         if (aboutMenu->xPos + boldSmallFont->stringWidth("http://www.codebrew.se/") >= getCanvasWidth()) {
@@ -188,6 +195,8 @@ void MenuManager::initializePhase(int phase)
         aboutTask = new PhysicsElemOrMenuItem("About", aboutMenu, this);
         exitGameSetting = new SettingsStringRender("Exit Game", 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
         mainMenu->addMenuElement(playMenuTask);
+        mainMenu->addMenuElement(saveGameSetting);
+        mainMenu->addMenuElement(loadGameSetting);
         mainMenu->addMenuElement(optionsTask);
         mainMenu->addMenuElement(helpTask);
         mainMenu->addMenuElement(aboutTask);
@@ -442,6 +451,12 @@ void MenuManager::saveHighscoreAndShowResults()
     restartTrackSetting->setText("Restart: " + micro->levelLoader->getName(savedLevelBeforeMenu, savedTrackBeforeMenu));
     finishedTrackMenu->addMenuElement(restartTrackSetting);
     finishedTrackMenu->addMenuElement(playMenuSetting);
+
+    saveSettingsToBuffer();
+#ifdef PSP
+    pspRunSaveDialog(PSP_UTILITY_SAVEDATA_AUTOSAVE);
+#endif
+
     switchToMenu(finishedTrackMenu, false);
 }
 
@@ -900,7 +915,11 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
             } else {
                 if (element == nextTrackSetting) {
                     if (!isAllTracksCompletedAtLevel) {
-                        trackSetting->menuElemMethod(2);
+                        // Manually increment track since menuElemMethod(2) calls handleMenuSelection which might cause loops or ignore if at max
+                        int current = trackSetting->getCurrentOptionPos();
+                        if (current < trackSetting->getMaxAvailableOptionPos()) {
+                            trackSetting->setCurentOptionPos(current + 1);
+                        }
                     }
 
                     micro->levelLoader->loadTrack(levelSetting->getCurrentOptionPos(), trackSetting->getCurrentOptionPos());
@@ -908,6 +927,26 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
                     saveSettingsToBuffer();
                     shouldStartRaceImmediately = true;
                     micro->menuToGame();
+                    return;
+                }
+
+                if (element == saveGameSetting) {
+                    saveSettingsToBuffer();
+#ifdef PSP
+                    pspRunSaveDialog(PSP_UTILITY_SAVEDATA_SAVE);
+#endif
+                    switchToMenu(currentGameMenu->getGameMenu(), false);
+                    return;
+                }
+
+                if (element == loadGameSetting) {
+#ifdef PSP
+                    pspRunSaveDialog(PSP_UTILITY_SAVEDATA_LOAD);
+#endif
+                    RecordStore::clearCache();
+                    initializePhase(2);
+                    initializePhase(3);
+                    switchToMenu(currentGameMenu->getGameMenu(), false);
                     return;
                 }
 

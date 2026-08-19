@@ -26,6 +26,7 @@ public:
     static void setRecordStoreDir(const char* progName);
     static RecordStore* openRecordStore(std::string name, bool createIfNecessary);
     void closeRecordStore();
+    static void clearCache();
     static void deleteRecordStore(std::string name);
     static std::vector<std::string> listRecordStores();
     RecordEnumeration* enumerateRecords(RecordFilter* filter, RecordComparator* comparator, bool keepUpdated);

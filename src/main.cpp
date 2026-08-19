@@ -14,12 +14,12 @@
 PSP_MODULE_INFO("shape", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_VFPU | THREAD_ATTR_USER);
 
-int exit_callback(int arg1, int arg2, void *common) {
+int exit_callback(int, int, void *) {
     sceKernelExitGame();
     return 0;
 }
 
-int CallbackThread(SceSize args, void *argp) {
+int CallbackThread(SceSize, void *) {
     int cbid = sceKernelCreateCallback("Exit Callback", exit_callback, NULL);
     sceKernelRegisterExitCallback(cbid);
     sceKernelSleepThreadCB();

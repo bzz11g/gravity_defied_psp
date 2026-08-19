@@ -58,6 +58,8 @@ cmrc_add_resource_library(Assets
     assets/splash.png
     assets/raster.png
     assets/FontSansSerif.ttf
+    assets/psp_bg.png
+    assets/psp_logo.png
 )
 
 add_executable(GravityDefied ${SOURCES})

@@ -4,8 +4,14 @@
 
 #include <pspkernel.h>
 #include <psputility.h>
+#include <pspgu.h>
+#include <pspdisplay.h>
 #include <cstring>
 #include <cstdio>
+#include <cstdlib>
+#include <cmrc/cmrc.hpp>
+
+CMRC_DECLARE(assets);
 
 #define GAME_NAME  "GRAVITYDE01"
 #define SAVE_NAME  ""
@@ -14,12 +20,25 @@
 #define SAVE_SUBTITLE "Game Progress"
 #define SAVE_DETAIL "Settings, highscores and progression"
 
-static bool saveDirInitialized = false;
-
 void pspRunSaveDialog(int mode)
 {
-    if (mode == SCE_UTILITY_SAVEDATA_MAKEDATA && saveDirInitialized) {
-        return;
+    // If we're loading, ensure there's actually a save file to prevent hanging
+    if (mode == PSP_UTILITY_SAVEDATA_LOAD || mode == PSP_UTILITY_SAVEDATA_AUTOLOAD) {
+        SceIoStat stat;
+        if (sceIoGetstat("ms0:/PSP/SAVEDATA/GRAVITYDE01/GDTR.DAT", &stat) < 0) {
+            return; // File doesn't exist, skip loading
+        }
+    } else {
+        // If saving, ensure directory exists to prevent crash
+        SceIoStat stat;
+        if (sceIoGetstat("ms0:/PSP/SAVEDATA/GRAVITYDE01", &stat) < 0) {
+            // Try to create directory
+            if (sceIoMkdir("ms0:/PSP/SAVEDATA/GRAVITYDE01", 0777) < 0) {
+                // If mkdir fails but we need intermediate dirs?
+                sceIoMkdir("ms0:/PSP/SAVEDATA", 0777);
+                sceIoMkdir("ms0:/PSP/SAVEDATA/GRAVITYDE01", 0777);
+            }
+        }
     }
 
     SceUtilitySavedataParam params;
@@ -45,47 +64,64 @@ void pspRunSaveDialog(int mode)
     std::strncpy(params.sfoParam.detail, SAVE_DETAIL, sizeof(params.sfoParam.detail) - 1);
     params.sfoParam.parentalLevel = 1;
 
-    params.icon0FileData.buf = nullptr;
-    params.icon0FileData.bufSize = 0;
-    params.icon0FileData.size = 0;
+    if (mode == PSP_UTILITY_SAVEDATA_SAVE || mode == PSP_UTILITY_SAVEDATA_AUTOSAVE) {
+        auto fs = cmrc::assets::get_filesystem();
+        auto icon0 = fs.open("assets/psp_logo.png");
+        params.icon0FileData.buf = std::malloc(icon0.size());
+        std::memcpy(params.icon0FileData.buf, icon0.begin(), icon0.size());
+        params.icon0FileData.bufSize = icon0.size();
+        params.icon0FileData.size = icon0.size();
+
+        auto pic1 = fs.open("assets/psp_bg.png");
+        params.pic1FileData.buf = std::malloc(pic1.size());
+        std::memcpy(params.pic1FileData.buf, pic1.begin(), pic1.size());
+        params.pic1FileData.bufSize = pic1.size();
+        params.pic1FileData.size = pic1.size();
+    } else {
+        params.icon0FileData.buf = nullptr;
+        params.icon0FileData.bufSize = 0;
+        params.icon0FileData.size = 0;
+
+        params.pic1FileData.buf = nullptr;
+        params.pic1FileData.bufSize = 0;
+        params.pic1FileData.size = 0;
+    }
+
     params.icon1FileData.buf = nullptr;
     params.icon1FileData.bufSize = 0;
     params.icon1FileData.size = 0;
-    params.pic1FileData.buf = nullptr;
-    params.pic1FileData.bufSize = 0;
-    params.pic1FileData.size = 0;
+
     params.snd0FileData.buf = nullptr;
     params.snd0FileData.bufSize = 0;
     params.snd0FileData.size = 0;
 
-    char dummyBuf[256] = {0};
+    alignas(64) char dummyBuf[32768] = {0};
+    std::memset(dummyBuf, 0, sizeof(dummyBuf));
     params.dataBuf = dummyBuf;
-    params.dataBufSize = sizeof(dummyBuf);
-    params.dataSize = sizeof(dummyBuf);
+    params.dataBufSize = 32768;
+    params.dataSize = 32768;
 
     sceUtilitySavedataInitStart(&params);
 
     while (true) {
         int status = sceUtilitySavedataGetStatus();
         if (status == PSP_UTILITY_DIALOG_VISIBLE) {
-            sceUtilitySavedataUpdate(1);
+            sceUtilitySavedataUpdate(2); // Fix possible crash by changing to Update(2)
         } else if (status == PSP_UTILITY_DIALOG_QUIT) {
             sceUtilitySavedataShutdownStart();
         } else if (status == PSP_UTILITY_DIALOG_FINISHED ||
                    status == PSP_UTILITY_DIALOG_NONE) {
             break;
         }
-        sceKernelDelayThread(0);
+        sceKernelDelayThread(100);
     }
 
-    if (mode == SCE_UTILITY_SAVEDATA_MAKEDATA) {
-        saveDirInitialized = true;
+    if (params.icon0FileData.buf != nullptr) {
+        std::free(params.icon0FileData.buf);
     }
-}
-
-void pspEnsureSaveDirectory()
-{
-    pspRunSaveDialog(SCE_UTILITY_SAVEDATA_MAKEDATA);
+    if (params.pic1FileData.buf != nullptr) {
+        std::free(params.pic1FileData.buf);
+    }
 }
 
 #endif

@@ -102,10 +102,6 @@ void Micro::init()
     // Thread.yield();
     gameCanvas = new GameCanvas(this);
 
-#ifdef PSP
-    pspEnsureSaveDirectory();
-#endif
-
     gameCanvas->requestRepaint(1);
 
     while (!gameCanvas->isShown()) {
