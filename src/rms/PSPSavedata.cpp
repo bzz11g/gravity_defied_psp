@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include <cmrc/cmrc.hpp>
 
-CMRC_DECLARE(Assets);
+CMRC_DECLARE(assets);
 
 #define GAME_NAME  "GRAVITYDE01"
 #define SAVE_NAME  ""
@@ -44,7 +44,7 @@ void pspRunSaveDialog(int mode)
     params.sfoParam.parentalLevel = 1;
 
     if (mode == PSP_UTILITY_SAVEDATA_SAVE || mode == PSP_UTILITY_SAVEDATA_AUTOSAVE) {
-        auto fs = cmrc::Assets::get_filesystem();
+        auto fs = cmrc::assets::get_filesystem();
         auto icon0 = fs.open("assets/psp_logo.png");
         params.icon0FileData.buf = std::malloc(icon0.size());
         std::memcpy(params.icon0FileData.buf, icon0.begin(), icon0.size());
