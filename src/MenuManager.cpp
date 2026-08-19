@@ -1,6 +1,6 @@
 #include "MenuManager.h"
 #ifdef PSP
-#include <psputility_savedata.h>
+#include <psputility.h>
 #include "rms/PSPSavedata.h"
 #endif
 

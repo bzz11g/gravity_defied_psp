@@ -4,7 +4,6 @@
 
 #include <pspkernel.h>
 #include <psputility.h>
-#include <psputility_savedata.h>
 #include <cstring>
 #include <cstdio>
 #include <cmrc/cmrc.hpp>
