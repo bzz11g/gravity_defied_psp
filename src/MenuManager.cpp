@@ -1,4 +1,9 @@
 #include "MenuManager.h"
+#ifdef PSP
+#include <psputility_savedata.h>
+#include "rms/PSPSavedata.h"
+#endif
+
 #include "rms/RecordStoreException.h"
 #include "rms/RecordStoreNotOpenException.h"
 #include "rms/RecordStore.h"

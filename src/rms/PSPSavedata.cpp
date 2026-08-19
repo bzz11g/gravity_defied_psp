@@ -4,6 +4,7 @@
 
 #include <pspkernel.h>
 #include <psputility.h>
+#include <psputility_savedata.h>
 #include <cstring>
 #include <cstdio>
 #include <cmrc/cmrc.hpp>
@@ -21,7 +22,7 @@ static bool saveDirInitialized = false;
 
 void pspRunSaveDialog(int mode)
 {
-    if (mode == SCE_UTILITY_SAVEDATA_MAKEDATA && saveDirInitialized) {
+    if (mode == PSP_UTILITY_SAVEDATA_AUTOLOAD && saveDirInitialized) {
         return;
     }
 
@@ -85,14 +86,14 @@ void pspRunSaveDialog(int mode)
         sceKernelDelayThread(0);
     }
 
-    if (mode == SCE_UTILITY_SAVEDATA_MAKEDATA) {
+    if (mode == PSP_UTILITY_SAVEDATA_AUTOLOAD) {
         saveDirInitialized = true;
     }
 }
 
 void pspEnsureSaveDirectory()
 {
-    pspRunSaveDialog(SCE_UTILITY_SAVEDATA_MAKEDATA);
+    pspRunSaveDialog(PSP_UTILITY_SAVEDATA_AUTOLOAD);
 }
 
 #endif
