@@ -4,7 +4,6 @@
 
 #include <cstddef>
 
-void pspEnsureSaveDirectory();
 void pspRunSaveDialog(int mode);
 
 #endif

@@ -6,9 +6,10 @@
 #include <psputility.h>
 #include <cstring>
 #include <cstdio>
+#include <cstdlib>
 #include <cmrc/cmrc.hpp>
 
-CMRC_DECLARE(assets);
+CMRC_DECLARE(Assets);
 
 #define GAME_NAME  "GRAVITYDE01"
 #define SAVE_NAME  ""
@@ -17,14 +18,8 @@ CMRC_DECLARE(assets);
 #define SAVE_SUBTITLE "Game Progress"
 #define SAVE_DETAIL "Settings, highscores and progression"
 
-static bool saveDirInitialized = false;
-
 void pspRunSaveDialog(int mode)
 {
-    if (mode == PSP_UTILITY_SAVEDATA_AUTOLOAD && saveDirInitialized) {
-        return;
-    }
-
     SceUtilitySavedataParam params;
     std::memset(&params, 0, sizeof(params));
     params.base.size = sizeof(params);
@@ -48,24 +43,38 @@ void pspRunSaveDialog(int mode)
     std::strncpy(params.sfoParam.detail, SAVE_DETAIL, sizeof(params.sfoParam.detail) - 1);
     params.sfoParam.parentalLevel = 1;
 
-    auto fs = cmrc::assets::get_filesystem();
-    auto icon0 = fs.open("assets/psp_logo.png");
-    params.icon0FileData.buf = (void*)icon0.begin();
-    params.icon0FileData.bufSize = icon0.size();
-    params.icon0FileData.size = icon0.size();
+    if (mode == PSP_UTILITY_SAVEDATA_SAVE || mode == PSP_UTILITY_SAVEDATA_AUTOSAVE) {
+        auto fs = cmrc::Assets::get_filesystem();
+        auto icon0 = fs.open("assets/psp_logo.png");
+        params.icon0FileData.buf = std::malloc(icon0.size());
+        std::memcpy(params.icon0FileData.buf, icon0.begin(), icon0.size());
+        params.icon0FileData.bufSize = icon0.size();
+        params.icon0FileData.size = icon0.size();
+
+        auto pic1 = fs.open("assets/psp_bg.png");
+        params.pic1FileData.buf = std::malloc(pic1.size());
+        std::memcpy(params.pic1FileData.buf, pic1.begin(), pic1.size());
+        params.pic1FileData.bufSize = pic1.size();
+        params.pic1FileData.size = pic1.size();
+    } else {
+        params.icon0FileData.buf = nullptr;
+        params.icon0FileData.bufSize = 0;
+        params.icon0FileData.size = 0;
+
+        params.pic1FileData.buf = nullptr;
+        params.pic1FileData.bufSize = 0;
+        params.pic1FileData.size = 0;
+    }
+
     params.icon1FileData.buf = nullptr;
     params.icon1FileData.bufSize = 0;
     params.icon1FileData.size = 0;
 
-    auto pic1 = fs.open("assets/psp_bg.png");
-    params.pic1FileData.buf = (void*)pic1.begin();
-    params.pic1FileData.bufSize = pic1.size();
-    params.pic1FileData.size = pic1.size();
     params.snd0FileData.buf = nullptr;
     params.snd0FileData.bufSize = 0;
     params.snd0FileData.size = 0;
 
-    char dummyBuf[256] = {0};
+    alignas(64) char dummyBuf[256] = {0};
     params.dataBuf = dummyBuf;
     params.dataBufSize = sizeof(dummyBuf);
     params.dataSize = sizeof(dummyBuf);
@@ -85,14 +94,12 @@ void pspRunSaveDialog(int mode)
         sceKernelDelayThread(0);
     }
 
-    if (mode == PSP_UTILITY_SAVEDATA_AUTOLOAD) {
-        saveDirInitialized = true;
+    if (params.icon0FileData.buf != nullptr) {
+        std::free(params.icon0FileData.buf);
     }
-}
-
-void pspEnsureSaveDirectory()
-{
-    pspRunSaveDialog(PSP_UTILITY_SAVEDATA_AUTOLOAD);
+    if (params.pic1FileData.buf != nullptr) {
+        std::free(params.pic1FileData.buf);
+    }
 }
 
 #endif
