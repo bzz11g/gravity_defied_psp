@@ -16,6 +16,7 @@ void GameLevel::init()
     finishPosX = 13107200;
     pointsCount = 0;
     field_274 = 0;
+    pointPositions.clear();
 }
 
 void GameLevel::setStartFinishPositions(int startX, int startY, int finishX, int finishY)

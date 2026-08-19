@@ -907,6 +907,7 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
                     levelSetting->setCurentOptionPos(savedLevelBeforeMenu);
                     trackSetting->setAvailableOptions(maxUnlockedTracksPerLevel[savedLevelBeforeMenu]);
                     trackSetting->setCurentOptionPos(savedTrackBeforeMenu);
+                    micro->levelLoader->loadTrack(levelSetting->getCurrentOptionPos(), trackSetting->getCurrentOptionPos());
                     micro->gamePhysics->setMotoLeague(leagueSetting->getCurrentOptionPos());
                     shouldStartRaceImmediately = true;
                     micro->menuToGame();
@@ -917,9 +918,8 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
                     if (!isAllTracksCompletedAtLevel) {
                         // Manually increment track since menuElemMethod(2) calls handleMenuSelection which might cause loops or ignore if at max
                         int current = trackSetting->getCurrentOptionPos();
-                        if (current < trackSetting->getMaxAvailableOptionPos()) {
-                            trackSetting->setCurentOptionPos(current + 1);
-                        }
+                        trackSetting->setAvailableOptions(trackSetting->getMaxAvailableOptionPos() + 1);
+                        trackSetting->setCurentOptionPos(current + 1);
                     }
 
                     micro->levelLoader->loadTrack(levelSetting->getCurrentOptionPos(), trackSetting->getCurrentOptionPos());
