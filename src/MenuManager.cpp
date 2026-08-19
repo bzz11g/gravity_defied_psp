@@ -452,10 +452,10 @@ void MenuManager::saveHighscoreAndShowResults()
     finishedTrackMenu->addMenuElement(restartTrackSetting);
     finishedTrackMenu->addMenuElement(playMenuSetting);
 
+    saveSettingsToBuffer();
 #ifdef PSP
     pspRunSaveDialog(PSP_UTILITY_SAVEDATA_AUTOSAVE);
 #endif
-    saveSettingsToBuffer();
 
     switchToMenu(finishedTrackMenu, false);
 }
@@ -931,10 +931,10 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
                 }
 
                 if (element == saveGameSetting) {
+                    saveSettingsToBuffer();
 #ifdef PSP
                     pspRunSaveDialog(PSP_UTILITY_SAVEDATA_SAVE);
 #endif
-                    saveSettingsToBuffer();
                     switchToMenu(currentGameMenu->getGameMenu(), false);
                     return;
                 }

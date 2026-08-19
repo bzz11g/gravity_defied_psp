@@ -95,10 +95,11 @@ void pspRunSaveDialog(int mode)
     params.snd0FileData.bufSize = 0;
     params.snd0FileData.size = 0;
 
-    alignas(64) char dummyBuf[256] = {0};
+    alignas(64) char dummyBuf[32768] = {0};
+    std::memset(dummyBuf, 0, sizeof(dummyBuf));
     params.dataBuf = dummyBuf;
-    params.dataBufSize = sizeof(dummyBuf);
-    params.dataSize = sizeof(dummyBuf);
+    params.dataBufSize = 32768;
+    params.dataSize = 32768;
 
     sceUtilitySavedataInitStart(&params);
 
@@ -112,8 +113,7 @@ void pspRunSaveDialog(int mode)
                    status == PSP_UTILITY_DIALOG_NONE) {
             break;
         }
-        sceDisplayWaitVblankStart();
-        sceGuSwapBuffers();
+        sceKernelDelayThread(100);
     }
 
     if (params.icon0FileData.buf != nullptr) {
