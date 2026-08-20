@@ -314,7 +314,7 @@ void MenuManager::initializePhase(int phase)
         addMultilineTextToMenu(aboutMenu, "brought 2 you by pascha.                For information visit:");
         aboutMenu->addMenuElement(codebrewLinkText);
         aboutMenu->addMenuElement(backSetting);
-        nextTrackSetting = new SettingsStringRender("Track: " + micro->levelLoader->getName(0, 1), 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
+        nextTrackSetting = new SettingsStringRender("Next: " + micro->levelLoader->getName(0, 1), 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
         restartTrackSetting = new SettingsStringRender("Restart: " + micro->levelLoader->getName(0, 0), 0, this, std::vector<std::string>(), false, micro, mainMenu, true);
         ingameMenu->addMenuElement(continueSetting);
         ingameMenu->addMenuElement(restartTrackSetting);
@@ -372,11 +372,11 @@ void MenuManager::saveHighscoreAndShowResults()
     recordManager->closeRecordStore();
     int8_t newlyUnlockedLeague = -1;
 
-    // Guaranteed track unlocking logic
     int currentTrk = trackSetting->getCurrentOptionPos();
     int currentLvl = levelSetting->getCurrentOptionPos();
     int totalTracksInCurrentLvl = static_cast<int>(trackNamesByLevel[currentLvl].size());
 
+    // Unlock next track
     if (currentTrk + 1 < totalTracksInCurrentLvl) {
         if (currentTrk + 1 > maxUnlockedTracksPerLevel[currentLvl]) {
             maxUnlockedTracksPerLevel[currentLvl] = currentTrk + 1;
@@ -385,7 +385,7 @@ void MenuManager::saveHighscoreAndShowResults()
     trackSetting->setAvailableOptions(maxUnlockedTracksPerLevel[currentLvl]);
 
     // Check if all tracks at this level are completed
-    if (currentTrk == totalTracksInCurrentLvl - 1) {
+    if (currentTrk >= totalTracksInCurrentLvl - 1) {
         isAllTracksCompletedAtLevel = true;
         switch (levelSetting->getCurrentOptionPos()) {
         case 0:
@@ -421,8 +421,8 @@ void MenuManager::saveHighscoreAndShowResults()
     
     if (!isAllTracksCompletedAtLevel) {
         restartTrackSetting->setText("Restart: " + micro->levelLoader->getName(levelSetting->getCurrentOptionPos(), trackSetting->getCurrentOptionPos()));
-        int nextTrackIdx = std::min(savedTrackBeforeMenu + 1, totalTracksInCurrentLvl - 1);
-        nextTrackSetting->setText("Next: " + micro->levelLoader->getName(savedLevelBeforeMenu, nextTrackIdx));
+        int nextTrackIdx = currentTrk + 1;
+        nextTrackSetting->setText("Next: " + micro->levelLoader->getName(levelSetting->getCurrentOptionPos(), nextTrackIdx));
     } else {
         if (levelSetting->getCurrentOptionPos() < levelSetting->getMaxOptionPos()) {
             levelSetting->setCurentOptionPos(levelSetting->getCurrentOptionPos() + 1);
@@ -829,7 +829,6 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
             micro->gamePhysics->setMotoLeague(leagueSetting->getCurrentOptionPos());
             shouldStartRaceImmediately = true;
             micro->menuToGame();
-            micro->restart(true);
         } else {
             showAlert("GDTR", "Complete more tracks to unlock this track/league combo.", nullptr);
         }
@@ -916,34 +915,32 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
                     saveSettingsToBuffer();
                     shouldStartRaceImmediately = true;
                     micro->menuToGame();
-                    micro->restart(true);
                     return;
                 }
             } else {
                 if (element == nextTrackSetting) {
-                    if (!isAllTracksCompletedAtLevel) {
-                        int current = trackSetting->getCurrentOptionPos();
-                        int nextTrack = current + 1;
-                        if (nextTrack < static_cast<int>(trackNamesByLevel[levelSetting->getCurrentOptionPos()].size())) {
-                            trackSetting->setCurentOptionPos(nextTrack);
-                            if (nextTrack > maxUnlockedTracksPerLevel[levelSetting->getCurrentOptionPos()]) {
-                                maxUnlockedTracksPerLevel[levelSetting->getCurrentOptionPos()] = nextTrack;
-                            }
-                            trackSetting->setAvailableOptions(maxUnlockedTracksPerLevel[levelSetting->getCurrentOptionPos()]);
+                    int nextTrack = trackSetting->getCurrentOptionPos() + 1;
+                    int curLvl = levelSetting->getCurrentOptionPos();
+                    int totalTracks = static_cast<int>(trackNamesByLevel[curLvl].size());
+
+                    if (nextTrack < totalTracks) {
+                        trackSetting->setCurentOptionPos(nextTrack);
+                        if (nextTrack > maxUnlockedTracksPerLevel[curLvl]) {
+                            maxUnlockedTracksPerLevel[curLvl] = nextTrack;
                         }
+                        trackSetting->setAvailableOptions(maxUnlockedTracksPerLevel[curLvl]);
                     }
 
-                    lastSelectedTrackPerLevel[levelSetting->getCurrentOptionPos()] = trackSetting->getCurrentOptionPos();
+                    lastSelectedTrackPerLevel[curLvl] = trackSetting->getCurrentOptionPos();
                     savedTrackBeforeMenu = trackSetting->getCurrentOptionPos();
-                    savedLevelBeforeMenu = levelSetting->getCurrentOptionPos();
+                    savedLevelBeforeMenu = curLvl;
 
-                    micro->levelLoader->loadTrack(levelSetting->getCurrentOptionPos(), trackSetting->getCurrentOptionPos());
+                    micro->levelLoader->loadTrack(curLvl, trackSetting->getCurrentOptionPos());
                     micro->levelLoader->cacheStartPosition();
                     micro->gamePhysics->setMotoLeague(leagueSetting->getCurrentOptionPos());
                     saveSettingsToBuffer();
                     shouldStartRaceImmediately = true;
                     micro->menuToGame();
-                    micro->restart(true);
                     return;
                 }
 
