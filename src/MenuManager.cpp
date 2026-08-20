@@ -909,7 +909,8 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
                     trackSetting->setCurentOptionPos(savedTrackBeforeMenu);
                     micro->levelLoader->loadTrack(levelSetting->getCurrentOptionPos(), trackSetting->getCurrentOptionPos());
                     micro->gamePhysics->setMotoLeague(leagueSetting->getCurrentOptionPos());
-                    shouldStartRaceImmediately = true;
+                    micro->restart(true);
+                    shouldStartRaceImmediately = false; // explicitly cleared because we restarted
                     micro->menuToGame();
                     return;
                 }
@@ -918,14 +919,17 @@ void MenuManager::handleMenuSelection(IGameMenuElement* element)
                     if (!isAllTracksCompletedAtLevel) {
                         // Manually increment track since menuElemMethod(2) calls handleMenuSelection which might cause loops or ignore if at max
                         int current = trackSetting->getCurrentOptionPos();
-                        trackSetting->setAvailableOptions(trackSetting->getMaxAvailableOptionPos() + 1);
+                        if (current >= trackSetting->getMaxAvailableOptionPos()) {
+                            trackSetting->setAvailableOptions(trackSetting->getMaxAvailableOptionPos() + 1);
+                        }
                         trackSetting->setCurentOptionPos(current + 1);
                     }
 
                     micro->levelLoader->loadTrack(levelSetting->getCurrentOptionPos(), trackSetting->getCurrentOptionPos());
                     micro->gamePhysics->setMotoLeague(leagueSetting->getCurrentOptionPos());
                     saveSettingsToBuffer();
-                    shouldStartRaceImmediately = true;
+                    micro->restart(true);
+                    shouldStartRaceImmediately = false; // explicitly cleared because we restarted
                     micro->menuToGame();
                     return;
                 }
