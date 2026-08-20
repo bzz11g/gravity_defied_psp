@@ -106,6 +106,7 @@ void LevelLoader::seekAndLoadTrackData(int league, int track)
     }
     gameLevel->load(levelFileStream);
     precomputeTrackGeometry(gameLevel);
+    cacheStartPosition();
 }
 
 void LevelLoader::cacheStartPosition()
