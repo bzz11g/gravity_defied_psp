@@ -10,6 +10,7 @@
 
 #include "Image.h"
 #include "Font.h"
+#include <unordered_map>
 
 constexpr auto PI_CONV = 3.1415926 / 180.0;
 
@@ -20,10 +21,12 @@ private:
     SDL_Renderer* renderer;
     std::shared_ptr<Font> font;
     SDL_Color currentColor;
+    std::unordered_map<std::string, SDL_Texture*> textCache;
     // void _ellipse(int cx, int cy, int xradius, int yradius);
     void _putpixel(int x, int y);
 
 public:
+    ~Graphics();
     enum Anchors {
         HCENTER = 1,
         VCENTER = 2,

@@ -46,6 +46,7 @@ CanvasImpl* Canvas::getCanvasImpl()
 void Canvas::repaint()
 {
     // IMPROVE two lines below is a hack to make the game work in one thread
+    impl->clear();
     paint(graphics.get());
     impl->processEvents();
 

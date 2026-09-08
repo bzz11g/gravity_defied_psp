@@ -19,6 +19,7 @@ Font::Font(FontStyle style, FontSize pointSize)
 
     int realSize = getRealFontSize(pointSize);
     TTF_Font* font = TTF_OpenFontRW(ttfRwOps, SDL_TRUE, realSize);
+    TTF_SetFontHinting(font, TTF_HINTING_NORMAL);
     TTF_SetFontStyle(font, style);
     this->ttfFont = font;
     this->height = realSize;
@@ -66,11 +67,11 @@ int Font::getRealFontSize(FontSize size)
 {
     switch (size) {
     case SIZE_LARGE:
-        return 32;
+        return 26;
     case SIZE_MEDIUM:
-        return 16;
+        return 14;
     case SIZE_SMALL:
-        return 12;
+        return 11;
     default:
         throw std::runtime_error("unknown font size: " + std::to_string(size));
     }

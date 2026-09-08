@@ -8,10 +8,36 @@ Graphics::Graphics(SDL_Renderer* renderer)
     this->font = nullptr;
 }
 
+Graphics::~Graphics()
+{
+    for (auto& pair : textCache) {
+        SDL_DestroyTexture(pair.second);
+    }
+    textCache.clear();
+}
+
 void Graphics::drawString(const std::string& s, int x, int y, int anchor)
 {
-    SDL_Surface* surfaceMessage = TTF_RenderText_Blended(font->getTtfFont(), s.c_str(), currentColor);
-    SDL_Texture* message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    std::string key = std::to_string(font->getHeight()) + "_" +
+                      std::to_string(currentColor.r) + "_" +
+                      std::to_string(currentColor.g) + "_" +
+                      std::to_string(currentColor.b) + "_" + s;
+
+    SDL_Texture* message = nullptr;
+    if (textCache.find(key) != textCache.end()) {
+        message = textCache[key];
+    } else {
+        if (textCache.size() > 1024) {
+            for (auto& pair : textCache) {
+                SDL_DestroyTexture(pair.second);
+            }
+            textCache.clear();
+        }
+        SDL_Surface* surfaceMessage = TTF_RenderText_Blended(font->getTtfFont(), s.c_str(), currentColor);
+        message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+        textCache[key] = message;
+        SDL_FreeSurface(surfaceMessage);
+    }
 
     int width, height;
     if (TTF_SizeText(font->getTtfFont(), s.c_str(), &width, &height) == -1)
@@ -22,9 +48,6 @@ void Graphics::drawString(const std::string& s, int x, int y, int anchor)
     SDL_Rect dstRect { x, y, width, height };
 
     SDL_RenderCopy(renderer, message, nullptr, &dstRect);
-
-    SDL_FreeSurface(surfaceMessage);
-    SDL_DestroyTexture(message);
 }
 
 void Graphics::setColor(int r, int g, int b)
@@ -235,12 +258,11 @@ void Graphics::drawLine(int x1, int y1, int x2, int y2)
 
 void Graphics::drawImage(Image* const image, int x, int y, int anchor)
 {
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, image->getSurface());
+    SDL_Texture* texture = image->getTexture(renderer);
     x = getAnchorX(x, image->getWidth(), anchor);
     y = getAnchorY(y, image->getHeight(), anchor);
     SDL_Rect dstRect { x, y, image->getWidth(), image->getHeight() };
     SDL_RenderCopy(renderer, texture, 0, &dstRect);
-    SDL_DestroyTexture(texture);
 }
 
 int Graphics::getAnchorX(int x, int size, int anchor)
