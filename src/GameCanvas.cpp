@@ -355,8 +355,6 @@ void GameCanvas::renderFender(int x, int y, int angleF16)
 
 void GameCanvas::clearScreenWithWhite()
 {
-    graphics->setColor(255, 255, 255);
-    graphics->fillRect(0, 0, width, height2);
 }
 
 void GameCanvas::setColor(int red, int green, int blue)

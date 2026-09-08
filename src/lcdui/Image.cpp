@@ -47,6 +47,17 @@ Image::Image(const std::string& embeddedPath)
 Image::~Image()
 {
     SDL_FreeSurface(this->surface);
+    if (this->texture) {
+        SDL_DestroyTexture(this->texture);
+    }
+}
+
+SDL_Texture* Image::getTexture(SDL_Renderer* renderer)
+{
+    if (!this->texture) {
+        this->texture = SDL_CreateTextureFromSurface(renderer, this->surface);
+    }
+    return this->texture;
 }
 
 int Image::getWidth() const

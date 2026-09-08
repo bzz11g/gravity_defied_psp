@@ -41,7 +41,7 @@ GameMenu::GameMenu(std::string var1, Micro* micro, GameMenu* var3, char* inputSt
     }
 
     field_104 = xPos + 7;
-    field_103 = 2;
+    field_103 = 0;
     field_110 = 0;
     if (field_94 != "") {
         field_107 = (canvasHeight - (field_101 << 1) - 10 - font->getBaselinePosition()) / (font2->getBaselinePosition() + field_103);
