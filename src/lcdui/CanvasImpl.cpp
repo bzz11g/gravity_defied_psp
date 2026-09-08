@@ -16,6 +16,11 @@ CanvasImpl::CanvasImpl(Canvas* canvas)
         throw std::runtime_error(SDL_GetError());
     }
 
+    SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+    if (SDL_NumJoysticks() > 0) {
+        SDL_GameControllerOpen(0);
+    }
+
     if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
         throw std::runtime_error(IMG_GetError());
     }
@@ -57,6 +62,7 @@ CanvasImpl::~CanvasImpl()
 
 void CanvasImpl::clear()
 {
+    SDL_SetRenderTarget(renderer, nullptr);
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
 }
@@ -108,6 +114,34 @@ void CanvasImpl::processEvents()
                     // std::cout << "ESC released" << std::endl;
                     canvas->pressedEsc();
                 }
+            }
+        } break;
+        case SDL_CONTROLLERBUTTONDOWN: {
+            int keyCode = 0;
+            switch (e.cbutton.button) {
+                case SDL_CONTROLLER_BUTTON_DPAD_UP: keyCode = Canvas::Keys::UP; break;
+                case SDL_CONTROLLER_BUTTON_DPAD_DOWN: keyCode = Canvas::Keys::DOWN; break;
+                case SDL_CONTROLLER_BUTTON_DPAD_LEFT: keyCode = Canvas::Keys::LEFT; break;
+                case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: keyCode = Canvas::Keys::RIGHT; break;
+                case SDL_CONTROLLER_BUTTON_A: keyCode = Canvas::Keys::FIRE; break;
+            }
+            if (keyCode != 0) {
+                canvas->publicKeyPressed(keyCode);
+            }
+        } break;
+        case SDL_CONTROLLERBUTTONUP: {
+            int keyCode = 0;
+            switch (e.cbutton.button) {
+                case SDL_CONTROLLER_BUTTON_DPAD_UP: keyCode = Canvas::Keys::UP; break;
+                case SDL_CONTROLLER_BUTTON_DPAD_DOWN: keyCode = Canvas::Keys::DOWN; break;
+                case SDL_CONTROLLER_BUTTON_DPAD_LEFT: keyCode = Canvas::Keys::LEFT; break;
+                case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: keyCode = Canvas::Keys::RIGHT; break;
+                case SDL_CONTROLLER_BUTTON_A: keyCode = Canvas::Keys::FIRE; break;
+            }
+            if (keyCode != 0) {
+                canvas->publicKeyReleased(keyCode);
+            } else if (e.cbutton.button == SDL_CONTROLLER_BUTTON_B) {
+                canvas->pressedEsc();
             }
         } break;
         default:

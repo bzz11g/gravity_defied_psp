@@ -27,7 +27,7 @@ void Graphics::drawString(const std::string& s, int x, int y, int anchor)
     if (textCache.find(key) != textCache.end()) {
         message = textCache[key];
     } else {
-        if (textCache.size() > 256) {
+        if (textCache.size() > 1024) {
             for (auto& pair : textCache) {
                 SDL_DestroyTexture(pair.second);
             }
