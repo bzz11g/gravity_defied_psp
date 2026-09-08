@@ -10,48 +10,44 @@ Graphics::Graphics(SDL_Renderer* renderer)
 
 Graphics::~Graphics()
 {
-    for (auto& pair : glyphCache) {
+    for (auto& pair : textCache) {
         SDL_DestroyTexture(pair.second);
     }
-    glyphCache.clear();
+    textCache.clear();
 }
 
 void Graphics::drawString(const std::string& s, int x, int y, int anchor)
 {
+    std::string key = std::to_string(font->getHeight()) + "_" +
+                      std::to_string(currentColor.r) + "_" +
+                      std::to_string(currentColor.g) + "_" +
+                      std::to_string(currentColor.b) + "_" + s;
+
+    SDL_Texture* message = nullptr;
+    if (textCache.find(key) != textCache.end()) {
+        message = textCache[key];
+    } else {
+        if (textCache.size() > 256) {
+            for (auto& pair : textCache) {
+                SDL_DestroyTexture(pair.second);
+            }
+            textCache.clear();
+        }
+        SDL_Surface* surfaceMessage = TTF_RenderText_Blended(font->getTtfFont(), s.c_str(), currentColor);
+        message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+        textCache[key] = message;
+        SDL_FreeSurface(surfaceMessage);
+    }
+
     int width, height;
     if (TTF_SizeText(font->getTtfFont(), s.c_str(), &width, &height) == -1)
         throw std::runtime_error(TTF_GetError());
 
     x = getAnchorX(x, width, anchor);
     y = getAnchorY(y, height, anchor);
+    SDL_Rect dstRect { x, y, width, height };
 
-    int currentX = x;
-
-    for (char c : s) {
-        std::string charStr(1, c);
-        std::string key = std::to_string(font->getHeight()) + "_" +
-                          std::to_string(currentColor.r) + "_" +
-                          std::to_string(currentColor.g) + "_" +
-                          std::to_string(currentColor.b) + "_" + charStr;
-
-        SDL_Texture* message = nullptr;
-        if (glyphCache.find(key) != glyphCache.end()) {
-            message = glyphCache[key];
-        } else {
-            SDL_Surface* surfaceMessage = TTF_RenderText_Blended(font->getTtfFont(), charStr.c_str(), currentColor);
-            message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
-            glyphCache[key] = message;
-            SDL_FreeSurface(surfaceMessage);
-        }
-
-        int charWidth, charHeight;
-        TTF_SizeText(font->getTtfFont(), charStr.c_str(), &charWidth, &charHeight);
-
-        SDL_Rect dstRect { currentX, y, charWidth, charHeight };
-        SDL_RenderCopy(renderer, message, nullptr, &dstRect);
-
-        currentX += charWidth;
-    }
+    SDL_RenderCopy(renderer, message, nullptr, &dstRect);
 }
 
 void Graphics::setColor(int r, int g, int b)

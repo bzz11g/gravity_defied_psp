@@ -21,7 +21,7 @@ private:
     SDL_Renderer* renderer;
     std::shared_ptr<Font> font;
     SDL_Color currentColor;
-    std::unordered_map<std::string, SDL_Texture*> glyphCache;
+    std::unordered_map<std::string, SDL_Texture*> textCache;
     // void _ellipse(int cx, int cy, int xradius, int yradius);
     void _putpixel(int x, int y);
 
