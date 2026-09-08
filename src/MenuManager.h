@@ -3,6 +3,8 @@
 #include <vector>
 #include <filesystem>
 #include <algorithm>
+#include <filesystem>
+#include <algorithm>
 #include <string>
 #include <memory>
 
@@ -43,6 +45,7 @@ private:
     SettingsStringRender* settingStringPack;
     std::vector<std::string> packNames;
     std::vector<std::string> packPaths;
+    GameMenu* gameMenuPacks;
     SettingsStringRender* settingStringLevel;
     GameMenu* gameMenuStringLevel;
     SettingsStringRender* settingsStringTrack;
@@ -124,6 +127,7 @@ private:
     // Alert alert = nullptr; // TODO
 
     void addTextRender(GameMenu* gameMenu, std::string text);
+    void loadStateFromRecordStore();
     void method_197();
     void fillCanvasWithImage(Graphics* graphics);
     void processNonFireKeyCode(int keyCode);

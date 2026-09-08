@@ -46,57 +46,8 @@ void MenuManager::initPart(int var1)
             isRecordStoreOpened = false;
             return;
         }
-    case 2: {
-        recorcStoreRecordId = -1;
-
-        RecordEnumeration* records;
-        try {
-            records = recordStore->enumerateRecords(nullptr, nullptr, false);
-        } catch (RecordStoreNotOpenException& var8) {
-            return;
-        }
-
-        std::vector<int8_t> var3;
-        if (records->numRecords() > 0) {
-            try {
-                var3 = records->nextRecord();
-                records->reset();
-                recorcStoreRecordId = records->nextRecordId();
-            } catch (RecordStoreException& var7) {
-                return;
-            }
-
-            if (var3.size() <= 19) {
-                for (std::size_t i = 0; i < var3.size(); ++i) {
-                    field_278[i] = var3[i];
-                }
-            }
-
-            records->destroy();
-        }
-
-        var3 = method_216(16, (int8_t)-1);
-        if (!var3.empty() && var3[0] != -1) {
-            for (var4 = 0; var4 < 3; ++var4) {
-                field_341[var4] = var3[var4];
-            }
-        }
-
-        if (field_341[0] == 82 && field_341[1] == 75 && field_341[2] == 69) {
-            availableLeagues = 3;
-            field_344 = 2;
-            field_342[0] = (int8_t)(micro->levelLoader->levelNames[0].size() - 1);
-            field_342[1] = (int8_t)(micro->levelLoader->levelNames[1].size() - 1);
-            field_342[2] = (int8_t)(micro->levelLoader->levelNames[2].size() - 1);
-            return;
-        }
-
-        availableLeagues = 0;
-        field_344 = 1;
-        field_342[0] = 0;
-        field_342[1] = 0;
-        field_342[2] = -1;
-    }
+    case 2:
+        loadStateFromRecordStore();
         return;
     case 3:
         isDisablePerspective = method_217(0, isDisablePerspective);
@@ -199,6 +150,8 @@ void MenuManager::initPart(int var1)
         taskStart = new SettingsStringRender("Start>", 0, this, std::vector<std::string>(), false, micro, gameMenuMain, true);
         gameMenuPlay->addMenuElement(taskStart);
 
+
+
         packNames.clear();
         packPaths.clear();
         packNames.push_back("Original");
@@ -223,6 +176,8 @@ void MenuManager::initPart(int var1)
         }
 
         settingStringPack = new SettingsStringRender("Level pack", 0, this, packNames, false, micro, gameMenuPlay, false);
+        settingStringPack->setDisableHorizontalCycling(true);
+        gameMenuPacks = settingStringPack->getGameMenu();
         gameMenuPlay->addMenuElement(settingStringPack);
 
         gameMenuPlay->addMenuElement(settingStringLevel);
@@ -338,6 +293,60 @@ void MenuManager::initPart(int var1)
     default:
         break;
     }
+}
+
+
+void MenuManager::loadStateFromRecordStore()
+{
+    recorcStoreRecordId = -1;
+
+    RecordEnumeration* records;
+    try {
+        records = recordStore->enumerateRecords(nullptr, nullptr, false);
+    } catch (RecordStoreNotOpenException& var8) {
+        return;
+    }
+
+    std::vector<int8_t> var3;
+    if (records->numRecords() > 0) {
+        try {
+            var3 = records->nextRecord();
+            records->reset();
+            recorcStoreRecordId = records->nextRecordId();
+        } catch (RecordStoreException& var7) {
+            return;
+        }
+
+        if (var3.size() <= 19) {
+            for (std::size_t i = 0; i < var3.size(); ++i) {
+                field_278[i] = var3[i];
+            }
+        }
+
+        records->destroy();
+    }
+
+    var3 = method_216(16, (int8_t)-1);
+    if (!var3.empty() && var3[0] != -1) {
+        for (int var4 = 0; var4 < 3; ++var4) {
+            field_341[var4] = var3[var4];
+        }
+    }
+
+    if (field_341[0] == 82 && field_341[1] == 75 && field_341[2] == 69) {
+        availableLeagues = 3;
+        field_344 = 2;
+        field_342[0] = (int8_t)(micro->levelLoader->levelNames[0].size() > 0 ? micro->levelLoader->levelNames[0].size() - 1 : 0);
+        field_342[1] = (int8_t)(micro->levelLoader->levelNames[1].size() > 0 ? micro->levelLoader->levelNames[1].size() - 1 : 0);
+        field_342[2] = (int8_t)(micro->levelLoader->levelNames[2].size() > 0 ? micro->levelLoader->levelNames[2].size() - 1 : 0);
+        return;
+    }
+
+    availableLeagues = 0;
+    field_344 = 1;
+    field_342[0] = 0;
+    field_342[1] = 0;
+    field_342[2] = -1;
 }
 
 void MenuManager::addTextRender(GameMenu* gameMenu, std::string text)
@@ -834,23 +843,40 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
 {
     if (menuElement == settingStringPack) {
         if (settingStringPack->method_114()) {
+            method_1(gameMenuPacks, false);
+            gameMenuPacks->method_83(settingStringPack->getCurrentOptionPos());
+        } else {
+            method_208();
+            if (isRecordStoreOpened) {
+                try {
+                    recordStore->closeRecordStore();
+                } catch (...) {}
+            }
+
+            std::string packName = packNames[settingStringPack->getCurrentOptionPos()];
+            RecordStore::setPackPrefix(packName == "Original" ? "" : packName + "_");
+
+            try {
+                recordStore = RecordStore::openRecordStore("GDTRStates", true);
+                isRecordStoreOpened = true;
+            } catch (...) {
+                isRecordStoreOpened = false;
+            }
+
             micro->levelLoader->load(packPaths[settingStringPack->getCurrentOptionPos()]);
             this->levelNames = micro->levelLoader->levelNames;
 
-            // Unlock all tracks for the selected pack
-            field_342[0] = micro->levelLoader->levelNames[0].size() > 0 ? micro->levelLoader->levelNames[0].size() - 1 : 0;
-            field_342[1] = micro->levelLoader->levelNames[1].size() > 0 ? micro->levelLoader->levelNames[1].size() - 1 : 0;
-            field_342[2] = micro->levelLoader->levelNames[2].size() > 0 ? micro->levelLoader->levelNames[2].size() - 1 : 0;
+            loadStateFromRecordStore();
 
-            settingStringLevel->setCurentOptionPos(0);
-            settingsStringTrack->setCurentOptionPos(0);
+            settingStringLevel->setCurentOptionPos(field_370);
+            settingsStringTrack->setCurentOptionPos(field_345[field_370]);
 
             settingStringLevel->setOptionsList(field_361);
-            settingStringLevel->setAvailableOptions(2);
+            settingStringLevel->setAvailableOptions(field_344);
             settingStringLevel->init();
 
-            settingsStringTrack->setOptionsList(levelNames[0]);
-            settingsStringTrack->setAvailableOptions(field_342[0]);
+            settingsStringTrack->setOptionsList(levelNames[field_370]);
+            settingsStringTrack->setAvailableOptions(field_342[field_370]);
             settingsStringTrack->init();
         }
     } else if (menuElement == taskStart) {

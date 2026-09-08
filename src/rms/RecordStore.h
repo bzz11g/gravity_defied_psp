@@ -24,6 +24,8 @@ private:
     std::unique_ptr<RecordEnumerationImpl> records;
 
 public:
+    inline static std::string packPrefix = "";
+    static void setPackPrefix(const std::string& prefix);
     static void setRecordStoreDir(const char* progName);
     static RecordStore* openRecordStore(std::string name, bool createIfNecessary);
     void closeRecordStore();
