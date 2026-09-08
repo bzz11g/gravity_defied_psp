@@ -25,7 +25,6 @@ void MenuManager::initPart(int var1)
     case 1:
         field_341 = defaultInputString;
         field_374 = { "On", "Off" };
-        field_375 = { "Keyset 1", "Keyset 2", "Keyset 3" };
         recordManager = new RecordManager();
         field_337 = -1L;
         field_338 = -1;
@@ -54,7 +53,7 @@ void MenuManager::initPart(int var1)
         isDisabledShadows = method_217(1, isDisabledShadows);
         isDisabledDriverSprite = method_217(2, isDisabledDriverSprite);
         isDisabledBikeSprite = method_217(3, isDisabledBikeSprite);
-        field_367 = method_217(14, field_367);
+        field_367 = 0;
         isDisableLookAhead = method_217(4, isDisableLookAhead);
         field_369 = method_217(11, field_369);
         field_370 = method_217(10, field_370);
@@ -190,7 +189,6 @@ void MenuManager::initPart(int var1)
         shadowsSetting = new SettingsStringRender("Shadows", isDisabledShadows, this, field_374, true, micro, gameMenuOptions, false);
         driverSpriteSetting = new SettingsStringRender("Driver sprite", isDisabledDriverSprite, this, field_374, true, micro, gameMenuOptions, false);
         bikeSpriteSetting = new SettingsStringRender("Bike sprite", isDisabledBikeSprite, this, field_374, true, micro, gameMenuOptions, false);
-        inputSetting = new SettingsStringRender("Input", field_367, this, field_375, false, micro, gameMenuOptions, false);
         lookAheadSetting = new SettingsStringRender("Look ahead", isDisableLookAhead, this, field_374, true, micro, gameMenuOptions, false);
         clearHighscoreSetting = new TimerOrMotoPartOrMenuElem("Clear highscore", gameMenuConfirmClear, this);
         return;
@@ -199,7 +197,6 @@ void MenuManager::initPart(int var1)
         gameMenuOptions->addMenuElement(shadowsSetting);
         gameMenuOptions->addMenuElement(driverSpriteSetting);
         gameMenuOptions->addMenuElement(bikeSpriteSetting);
-        gameMenuOptions->addMenuElement(inputSetting);
         gameMenuOptions->addMenuElement(lookAheadSetting);
         gameMenuOptions->addMenuElement(clearHighscoreSetting);
         gameMenuOptions->addMenuElement(settingStringBack);
@@ -222,14 +219,8 @@ void MenuManager::initPart(int var1)
         gameMenuHelp->addMenuElement(field_318);
         field_319 = new GameMenu("Keys", micro, gameMenuHelp);
         field_320 = new TimerOrMotoPartOrMenuElem("Keys", field_319, this);
-        addTextRender(field_319, "- " + field_375[0] + " -");
+        addTextRender(field_319, "- Controls -");
         addTextRender(field_319, "UP accelerates, DOWN brakes, RIGHT leans forward and LEFT leans backward. 1 accelerates and leans backward. 3 accelerates and leans forward. 7 brakes and leans backward. 9 brakes and leans forward.");
-        field_319->addMenuElement(field_376.get());
-        addTextRender(field_319, "- " + field_375[1] + " -");
-        addTextRender(field_319, "1 accelerates, 4 brakes, 6 leans forward and 5 leans backward.");
-        field_319->addMenuElement(field_376.get());
-        addTextRender(field_319, "- " + field_375[2] + " -");
-        addTextRender(field_319, "3 accelerates, 6 brakes, 5 leans forward and 4 leans backward.");
         field_319->addMenuElement(settingStringBack);
         gameMenuHelp->addMenuElement(field_320);
         field_321 = new GameMenu("Unlocking", micro, gameMenuHelp);
@@ -258,9 +249,6 @@ void MenuManager::initPart(int var1)
         gameMenuOptions2->addMenuElement(field_376.get());
         addTextRender(gameMenuOptions2, "Bike Sprite: On / Off");
         addTextRender(gameMenuOptions2, "Default: <On>. <On> uses a texture for the bike. <Off> uses line graphics.");
-        gameMenuOptions2->addMenuElement(field_376.get());
-        addTextRender(gameMenuOptions2, "Input: Keyset 1,2,3 ");
-        addTextRender(gameMenuOptions2, "Default: <1>. Determines which type of input should be used when playing. See \"Keys\" in the help menu for more info.");
         gameMenuOptions2->addMenuElement(field_376.get());
         addTextRender(gameMenuOptions2, "Look ahead: On/Off");
         addTextRender(gameMenuOptions2, "Default: <On>. Turns on and off smart camera movement.");
@@ -793,7 +781,7 @@ void MenuManager::method_208()
     setValue(1, (int8_t)shadowsSetting->getCurrentOptionPos());
     setValue(2, (int8_t)driverSpriteSetting->getCurrentOptionPos());
     setValue(3, (int8_t)bikeSpriteSetting->getCurrentOptionPos());
-    setValue(14, (int8_t)inputSetting->getCurrentOptionPos());
+    setValue(14, 0);
     setValue(4, (int8_t)lookAheadSetting->getCurrentOptionPos());
     setValue(5, (int8_t)settingsStringLeague->getMaxAvailableOptionPos());
     setValue(6, (int8_t)settingStringLevel->getMaxAvailableOptionPos());
@@ -906,15 +894,6 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
                 return;
             }
         } else {
-            if (menuElement == inputSetting) {
-                if (inputSetting->method_114()) {
-                    inputSetting->setCurentOptionPos(inputSetting->getCurrentOptionPos() + 1);
-                }
-
-                micro->gameCanvas->method_163(inputSetting->getCurrentOptionPos());
-                return;
-            }
-
             if (menuElement == lookAheadSetting) {
                 micro->gamePhysics->setEnableLookAhead(lookAheadSetting->getCurrentOptionPos() == 0);
                 return;
@@ -1170,7 +1149,6 @@ void MenuManager::exit()
     field_341[0] = 65;
     field_341[1] = 65;
     field_341[2] = 65;
-    inputSetting->setCurentOptionPos(0);
     field_342[0] = 0;
     field_342[1] = 0;
     field_342[2] = -1;

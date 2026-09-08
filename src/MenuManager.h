@@ -59,7 +59,6 @@ private:
     SettingsStringRender* shadowsSetting;
     SettingsStringRender* driverSpriteSetting;
     SettingsStringRender* bikeSpriteSetting;
-    SettingsStringRender* inputSetting;
     SettingsStringRender* lookAheadSetting;
     TimerOrMotoPartOrMenuElem* clearHighscoreSetting;
     TimerOrMotoPartOrMenuElem* field_313;
@@ -122,7 +121,6 @@ private:
     int8_t field_372 = 0;
     int8_t field_373 = 0;
     std::vector<std::string> field_374;
-    std::vector<std::string> field_375;
     std::unique_ptr<TextRender> field_376;
     // Alert alert = nullptr; // TODO
 
