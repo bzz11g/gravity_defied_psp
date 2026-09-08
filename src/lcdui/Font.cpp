@@ -66,11 +66,11 @@ int Font::getRealFontSize(FontSize size)
 {
     switch (size) {
     case SIZE_LARGE:
-        return 32;
+        return 24;
     case SIZE_MEDIUM:
-        return 16;
-    case SIZE_SMALL:
         return 12;
+    case SIZE_SMALL:
+        return 9;
     default:
         throw std::runtime_error("unknown font size: " + std::to_string(size));
     }

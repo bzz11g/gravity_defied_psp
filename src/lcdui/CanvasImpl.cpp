@@ -42,8 +42,6 @@ CanvasImpl::CanvasImpl(Canvas* canvas)
         throw std::runtime_error(SDL_GetError());
     }
 
-    SDL_RenderSetLogicalSize(renderer, 480, 272);
-
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
 }
@@ -55,6 +53,12 @@ CanvasImpl::~CanvasImpl()
     SDL_Quit();
     IMG_Quit();
     TTF_Quit();
+}
+
+void CanvasImpl::clear()
+{
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderClear(renderer);
 }
 
 void CanvasImpl::repaint()

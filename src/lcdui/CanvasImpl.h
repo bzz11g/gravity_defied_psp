@@ -24,6 +24,7 @@ public:
     CanvasImpl(Canvas* canvas);
     ~CanvasImpl();
 
+    void clear();
     void repaint();
     int getWidth();
     int getHeight();
