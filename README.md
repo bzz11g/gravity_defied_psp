@@ -1,6 +1,4 @@
-# Gravity Defied Cpp
-
-![](./screens/demo1.gif)
+# Gravity Defied Cpp PSP Homebrew AI
 
 **Gravity Defied** is a legendary mototrial racing mobile game. It was originally developed by Codebrew Software in 2004 for J2ME platform.
 
@@ -9,6 +7,10 @@ This is the C++ & SDL2 port of Gravity Defied, which includes all the features o
 ***This Project is not associated with Codebrew Software in any fashion. All rights to the original Gravity Defied, it's name, logotype, brand and all that stuff belong to Codebrew Software.***
 
 # Authors
+
+### PSP Homebrew port
+* **[bzz11g](https://github.com/bzz11g)**
+* **jules.google.com**
 
 ### Gravity Defied Cpp authors
 * **[rgimad](https://github.com/rgimad)** - idea & coding
@@ -25,4 +27,4 @@ For more information, please visit official site of Codebrew Software: [codebrew
 
 # Contributing
 
-If you want to contribute, feel free to discuss your idea with the rest of the developers in our [Telegram group](https://t.me/+sOfxjrsbkbEwNzc6)
+
