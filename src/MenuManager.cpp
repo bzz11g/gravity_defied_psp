@@ -198,6 +198,33 @@ void MenuManager::initPart(int var1)
         gameMenuHighscore->addMenuElement(settingStringBack);
         taskStart = new SettingsStringRender("Start>", 0, this, std::vector<std::string>(), false, micro, gameMenuMain, true);
         gameMenuPlay->addMenuElement(taskStart);
+
+        packNames.clear();
+        packPaths.clear();
+        packNames.push_back("Original");
+        packPaths.push_back("");
+
+        {
+            std::filesystem::path appDir = std::filesystem::current_path(); // We can use current path since we're in app dir
+            std::filesystem::path levelsDir = appDir / "levels";
+
+            if (std::filesystem::exists(levelsDir) && std::filesystem::is_directory(levelsDir)) {
+                for (const auto& entry : std::filesystem::directory_iterator(levelsDir)) {
+                    if (entry.is_regular_file()) {
+                        std::string ext = entry.path().extension().string();
+                        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                        if (ext == ".mrg") {
+                            packNames.push_back(entry.path().stem().string());
+                            packPaths.push_back(entry.path().string());
+                        }
+                    }
+                }
+            }
+        }
+
+        settingStringPack = new SettingsStringRender("Level pack", 0, this, packNames, false, micro, gameMenuPlay, false);
+        gameMenuPlay->addMenuElement(settingStringPack);
+
         gameMenuPlay->addMenuElement(settingStringLevel);
         gameMenuPlay->addMenuElement(settingsStringTrack);
         gameMenuPlay->addMenuElement(settingsStringLeague);
@@ -805,7 +832,28 @@ void MenuManager::showAlert(std::string title, std::string alertText, Image* ima
 
 void MenuManager::processMenu(IGameMenuElement* menuElement)
 {
-    if (menuElement == taskStart) {
+    if (menuElement == settingStringPack) {
+        if (settingStringPack->method_114()) {
+            micro->levelLoader->load(packPaths[settingStringPack->getCurrentOptionPos()]);
+            this->levelNames = micro->levelLoader->levelNames;
+
+            // Unlock all tracks for the selected pack
+            field_342[0] = micro->levelLoader->levelNames[0].size() > 0 ? micro->levelLoader->levelNames[0].size() - 1 : 0;
+            field_342[1] = micro->levelLoader->levelNames[1].size() > 0 ? micro->levelLoader->levelNames[1].size() - 1 : 0;
+            field_342[2] = micro->levelLoader->levelNames[2].size() > 0 ? micro->levelLoader->levelNames[2].size() - 1 : 0;
+
+            settingStringLevel->setCurentOptionPos(0);
+            settingsStringTrack->setCurentOptionPos(0);
+
+            settingStringLevel->setOptionsList(field_361);
+            settingStringLevel->setAvailableOptions(2);
+            settingStringLevel->init();
+
+            settingsStringTrack->setOptionsList(levelNames[0]);
+            settingsStringTrack->setAvailableOptions(field_342[0]);
+            settingsStringTrack->init();
+        }
+    } else if (menuElement == taskStart) {
         if (settingStringLevel->getCurrentOptionPos() <= settingStringLevel->getMaxAvailableOptionPos() && settingsStringTrack->getCurrentOptionPos() <= settingsStringTrack->getMaxAvailableOptionPos() && settingsStringLeague->getCurrentOptionPos() <= settingsStringLeague->getMaxAvailableOptionPos()) {
             micro->gamePhysics->disableGenerateInputAI();
             micro->levelLoader->method_88(settingStringLevel->getCurrentOptionPos(), settingsStringTrack->getCurrentOptionPos());

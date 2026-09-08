@@ -29,6 +29,7 @@ private:
     void loadLevels();
 
 public:
+    void load(const std::filesystem::path& mrgFilePath);
     static const int field_114;
     static const int field_115;
     static const int field_116;

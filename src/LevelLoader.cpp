@@ -25,24 +25,45 @@ LevelLoader::LevelLoader(const std::filesystem::path& mrgFilePath)
         field_124[i] = (int)((int64_t)((GamePhysics::const175_1_half[i] - 19660) >> 1) * (int64_t)((GamePhysics::const175_1_half[i] - 19660) >> 1) >> 16);
     }
 
-    if (!mrgFilePath.string().empty()) {
-        FileStream* fileStream = new FileStream(mrgFilePath, std::ios::in | std::ios::binary);
-        if (!fileStream->isOpen()) {
-            throw std::system_error(errno, std::system_category(), "Failed to open " + mrgFilePath.string());
-        }
-        levelFileStream = fileStream;
-    } else {
-        EmbedFileStream* embedFileStream = new EmbedFileStream("levels.mrg");
-        levelFileStream = static_cast<FileStream*>(embedFileStream);
-    }
-
-    loadLevels();
-    method_87();
+    levelFileStream = nullptr;
+    load(mrgFilePath);
 }
 
 LevelLoader::~LevelLoader()
 {
-    delete levelFileStream;
+    if (levelFileStream != nullptr) {
+        delete levelFileStream;
+    }
+}
+
+void LevelLoader::load(const std::filesystem::path& mrgFilePath)
+{
+    if (levelFileStream != nullptr) {
+        delete levelFileStream;
+        levelFileStream = nullptr;
+    }
+
+    levelNames = std::vector<std::vector<std::string>>(3);
+    levelOffsetInFile = std::vector<std::vector<int>>(3);
+
+    FileStream* fileStream = nullptr;
+    if (!mrgFilePath.string().empty()) {
+        fileStream = new FileStream(mrgFilePath, std::ios::in | std::ios::binary);
+    }
+
+    if (fileStream == nullptr || !fileStream->isOpen()) {
+        if (fileStream != nullptr) {
+            delete fileStream;
+            fileStream = nullptr;
+        }
+        EmbedFileStream* embedFileStream = new EmbedFileStream("levels.mrg");
+        levelFileStream = static_cast<FileStream*>(embedFileStream);
+    } else {
+        levelFileStream = fileStream;
+    }
+
+    loadLevels();
+    method_87();
 }
 
 void LevelLoader::loadLevels()

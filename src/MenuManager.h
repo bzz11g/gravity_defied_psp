@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <filesystem>
+#include <algorithm>
 #include <string>
 #include <memory>
 
@@ -38,6 +40,9 @@ private:
     TimerOrMotoPartOrMenuElem* taskPlayMenu;
     TimerOrMotoPartOrMenuElem* taskOptions;
     TimerOrMotoPartOrMenuElem* taskHelp;
+    SettingsStringRender* settingStringPack;
+    std::vector<std::string> packNames;
+    std::vector<std::string> packPaths;
     SettingsStringRender* settingStringLevel;
     GameMenu* gameMenuStringLevel;
     SettingsStringRender* settingsStringTrack;
