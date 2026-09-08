@@ -93,13 +93,13 @@ set_target_properties(GravityDefied PROPERTIES LINK_FLAGS_RELEASE -s)
 
 if(WIN32)
     target_link_options(GravityDefied PRIVATE -static -mwindows)
-    target_link_libraries(GravityDefied 
+    target_link_libraries(GravityDefied PRIVATE
                          ${SDL2_STATIC_LIBRARIES} 
                          ${SDL2_TTF_STATIC_LIBRARIES}
                          ${SDL2_IMAGE_STATIC_LIBRARIES} 
                          Assets::Assets)
 else()
-    target_link_libraries(GravityDefied 
+    target_link_libraries(GravityDefied PRIVATE
                           ${SDL2_LIBRARIES}
                           ${SDL2_TTF_LIBRARIES}
                           ${SDL2_IMAGE_LIBRARIES}
@@ -108,3 +108,15 @@ endif()
 
 # Copy assets to the build directory
 file(COPY assets/levels.mrg DESTINATION ${CMAKE_BINARY_DIR})
+
+if(PSP)
+    target_link_libraries(GravityDefied PRIVATE
+                          pspctrl pspgu pspgum pspdisplay psppower psprtc m stdc++)
+
+    create_pbp_file(
+        TARGET GravityDefied
+        TITLE "Gravity Defied: Trial Racing"
+        ICON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/assets/ICON0.png"
+        BACKGROUND_PATH "${CMAKE_CURRENT_SOURCE_DIR}/assets/PIC1.png"
+    )
+endif()
