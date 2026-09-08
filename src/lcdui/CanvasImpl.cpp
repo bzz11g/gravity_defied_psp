@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "Canvas.h"
+#include "../Micro.h"
 
 CanvasImpl::CanvasImpl(Canvas* canvas)
 {
@@ -116,14 +117,66 @@ void CanvasImpl::processEvents()
                 }
             }
         } break;
+        case SDL_CONTROLLERAXISMOTION: {
+            if (e.caxis.axis == SDL_CONTROLLER_AXIS_LEFTX) {
+                if (e.caxis.value < -8000) {
+                    canvas->publicKeyPressed(Canvas::Keys::LEFT);
+                    canvas->publicKeyReleased(Canvas::Keys::RIGHT);
+                } else if (e.caxis.value > 8000) {
+                    canvas->publicKeyPressed(Canvas::Keys::RIGHT);
+                    canvas->publicKeyReleased(Canvas::Keys::LEFT);
+                } else {
+                    canvas->publicKeyReleased(Canvas::Keys::LEFT);
+                    canvas->publicKeyReleased(Canvas::Keys::RIGHT);
+                }
+            } else if (e.caxis.axis == SDL_CONTROLLER_AXIS_LEFTY) {
+                if (e.caxis.value < -8000) {
+                    canvas->publicKeyPressed(Canvas::Keys::UP);
+                    canvas->publicKeyReleased(Canvas::Keys::DOWN);
+                } else if (e.caxis.value > 8000) {
+                    canvas->publicKeyPressed(Canvas::Keys::DOWN);
+                    canvas->publicKeyReleased(Canvas::Keys::UP);
+                } else {
+                    canvas->publicKeyReleased(Canvas::Keys::UP);
+                    canvas->publicKeyReleased(Canvas::Keys::DOWN);
+                }
+            }
+        } break;
         case SDL_CONTROLLERBUTTONDOWN: {
             int keyCode = 0;
+            bool isMenu = Micro::isInGameMenu;
+
             switch (e.cbutton.button) {
                 case SDL_CONTROLLER_BUTTON_DPAD_UP: keyCode = Canvas::Keys::UP; break;
                 case SDL_CONTROLLER_BUTTON_DPAD_DOWN: keyCode = Canvas::Keys::DOWN; break;
                 case SDL_CONTROLLER_BUTTON_DPAD_LEFT: keyCode = Canvas::Keys::LEFT; break;
                 case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: keyCode = Canvas::Keys::RIGHT; break;
-                case SDL_CONTROLLER_BUTTON_A: keyCode = Canvas::Keys::FIRE; break;
+
+                case SDL_CONTROLLER_BUTTON_A: // Cross (X)
+                    keyCode = Canvas::Keys::FIRE;
+                    if (!isMenu) keyCode = '8'; // Brake/Reverse
+                    break;
+                case SDL_CONTROLLER_BUTTON_B: // Circle (O)
+                    if (!isMenu) keyCode = '6'; // Lean Forward
+                    break;
+                case SDL_CONTROLLER_BUTTON_X: // Square
+                    if (!isMenu) keyCode = '4'; // Lean Backward
+                    break;
+                case SDL_CONTROLLER_BUTTON_Y: // Triangle
+                    if (!isMenu) keyCode = '2'; // Accelerate
+                    break;
+
+                case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+                    if (!isMenu) keyCode = '1'; // Gas + Lean Backward
+                    break;
+                case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+                    if (!isMenu) keyCode = '3'; // Gas + Lean Forward
+                    break;
+
+                case SDL_CONTROLLER_BUTTON_START:
+                    if (isMenu) keyCode = Canvas::Keys::FIRE;
+                    // In-game START triggers Pause, not handled directly as J2ME key if we can trigger menu
+                    break;
             }
             if (keyCode != 0) {
                 canvas->publicKeyPressed(keyCode);
@@ -131,16 +184,44 @@ void CanvasImpl::processEvents()
         } break;
         case SDL_CONTROLLERBUTTONUP: {
             int keyCode = 0;
+            bool isMenu = Micro::isInGameMenu;
+
             switch (e.cbutton.button) {
                 case SDL_CONTROLLER_BUTTON_DPAD_UP: keyCode = Canvas::Keys::UP; break;
                 case SDL_CONTROLLER_BUTTON_DPAD_DOWN: keyCode = Canvas::Keys::DOWN; break;
                 case SDL_CONTROLLER_BUTTON_DPAD_LEFT: keyCode = Canvas::Keys::LEFT; break;
                 case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: keyCode = Canvas::Keys::RIGHT; break;
-                case SDL_CONTROLLER_BUTTON_A: keyCode = Canvas::Keys::FIRE; break;
+
+                case SDL_CONTROLLER_BUTTON_A:
+                    keyCode = Canvas::Keys::FIRE;
+                    if (!isMenu) keyCode = '8';
+                    break;
+                case SDL_CONTROLLER_BUTTON_B:
+                    if (!isMenu) keyCode = '6';
+                    break;
+                case SDL_CONTROLLER_BUTTON_X:
+                    if (!isMenu) keyCode = '4';
+                    break;
+                case SDL_CONTROLLER_BUTTON_Y:
+                    if (!isMenu) keyCode = '2';
+                    break;
+
+                case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+                    if (!isMenu) keyCode = '1';
+                    break;
+                case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+                    if (!isMenu) keyCode = '3';
+                    break;
+
+                case SDL_CONTROLLER_BUTTON_START:
+                    if (isMenu) keyCode = Canvas::Keys::FIRE;
+                    break;
             }
             if (keyCode != 0) {
                 canvas->publicKeyReleased(keyCode);
-            } else if (e.cbutton.button == SDL_CONTROLLER_BUTTON_B) {
+            } else if (e.cbutton.button == SDL_CONTROLLER_BUTTON_B && isMenu) {
+                canvas->pressedEsc();
+            } else if (e.cbutton.button == SDL_CONTROLLER_BUTTON_START && !isMenu) {
                 canvas->pressedEsc();
             }
         } break;

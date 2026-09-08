@@ -67,7 +67,7 @@ int Canvas::getGameAction(int keyCode)
     case Keys::FIRE:
         return keyCode;
     default:
-        throw std::runtime_error("getGameAction(" + std::to_string(keyCode) + ") isn't implemented!");
+        return -1;
     }
 }
 
