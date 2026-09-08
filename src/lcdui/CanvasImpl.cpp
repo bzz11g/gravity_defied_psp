@@ -36,11 +36,13 @@ CanvasImpl::CanvasImpl(Canvas* canvas)
     }
 
     renderer = SDL_CreateRenderer(
-        window, -1, SDL_RENDERER_ACCELERATED);
+        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     if (!renderer) {
         throw std::runtime_error(SDL_GetError());
     }
+
+    SDL_RenderSetLogicalSize(renderer, 480, 272);
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);

@@ -15,8 +15,8 @@ private:
     SDL_Window* window;
     SDL_Renderer* renderer;
 
-    const int width = 640;
-    const int height = 480;
+    const int width = 480;
+    const int height = 272;
 
     static int convertKeyCharToKeyCode(SDL_Keycode keyCode);
 
