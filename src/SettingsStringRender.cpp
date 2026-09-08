@@ -5,6 +5,11 @@
 #include "GameCanvas.h"
 #include "lcdui/Graphics.h"
 
+void SettingsStringRender::setDisableHorizontalCycling(bool disable)
+{
+    disableHorizontalCycling = disable;
+}
+
 SettingsStringRender::SettingsStringRender(std::string text, int isDisabled, IMenuManager* menuManager, std::vector<std::string> optionsList, bool var5, Micro* micro, GameMenu* gameMenu, bool useColon)
 {
     this->micro = micro;
@@ -128,6 +133,7 @@ void SettingsStringRender::menuElemMethod(int var1)
             menuManager->processMenu(this);
             return;
         case 2:
+            if (disableHorizontalCycling) return;
             if (field_146) {
                 if (currentOptionPos == 1) {
                     currentOptionPos = 0;
@@ -148,6 +154,7 @@ void SettingsStringRender::menuElemMethod(int var1)
             selectCurrentOptionName();
             return;
         case 3:
+            if (disableHorizontalCycling) return;
             if (field_146) {
                 if (currentOptionPos == 0) {
                     currentOptionPos = 1;

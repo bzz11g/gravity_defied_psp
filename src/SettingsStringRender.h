@@ -27,10 +27,12 @@ private:
     bool hasSprite;
     bool isDrawSprite8;
     bool useColon;
+    bool disableHorizontalCycling = false;
 
     void selectCurrentOptionName();
 
 public:
+    void setDisableHorizontalCycling(bool disable);
     SettingsStringRender(std::string text, int isDisabled, IMenuManager* menuManager, std::vector<std::string> optionsList, bool var5, Micro* micro, GameMenu* gameMenu, bool useColon);
     void setFlags(bool hasSprite, bool isDrawSprite8);
     void setOptionsList(std::vector<std::string> var1);

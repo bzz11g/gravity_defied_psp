@@ -70,13 +70,19 @@ RecordEnumerationImpl* RecordStore::load(std::filesystem::path filePath)
     return temp;
 }
 
+void RecordStore::setPackPrefix(const std::string& prefix)
+{
+    packPrefix = prefix;
+}
+
 RecordStore* RecordStore::openRecordStore(std::string name, bool createIfNecessary)
 {
-    if (opened.find(name) == opened.end()) {
-        opened[name] = createRecordStore(name, createIfNecessary);
+    std::string prefixedName = packPrefix + name;
+    if (opened.find(prefixedName) == opened.end()) {
+        opened[prefixedName] = createRecordStore(prefixedName, createIfNecessary);
     }
 
-    return opened[name].get();
+    return opened[prefixedName].get();
 }
 
 std::unique_ptr<RecordStore> RecordStore::createRecordStore(std::string name, bool createIfNecessary)
