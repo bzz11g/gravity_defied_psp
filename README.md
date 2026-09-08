@@ -7,6 +7,18 @@ This project is an experimental native PlayStation Portable (PSP) homebrew port 
 ***Disclaimer  
 This project is an unofficial fan homebrew and is not associated with Codebrew Software in any fashion. All rights to the original Gravity Defied, including its name, logotype, brand, assets, and original codebase, belong to Codebrew Software.***
 
+## Custom Level Packs
+
+The release build includes the original track set along with **5 top community level packs from [gdtr.net](https://gdtr.net)** ready to play.
+
+### Adding Your Own Tracks
+Put any `.mrg` level pack files into the `levels/` folder inside the game directory:  
+`ms0:/PSP/GAME/<GravityDefied_Folder>/levels/your_pack.mrg`
+
+Select your pack in **Menu > Play > Level pack:**. Each pack maintains its own independent track progress and saves.
+
+---
+
 ## Controls
 
 ### Menu Navigation
