@@ -45,6 +45,13 @@ int main(int argc, char** argv)
 
 #ifdef PSP
     sceKernelExitGame();
+    // Do not return from main on PSP when exiting via sceKernelExitGame.
+    // Returning triggers the C library's exit(0) which implicitly calls sceKernelExitDeleteThread().
+    // If sceKernelExitGame() is already tearing down the kernel, deleting the thread simultaneously
+    // causes a fatal NOT_DORMANT kernel panic on real hardware.
+    while (1) {
+        sceKernelSleepThread();
+    }
 #endif
     return EXIT_SUCCESS;
 };

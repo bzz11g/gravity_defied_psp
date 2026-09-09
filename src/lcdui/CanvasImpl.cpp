@@ -92,10 +92,18 @@ void CanvasImpl::processEvents()
 {
     SDL_Event e;
 
+#ifdef PSP
+extern volatile bool g_shouldExit;
+#endif
+
     while (SDL_PollEvent(&e) != 0) {
         switch (e.type) {
         case SDL_QUIT:
+#ifdef PSP
+            g_shouldExit = true;
+#else
             exit(0); // IMPROVE This is a super dumb way to finish the game, but it works
+#endif
             break;
         case SDL_KEYDOWN: {
             int keyCode = convertKeyCharToKeyCode(e.key.keysym.sym);

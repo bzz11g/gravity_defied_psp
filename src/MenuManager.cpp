@@ -977,6 +977,12 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
                     showAlert("Cleared", "Highscores have been cleared", nullptr);
                 } else if (currentGameMenu == gameMenuConfirmReset) {
                     exit();
+#ifdef PSP
+                    extern volatile bool g_shouldExit;
+                    g_shouldExit = true;
+#else
+                    std::exit(0);
+#endif
                     showAlert("Reset", "Master reset. Application will be closed.", nullptr);
                 }
 
