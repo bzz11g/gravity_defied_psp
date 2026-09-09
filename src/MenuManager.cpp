@@ -83,7 +83,7 @@ void MenuManager::initPart(int var1)
             }
         }
 
-        if (field_370 >= 0 && field_370 < field_345.size()) {
+        if (field_370 >= 0 && field_370 < 4) {
             field_345[field_370] = field_369;
         } else {
             field_370 = 0;
@@ -884,13 +884,12 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
             method_1(gameMenuPacks, false);
             gameMenuPacks->method_83(settingStringPack->getCurrentOptionPos());
         } else {
-            method_208();
+            // Flush outgoing pack before switching without destroying menu state
             if (isRecordStoreOpened) {
+                method_208();
                 recordStore->closeRecordStore();
+                isRecordStoreOpened = false;
             }
-
-
-            saveSmthToRecordStoreAndCloseIt(); // Flush outgoing pack before switching
 
             std::string packName = packNames[settingStringPack->getCurrentOptionPos()];
             RecordStore::setPackPrefix(packName == "Original" ? "" : packName + "_");
