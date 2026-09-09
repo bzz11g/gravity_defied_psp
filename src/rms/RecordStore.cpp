@@ -1,7 +1,6 @@
 #include "RecordStore.h"
 
 #include <cassert>
-#include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <numeric>
@@ -9,9 +8,12 @@
 
 #ifdef WIN32
 #include <libgen.h>
+#include <direct.h>
+#define mkdir _mkdir
 #else
 #include <unistd.h>
 #include <pwd.h>
+#include <sys/stat.h>
 #endif
 
 #ifdef PSP
@@ -89,11 +91,20 @@ void RecordStore::flushToDisk()
 #ifdef PSP
     pspSilentSave(buf);
 #else
-    std::filesystem::path filePath = recordStoreDir / "DATA.BIN";
-    std::filesystem::create_directories(filePath.parent_path());
-    std::ofstream os(filePath, std::ios::out | std::ios::binary);
-    if(os.is_open() && !buf.empty()) {
-        os.write(reinterpret_cast<const char*>(buf.data()), buf.size());
+    std::string filePath = recordStoreDir + "/DATA.BIN";
+    // For non-PSP fallback, mkdir if needed
+    // #include <sys/stat.h> should be included
+    #ifdef WIN32
+    mkdir(recordStoreDir.c_str());
+    #else
+    mkdir(recordStoreDir.c_str(), 0777);
+    #endif
+    if (!buf.empty()) {
+        FILE* fp = fopen(filePath.c_str(), "wb");
+        if (fp) {
+            fwrite(buf.data(), 1, buf.size(), fp);
+            fclose(fp);
+        }
     }
 #endif
 }
@@ -104,21 +115,44 @@ void RecordStore::loadFromDisk()
 
     std::vector<int8_t> buf;
 
-    std::filesystem::path filePath = recordStoreDir / "DATA.BIN";
-    std::error_code ec;
-    if (!std::filesystem::exists(filePath, ec) || ec) return;
+    std::string filePath = recordStoreDir + "/DATA.BIN";
+#ifdef PSP
+    SceIoStat stat;
+    if (sceIoGetstat(filePath.c_str(), &stat) < 0) return;
+#else
+    if (access(filePath.c_str(), F_OK) != 0) return;
+#endif
 
-    std::ifstream is(filePath, std::ios::in | std::ios::binary | std::ios::ate);
-    if (!is.is_open()) return;
+#ifdef PSP
+    SceUID fd = sceIoOpen(filePath.c_str(), PSP_O_RDONLY, 0777);
+    if (fd < 0) return;
 
-    std::streamsize size = is.tellg();
-    if (size <= 0) return;
-
-    is.seekg(0, std::ios::beg);
-    buf.resize(size);
-    if (is.read(reinterpret_cast<char*>(buf.data()), size)) {
-        // successfully read
+    SceOff size = sceIoLseek(fd, 0, PSP_SEEK_END);
+    if (size <= 0) {
+        sceIoClose(fd);
+        return;
     }
+
+    sceIoLseek(fd, 0, PSP_SEEK_SET);
+    buf.resize(size);
+    sceIoRead(fd, buf.data(), size);
+    sceIoClose(fd);
+#else
+    FILE* fp = fopen(filePath.c_str(), "rb");
+    if (!fp) return;
+
+    fseek(fp, 0, SEEK_END);
+    long size = ftell(fp);
+    if (size <= 0) {
+        fclose(fp);
+        return;
+    }
+
+    fseek(fp, 0, SEEK_SET);
+    buf.resize(size);
+    fread(buf.data(), 1, size, fp);
+    fclose(fp);
+#endif
 
     if (buf.empty()) return;
 

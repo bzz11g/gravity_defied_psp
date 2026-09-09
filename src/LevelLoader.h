@@ -29,7 +29,7 @@ private:
     void loadLevels();
 
 public:
-    void load(const std::filesystem::path& mrgFilePath);
+    void load(const std::string& mrgFilePath);
     static const int field_114;
     static const int field_115;
     static const int field_116;
@@ -47,7 +47,7 @@ public:
     int field_137;
     int field_138;
 
-    LevelLoader(const std::filesystem::path& mrgFilePath);
+    LevelLoader(const std::string& mrgFilePath);
     ~LevelLoader();
 
     std::string getName(int league, int level);

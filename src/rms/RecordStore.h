@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <filesystem>
+
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -17,7 +17,7 @@ private:
     RecordStore(std::string name, RecordEnumerationImpl* records);
     static void log(std::string s);
 
-    inline static std::filesystem::path recordStoreDir;
+    inline static std::string recordStoreDir;
     inline static std::unordered_map<std::string, std::unique_ptr<RecordEnumerationImpl>> recordsMap;
 
     std::string name;

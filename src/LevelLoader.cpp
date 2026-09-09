@@ -18,7 +18,7 @@ const int LevelLoader::field_118 = 1;
 bool LevelLoader::isEnabledPerspective = true;
 bool LevelLoader::isEnabledShadows = true;
 
-LevelLoader::LevelLoader(const std::filesystem::path& mrgFilePath)
+LevelLoader::LevelLoader(const std::string& mrgFilePath)
 {
     for (int i = 0; i < 3; ++i) {
         field_123[i] = (int)((int64_t)((GamePhysics::const175_1_half[i] + 19660) >> 1) * (int64_t)((GamePhysics::const175_1_half[i] + 19660) >> 1) >> 16);
@@ -36,7 +36,7 @@ LevelLoader::~LevelLoader()
     }
 }
 
-void LevelLoader::load(const std::filesystem::path& mrgFilePath)
+void LevelLoader::load(const std::string& mrgFilePath)
 {
     if (levelFileStream != nullptr) {
         delete levelFileStream;
@@ -47,8 +47,8 @@ void LevelLoader::load(const std::filesystem::path& mrgFilePath)
     levelOffsetInFile = std::vector<std::vector<int>>(3);
 
     FileStream* fileStream = nullptr;
-    if (!mrgFilePath.string().empty()) {
-        fileStream = new FileStream(mrgFilePath, std::ios::in | std::ios::binary);
+    if (!mrgFilePath.empty()) {
+        fileStream = new FileStream(mrgFilePath.c_str(), std::ios::in | std::ios::binary);
     }
 
     if (fileStream == nullptr || !fileStream->isOpen()) {

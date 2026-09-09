@@ -2,7 +2,7 @@
 
 #include <fstream>
 #include <algorithm>
-#include <filesystem>
+
 
 class FileStream : std::fstream {
 public:
@@ -11,7 +11,7 @@ public:
     {
     }
 
-    FileStream(const std::filesystem::path& file, std::ios::openmode mode)
+    FileStream(const char* file, std::ios::openmode mode)
         : std::fstream(file, mode)
     {
     }

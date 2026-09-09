@@ -4,8 +4,7 @@
 #include <cmrc/cmrc.hpp>
 #include <cstring>
 #include <string>
-#include <fstream>
-#include <filesystem>
+
 
 CMRC_DECLARE(assets);
 
@@ -13,34 +12,35 @@ const uint8_t sfo_data[] = {0x0,0x50,0x53,0x46,0x0,0x0,0x1,0x1,0x54,0x0,0x0,0x0,
 
 void pspSilentSave(const std::vector<int8_t>& buf)
 {
-    std::filesystem::path saveDir = "ms0:/PSP/SAVEDATA/GDEF01224";
-    std::filesystem::create_directories(saveDir);
+    std::string saveDir = "ms0:/PSP/SAVEDATA/GDEF01224";
+    sceIoMkdir(saveDir.c_str(), 0777);
 
     // Write PARAM.SFO
-    std::ofstream sfoFile(saveDir / "PARAM.SFO", std::ios::out | std::ios::binary);
-    if(sfoFile.is_open()) {
-        sfoFile.write(reinterpret_cast<const char*>(sfo_data), sizeof(sfo_data));
-        sfoFile.flush();
+    {
+        SceUID fd = sceIoOpen((saveDir + "/PARAM.SFO").c_str(), PSP_O_WRONLY | PSP_O_CREAT | PSP_O_TRUNC, 0777);
+        if (fd >= 0) {
+            sceIoWrite(fd, sfo_data, sizeof(sfo_data));
+            sceIoClose(fd);
+        }
     }
-    sfoFile.close();
 
-    // Write ICON0.PNG if it doesn't exist to save IO? We can just overwrite it.
+    // Write ICON0.PNG
     try {
         auto fs = cmrc::assets::get_filesystem();
         auto icon_file = fs.open("assets/ICON0.png");
-        std::ofstream iconFile(saveDir / "ICON0.PNG", std::ios::out | std::ios::binary);
-        if(iconFile.is_open()) {
-            iconFile.write(reinterpret_cast<const char*>(icon_file.begin()), icon_file.size());
-        iconFile.flush();
-        iconFile.close();
+        SceUID fd = sceIoOpen((saveDir + "/ICON0.PNG").c_str(), PSP_O_WRONLY | PSP_O_CREAT | PSP_O_TRUNC, 0777);
+        if (fd >= 0) {
+            sceIoWrite(fd, icon_file.begin(), icon_file.size());
+            sceIoClose(fd);
         }
     } catch(...) {}
 
     // Write DATA.BIN
     if(!buf.empty()) {
-        std::ofstream dataFile(saveDir / "DATA.BIN", std::ios::out | std::ios::binary);
-        if(dataFile.is_open()) {
-            dataFile.write(reinterpret_cast<const char*>(buf.data()), buf.size());
+        SceUID fd = sceIoOpen((saveDir + "/DATA.BIN").c_str(), PSP_O_WRONLY | PSP_O_CREAT | PSP_O_TRUNC, 0777);
+        if (fd >= 0) {
+            sceIoWrite(fd, buf.data(), buf.size());
+            sceIoClose(fd);
         }
     }
 }
