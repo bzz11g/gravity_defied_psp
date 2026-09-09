@@ -238,7 +238,9 @@ void MenuManager::initPart(int var1)
                 }
                 field_355 = field_369;
 
-                field_345.at(field_370) = field_369;
+                if (field_370 >= 0 && field_370 < field_345.size()) {
+                    field_345[field_370] = field_369;
+                }
             }
         }
         settingStringPack->setDisableHorizontalCycling(true);
@@ -929,7 +931,11 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
             settingStringLevel->setAvailableOptions(field_344);
             settingStringLevel->init();
 
-            settingsStringTrack->setOptionsList(levelNames[field_370]);
+            if (field_370 >= 0 && field_370 < levelNames.size()) {
+                settingsStringTrack->setOptionsList(levelNames[field_370]);
+            } else {
+                settingsStringTrack->setOptionsList(std::vector<std::string>());
+            }
             settingsStringTrack->setAvailableOptions(field_342[field_370]);
             settingsStringTrack->init();
         }

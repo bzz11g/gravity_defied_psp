@@ -43,5 +43,8 @@ int main(int argc, char** argv)
     std::unique_ptr<Micro> micro = std::make_unique<Micro>();
     micro->startApp(argc, argv);
 
+#ifdef PSP
+    sceKernelExitGame();
+#endif
     return EXIT_SUCCESS;
 };

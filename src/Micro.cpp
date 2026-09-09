@@ -176,13 +176,6 @@ void Micro::startApp(int argc, char** argv)
     field_249 = true;
     run();
 
-#ifdef PSP
-    extern volatile bool g_shouldExit;
-    if (g_shouldExit) {
-        destroyApp(true);
-        sceKernelExitGame();
-    }
-#endif
 }
 
 // original method
