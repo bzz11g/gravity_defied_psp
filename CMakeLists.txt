@@ -117,6 +117,7 @@ if(PSP)
         TARGET GravityDefied
         TITLE "Gravity Defied: Trial Racing"
         ICON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/assets/ICON0.png"
+        PREVIEW_PATH "${CMAKE_CURRENT_SOURCE_DIR}/assets/PIC0.png"
         BACKGROUND_PATH "${CMAKE_CURRENT_SOURCE_DIR}/assets/PIC1.png"
     )
 endif()
