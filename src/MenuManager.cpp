@@ -928,7 +928,21 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
                 isRecordStoreOpened = false;
             }
 
-            micro->levelLoader->load(packPaths[settingStringPack->getCurrentOptionPos()]);
+            try {
+                micro->levelLoader->load(packPaths[settingStringPack->getCurrentOptionPos()]);
+            } catch (...) {
+                // Fallback to Original if loading fails
+                settingStringPack->setCurentOptionPos(0);
+                std::string fallbackPackName = packNames[0];
+                RecordStore::setPackPrefix(fallbackPackName == "Original" ? "" : fallbackPackName + "_");
+                try {
+                    recordStore = RecordStore::openRecordStore("GDTRStates", true);
+                    isRecordStoreOpened = true;
+                } catch (...) {
+                    isRecordStoreOpened = false;
+                }
+                micro->levelLoader->load(packPaths[0]);
+            }
             this->levelNames = micro->levelLoader->levelNames;
 
             // Reset selection safely before loading state which might clamp it
