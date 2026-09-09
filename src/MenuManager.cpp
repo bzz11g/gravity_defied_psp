@@ -174,16 +174,8 @@ void MenuManager::initPart(int var1)
         packPaths.push_back("");
 
         {
-            std::string levelsDir = "levels";
-            char cwd[1024];
-            if (getcwd(cwd, sizeof(cwd)) != nullptr) {
-                levelsDir = std::string(cwd) + "/levels";
-            }
-#ifdef PSP
-            // On PSP, getcwd might not return the EBOOT path perfectly depending on the firmware,
-            // but it usually works if the EBOOT runs correctly. Wait, we can just use relative "levels" if getcwd is broken?
-            // Actually, getcwd() + "/levels" is best. Let's try that.
-#endif
+            extern std::string g_appDirPath;
+            std::string levelsDir = g_appDirPath.empty() ? "levels" : g_appDirPath + "/levels";
 
             DIR* dir = opendir(levelsDir.c_str());
             if (dir) {

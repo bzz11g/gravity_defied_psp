@@ -9,6 +9,7 @@
 #include "rms/RecordStore.h"
 
 bool Micro::field_249 = false;
+std::string g_appDirPath = "";
 int Micro::gameLoadingStateStage = 0;
 
 Micro::Micro()
@@ -149,6 +150,16 @@ void Micro::destroyApp(bool var1)
 
 void Micro::startApp(int argc, char** argv)
 {
+    if (argc > 0 && argv[0] != nullptr) {
+        std::string execPath(argv[0]);
+        size_t lastSlash = execPath.find_last_of("/\\");
+        if (lastSlash != std::string::npos) {
+            g_appDirPath = execPath.substr(0, lastSlash);
+        } else {
+            g_appDirPath = ".";
+        }
+    }
+
     if (argc > 1) {
         std::string argv1(argv[1]);
 
