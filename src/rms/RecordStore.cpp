@@ -105,19 +105,22 @@ void RecordStore::loadFromDisk()
     std::vector<int8_t> buf;
 
     std::filesystem::path filePath = recordStoreDir / "DATA.BIN";
-    if (!std::filesystem::exists(filePath)) return;
+    std::error_code ec;
+    if (!std::filesystem::exists(filePath, ec) || ec) return;
 
     std::ifstream is(filePath, std::ios::in | std::ios::binary | std::ios::ate);
     if (!is.is_open()) return;
 
     std::streamsize size = is.tellg();
+    if (size <= 0) return;
+
     is.seekg(0, std::ios::beg);
     buf.resize(size);
     if (is.read(reinterpret_cast<char*>(buf.data()), size)) {
         // successfully read
     }
 
-if (buf.empty()) return;
+    if (buf.empty()) return;
 
     BufferStream inStream(buf, std::ios::in | std::ios::binary);
     uint32_t count = 0;

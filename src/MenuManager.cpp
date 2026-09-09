@@ -69,9 +69,7 @@ void MenuManager::initPart(int var1)
             }
         }
 
-        // If it's the very start, select it, but we can't do it here easily since settingStringPack isn't created yet?
-        // Wait, settingStringPack is created in case 5. We just set a member variable or field_378?
-        // Let's create a new member variable or just use loadedPackIndex when initializing settingStringPack.
+        // Pack loading index persistence happens in case 5 when initializing pack menu element.
 
         field_355 = field_369;
 
@@ -187,7 +185,53 @@ void MenuManager::initPart(int var1)
             }
         }
 
-        settingStringPack = new SettingsStringRender("Level pack", 0, this, packNames, false, micro, gameMenuPlay, false);
+        {
+            int loadedPackIndex = method_217(17, 0);
+            if (loadedPackIndex < 0 || (size_t)loadedPackIndex >= packPaths.size()) {
+                loadedPackIndex = 0;
+            }
+            settingStringPack = new SettingsStringRender("Level Pack", loadedPackIndex, this, packNames, false, micro, gameMenuPlay, false);
+
+            // Force update the active pack prefix immediately to match the loaded setting
+            std::string initialPackName = packNames[loadedPackIndex];
+            RecordStore::setPackPrefix(initialPackName == "Original" ? "" : initialPackName + "_");
+
+            // Re-load the correct active pack data if not Original
+            if (loadedPackIndex != 0) {
+                micro->levelLoader->load(packPaths[loadedPackIndex]);
+                this->levelNames = micro->levelLoader->levelNames;
+
+                try {
+                    recordStore->closeRecordStore();
+                } catch (...) {}
+                try {
+                    recordStore = RecordStore::openRecordStore("GDTRStates", true);
+                    isRecordStoreOpened = true;
+                } catch (...) {
+                    isRecordStoreOpened = false;
+                }
+
+                loadStateFromRecordStore();
+
+                // Keep the fields clamped appropriately
+                field_370 = method_217(10, 0);
+                field_369 = method_217(11, 0);
+
+                if (field_370 < 0 || field_370 >= 3) field_370 = 0;
+                field_354 = field_370;
+
+                for (int var4 = 0; var4 < 3; ++var4) {
+                    field_342[var4] = method_217(7 + var4, 0);
+                }
+
+                if (field_369 > field_342[field_370]) {
+                    field_369 = field_342[field_370];
+                }
+                field_355 = field_369;
+
+                field_345.at(field_370) = field_369;
+            }
+        }
         settingStringPack->setDisableHorizontalCycling(true);
         gameMenuPacks = settingStringPack->getGameMenu();
         gameMenuPlay->addMenuElement(settingStringPack);
