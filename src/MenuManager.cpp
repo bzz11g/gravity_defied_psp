@@ -60,6 +60,19 @@ void MenuManager::initPart(int var1)
         field_371 = method_217(12, field_371);
         field_373 = method_217(15, field_373);
         field_354 = field_370;
+
+        // Load pack index from byte 17
+        {
+            int loadedPackIndex = method_217(17, 0);
+            if (loadedPackIndex < 0 || (size_t)loadedPackIndex >= packPaths.size()) {
+                loadedPackIndex = 0;
+            }
+        }
+
+        // If it's the very start, select it, but we can't do it here easily since settingStringPack isn't created yet?
+        // Wait, settingStringPack is created in case 5. We just set a member variable or field_378?
+        // Let's create a new member variable or just use loadedPackIndex when initializing settingStringPack.
+
         field_355 = field_369;
 
         if (field_341[0] != 82 || field_341[1] != 75 || field_341[2] != 69) {
@@ -788,6 +801,9 @@ void MenuManager::method_208()
     setValue(10, (int8_t)settingStringLevel->getCurrentOptionPos());
     setValue(11, (int8_t)settingsStringTrack->getCurrentOptionPos());
     setValue(12, (int8_t)settingsStringLeague->getCurrentOptionPos());
+    if (settingStringPack) {
+        setValue(17, (int8_t)settingStringPack->getCurrentOptionPos());
+    }
 
     for (int i = 0; i < 3; ++i) {
         setValue(7 + i, field_342[i]);
@@ -841,6 +857,9 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
                 } catch (...) {}
             }
 
+
+            saveSmthToRecordStoreAndCloseIt(); // Flush outgoing pack before switching
+
             std::string packName = packNames[settingStringPack->getCurrentOptionPos()];
             RecordStore::setPackPrefix(packName == "Original" ? "" : packName + "_");
 
@@ -854,10 +873,22 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
             micro->levelLoader->load(packPaths[settingStringPack->getCurrentOptionPos()]);
             this->levelNames = micro->levelLoader->levelNames;
 
+            // Reset selection safely before loading state which might clamp it
+            field_370 = 0;
+            for(int i=0; i<3; ++i) field_345[i] = 0;
+
             loadStateFromRecordStore();
+
+            // Clamp selected track to max available to prevent stale locked indices
+            for(int i=0; i<3; ++i) {
+                if(field_345[i] > field_342[i]) {
+                    field_345[i] = field_342[i];
+                }
+            }
 
             settingStringLevel->setCurentOptionPos(field_370);
             settingsStringTrack->setCurentOptionPos(field_345[field_370]);
+
 
             settingStringLevel->setOptionsList(field_361);
             settingStringLevel->setAvailableOptions(field_344);
