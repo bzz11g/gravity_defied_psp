@@ -167,6 +167,10 @@ void Micro::startApp(int argc, char** argv)
 }
 
 // original method
+#ifdef PSP
+extern volatile bool g_shouldExit;
+#endif
+
 void Micro::run()
 {
     if (!isInited) {
@@ -183,6 +187,13 @@ void Micro::run()
     int64_t var3 = 0L;
 
     while (field_249) {
+#ifdef PSP
+        if (g_shouldExit) {
+            destroyApp(true);
+            break;
+        }
+#endif
+
         int var5;
         if (gamePhysics->method_21() != menuManager->method_210()) {
             var5 = gameCanvas->loadSprites(menuManager->method_210());

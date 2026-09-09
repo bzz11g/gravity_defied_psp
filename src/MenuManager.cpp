@@ -936,7 +936,14 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
             }
 
             if (menuElement == settingStringExitGame) {
-                method_1(currentGameMenu->getGameMenu(), false);
+                saveSmthToRecordStoreAndCloseIt();
+#ifdef PSP
+                extern volatile bool g_shouldExit;
+                g_shouldExit = true;
+#else
+                micro->destroyApp(true);
+                exit(0);
+#endif
                 return;
             }
 

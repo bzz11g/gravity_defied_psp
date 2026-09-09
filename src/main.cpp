@@ -10,8 +10,11 @@
 PSP_MODULE_INFO("GravityDefied", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 
+volatile bool g_shouldExit = false;
+
 int exit_callback(int arg1, int arg2, void *common) {
-    sceKernelExitGame();
+    (void)arg1; (void)arg2; (void)common;
+    g_shouldExit = true;
     return 0;
 }
 

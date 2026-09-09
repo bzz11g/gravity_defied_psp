@@ -46,6 +46,7 @@ set(SOURCES
     src/lcdui/FontStorage.cpp
     src/rms/RecordEnumerationImpl.cpp
     src/rms/RecordStore.cpp
+    src/rms/PSPSavedata.cpp
 )
 
 include(cmake/CMakeRC.cmake)
