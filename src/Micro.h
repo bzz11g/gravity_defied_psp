@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdint>
-
+#include <filesystem>
 #include <string>
 
 class GameCanvas;
@@ -12,7 +12,7 @@ class Micro {
 private:
     int64_t goLoadingStep();
     void destroyApp(bool var1);
-    std::string mrgFilePath;
+    std::filesystem::path mrgFilePath;
 
 public:
     GameCanvas* gameCanvas;

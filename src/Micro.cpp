@@ -143,6 +143,10 @@ void Micro::destroyApp(bool var1)
     menuManager->saveSmthToRecordStoreAndCloseIt();
 }
 
+#ifdef PSP
+#include <pspkernel.h>
+#endif
+
 void Micro::startApp(int argc, char** argv)
 {
     if (argc > 1) {
@@ -157,13 +161,18 @@ void Micro::startApp(int argc, char** argv)
     }
 
     RecordStore::setRecordStoreDir(argv[0]);
+    RecordStore::init();
 
     field_249 = true;
-    // if (thread == null) {
-    //     thread = new Thread(this);
-    //     thread.start();
-    // }
     run();
+
+#ifdef PSP
+    extern volatile bool g_shouldExit;
+    if (g_shouldExit) {
+        destroyApp(true);
+        sceKernelExitGame();
+    }
+#endif
 }
 
 // original method
@@ -189,7 +198,7 @@ void Micro::run()
     while (field_249) {
 #ifdef PSP
         if (g_shouldExit) {
-            destroyApp(true);
+            field_249 = false;
             break;
         }
 #endif

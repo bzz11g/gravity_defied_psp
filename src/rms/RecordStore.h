@@ -30,6 +30,7 @@ public:
 
     static void loadFromDisk();
     static void flushToDisk();
+    static void init();
 
     static RecordStore* openRecordStore(std::string name, bool createIfNecessary);
     void closeRecordStore();

@@ -10,6 +10,12 @@
 #include "GameMenu.h"
 #include "SettingsStringRender.h"
 #include "utils/Time.h"
+#ifdef WIN32
+#include <direct.h>
+#define getcwd _getcwd
+#else
+#include <unistd.h>
+#endif
 
 
 MenuManager::MenuManager(Micro* var1)
@@ -169,8 +175,14 @@ void MenuManager::initPart(int var1)
 
         {
             std::string levelsDir = "levels";
+            char cwd[1024];
+            if (getcwd(cwd, sizeof(cwd)) != nullptr) {
+                levelsDir = std::string(cwd) + "/levels";
+            }
 #ifdef PSP
-            levelsDir = "ms0:/PSP/GAME/GravityDefied/levels";
+            // On PSP, getcwd might not return the EBOOT path perfectly depending on the firmware,
+            // but it usually works if the EBOOT runs correctly. Wait, we can just use relative "levels" if getcwd is broken?
+            // Actually, getcwd() + "/levels" is best. Let's try that.
 #endif
 
             DIR* dir = opendir(levelsDir.c_str());

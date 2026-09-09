@@ -69,8 +69,19 @@ void RecordStore::setRecord(int recordId, std::vector<int8_t> arr, int offset, i
     flushToDisk();
 }
 
+static bool g_saveSystemInitialized = false;
+
+void RecordStore::init()
+{
+    if (g_saveSystemInitialized) return;
+    loadFromDisk();
+    g_saveSystemInitialized = true;
+}
+
 void RecordStore::flushToDisk()
 {
+    if (!g_saveSystemInitialized) return;
+
     BufferStream outStream(std::ios::out | std::ios::binary);
 
     uint32_t count = static_cast<uint32_t>(recordsMap.size());
@@ -100,10 +111,13 @@ void RecordStore::flushToDisk()
     mkdir(recordStoreDir.c_str(), 0777);
     #endif
     if (!buf.empty()) {
-        FILE* fp = fopen(filePath.c_str(), "wb");
+        std::string tmpFilePath = filePath + ".tmp";
+        FILE* fp = fopen(tmpFilePath.c_str(), "wb");
         if (fp) {
             fwrite(buf.data(), 1, buf.size(), fp);
             fclose(fp);
+            remove(filePath.c_str());
+            rename(tmpFilePath.c_str(), filePath.c_str());
         }
     }
 #endif
@@ -116,12 +130,6 @@ void RecordStore::loadFromDisk()
     std::vector<int8_t> buf;
 
     std::string filePath = recordStoreDir + "/DATA.BIN";
-#ifdef PSP
-    SceIoStat stat;
-    if (sceIoGetstat(filePath.c_str(), &stat) < 0) return;
-#else
-    if (access(filePath.c_str(), F_OK) != 0) return;
-#endif
 
 #ifdef PSP
     SceUID fd = sceIoOpen(filePath.c_str(), PSP_O_RDONLY, 0777);
@@ -187,13 +195,7 @@ RecordStore* RecordStore::openRecordStore(std::string name, bool createIfNecessa
 {
     std::string prefixedName = packPrefix + name;
 
-    if (recordsMap.empty()) {
-        static bool loaded = false;
-        if (!loaded) {
-            loaded = true;
-            loadFromDisk();
-        }
-    }
+    init();
 
     if (recordsMap.find(prefixedName) == recordsMap.end()) {
         if (createIfNecessary) {

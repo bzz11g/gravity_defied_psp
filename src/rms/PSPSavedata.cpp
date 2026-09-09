@@ -30,17 +30,23 @@ void pspSilentSave(const std::vector<int8_t>& buf)
         auto icon_file = fs.open("assets/ICON0.png");
         SceUID fd = sceIoOpen((saveDir + "/ICON0.PNG").c_str(), PSP_O_WRONLY | PSP_O_CREAT | PSP_O_TRUNC, 0777);
         if (fd >= 0) {
-            sceIoWrite(fd, icon_file.begin(), icon_file.size());
+            if (icon_file.size() > 0) {
+                sceIoWrite(fd, icon_file.begin(), icon_file.size());
+            }
             sceIoClose(fd);
         }
     } catch(...) {}
 
-    // Write DATA.BIN
+    // Write DATA.BIN atomically
     if(!buf.empty()) {
-        SceUID fd = sceIoOpen((saveDir + "/DATA.BIN").c_str(), PSP_O_WRONLY | PSP_O_CREAT | PSP_O_TRUNC, 0777);
+        std::string tmpFile = saveDir + "/DATA.BIN.tmp";
+        std::string finalFile = saveDir + "/DATA.BIN";
+        SceUID fd = sceIoOpen(tmpFile.c_str(), PSP_O_WRONLY | PSP_O_CREAT | PSP_O_TRUNC, 0777);
         if (fd >= 0) {
             sceIoWrite(fd, buf.data(), buf.size());
             sceIoClose(fd);
+            sceIoRemove(finalFile.c_str());
+            sceIoRename(tmpFile.c_str(), finalFile.c_str());
         }
     }
 }
