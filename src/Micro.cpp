@@ -203,7 +203,7 @@ void Micro::run()
         }
 #endif
 
-        int var5;
+        int var5 = 0;
         if (gamePhysics->method_21() != menuManager->method_210()) {
             var5 = gameCanvas->loadSprites(menuManager->method_210());
             gamePhysics->method_22(var5);

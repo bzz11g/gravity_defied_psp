@@ -56,7 +56,7 @@ void LevelLoader::load(const std::string& mrgFilePath)
             delete fileStream;
             fileStream = nullptr;
         }
-        EmbedFileStream* embedFileStream = new EmbedFileStream("assets/levels.mrg");
+        EmbedFileStream* embedFileStream = new EmbedFileStream("levels.mrg");
         levelFileStream = static_cast<FileStream*>(embedFileStream);
     } else {
         levelFileStream = fileStream;

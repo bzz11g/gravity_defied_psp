@@ -25,17 +25,39 @@ void pspSilentSave(const std::vector<int8_t>& buf)
     }
 
     // Write ICON0.PNG
+    bool icon_written = false;
     try {
         auto fs = cmrc::assets::get_filesystem();
-        auto icon_file = fs.open("assets/ICON0.png");
+        auto icon_file = fs.open("ICON0.png"); // WHENCE assets strips the assets/ prefix
         SceUID fd = sceIoOpen((saveDir + "/ICON0.PNG").c_str(), PSP_O_WRONLY | PSP_O_CREAT | PSP_O_TRUNC, 0777);
         if (fd >= 0) {
             if (icon_file.size() > 0) {
                 sceIoWrite(fd, icon_file.begin(), icon_file.size());
+                icon_written = true;
             }
             sceIoClose(fd);
         }
     } catch(...) {}
+
+    if (!icon_written) {
+        // Fallback: try reading from the local disk path if CMRC throws
+        SceUID fd_in = sceIoOpen("assets/ICON0.png", PSP_O_RDONLY, 0777);
+        if (fd_in >= 0) {
+            SceOff size = sceIoLseek(fd_in, 0, PSP_SEEK_END);
+            sceIoLseek(fd_in, 0, PSP_SEEK_SET);
+            if (size > 0) {
+                std::vector<uint8_t> tmp_buf(size);
+                sceIoRead(fd_in, tmp_buf.data(), size);
+
+                SceUID fd_out = sceIoOpen((saveDir + "/ICON0.PNG").c_str(), PSP_O_WRONLY | PSP_O_CREAT | PSP_O_TRUNC, 0777);
+                if (fd_out >= 0) {
+                    sceIoWrite(fd_out, tmp_buf.data(), size);
+                    sceIoClose(fd_out);
+                }
+            }
+            sceIoClose(fd_in);
+        }
+    }
 
     // Write DATA.BIN atomically
     if(!buf.empty()) {
