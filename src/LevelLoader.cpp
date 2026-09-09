@@ -36,25 +36,25 @@ LevelLoader::~LevelLoader()
     }
 }
 
-void LevelLoader::load(const std::string& mrgFilePath)
+bool LevelLoader::load(const std::string& mrgFilePath)
 {
-    if (levelFileStream != nullptr) {
-        delete levelFileStream;
-        levelFileStream = nullptr;
-    }
-
-    levelNames = std::vector<std::vector<std::string>>(3);
-    levelOffsetInFile = std::vector<std::vector<int>>(3);
-
     FileStream* fileStream = nullptr;
     if (!mrgFilePath.empty()) {
         fileStream = new FileStream(mrgFilePath.c_str(), std::ios::in | std::ios::binary);
-        // Fallback paths if the absolute path didn't work
         if (!fileStream->isOpen()) {
             delete fileStream;
             std::string fallback = "levels/" + mrgFilePath.substr(mrgFilePath.find_last_of("/\\") + 1);
             fileStream = new FileStream(fallback.c_str(), std::ios::in | std::ios::binary);
         }
+
+        // Check absolute ms0:/ PSP fallback if others fail
+#ifdef PSP
+        if (!fileStream->isOpen()) {
+            delete fileStream;
+            std::string fallbackPsp = "ms0:/PSP/GAME/GravityDefied/levels/" + mrgFilePath.substr(mrgFilePath.find_last_of("/\\") + 1);
+            fileStream = new FileStream(fallbackPsp.c_str(), std::ios::in | std::ios::binary);
+        }
+#endif
     }
 
     if (fileStream == nullptr || !fileStream->isOpen()) {
@@ -63,19 +63,28 @@ void LevelLoader::load(const std::string& mrgFilePath)
             fileStream = nullptr;
         }
 
-        // If it was a custom pack that failed, we should probably throw so MenuManager knows it failed!
         if (!mrgFilePath.empty()) {
-            throw std::runtime_error("Failed to load custom level pack");
+            return false; // Failed to load custom level pack
         }
 
+        // Fallback to internal embedded levels.mrg
         EmbedFileStream* embedFileStream = new EmbedFileStream("levels.mrg");
-        levelFileStream = static_cast<FileStream*>(embedFileStream);
-    } else {
-        levelFileStream = fileStream;
+        fileStream = static_cast<FileStream*>(embedFileStream);
     }
+
+    // Success, we can now overwrite the previous state safely
+    if (levelFileStream != nullptr) {
+        delete levelFileStream;
+        levelFileStream = nullptr;
+    }
+    levelFileStream = fileStream;
+
+    levelNames = std::vector<std::vector<std::string>>(3);
+    levelOffsetInFile = std::vector<std::vector<int>>(3);
 
     loadLevels();
     method_87();
+    return true;
 }
 
 void LevelLoader::loadLevels()

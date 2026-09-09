@@ -166,23 +166,19 @@ void RecordStore::loadFromDisk()
 
     BufferStream inStream(buf, std::ios::in | std::ios::binary);
     uint32_t count = 0;
-    try {
-        inStream.readVariable(&count);
-        for (size_t i = 0; i < count; i++) {
-            uint32_t len = 0;
-            inStream.readVariable(&len);
-            std::string key;
-            for (size_t j = 0; j < len; j++) {
-                int8_t val;
-                inStream.readVariable(&val);
-                key.push_back((char)val);
-            }
-            auto records = std::make_unique<RecordEnumerationImpl>();
-            records->deserialize(&inStream);
-            recordsMap[key] = std::move(records);
+    inStream.readVariable(&count);
+    for (size_t i = 0; i < count; i++) {
+        uint32_t len = 0;
+        inStream.readVariable(&len);
+        std::string key;
+        for (size_t j = 0; j < len; j++) {
+            int8_t val;
+            inStream.readVariable(&val);
+            key.push_back((char)val);
         }
-    } catch (...) {
-        // format error
+        auto records = std::make_unique<RecordEnumerationImpl>();
+        records->deserialize(&inStream);
+        recordsMap[key] = std::move(records);
     }
 }
 
@@ -201,7 +197,7 @@ RecordStore* RecordStore::openRecordStore(std::string name, bool createIfNecessa
         if (createIfNecessary) {
             recordsMap[prefixedName] = std::make_unique<RecordEnumerationImpl>();
         } else {
-            throw RecordStoreException();
+            return nullptr;
         }
     }
 

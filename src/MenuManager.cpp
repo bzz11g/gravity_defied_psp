@@ -43,14 +43,9 @@ void MenuManager::initPart(int var1)
             field_278[var11] = -127;
         }
 
-        try {
-            recordStore = RecordStore::openRecordStore("GDTRStates", true);
-            isRecordStoreOpened = true;
-            return;
-        } catch (RecordStoreException& var9) {
-            isRecordStoreOpened = false;
-            return;
-        }
+        recordStore = RecordStore::openRecordStore("GDTRStates", true);
+        isRecordStoreOpened = recordStore != nullptr;
+        return;
     case 2:
         loadStateFromRecordStore();
         return;
@@ -88,9 +83,9 @@ void MenuManager::initPart(int var1)
             }
         }
 
-        try {
-            field_345.at(field_370) = field_369;
-        } catch (std::exception& var6) {
+        if (field_370 >= 0 && field_370 < field_345.size()) {
+            field_345[field_370] = field_369;
+        } else {
             field_370 = 0;
             field_369 = 0;
             field_345[field_370] = field_369;
@@ -153,9 +148,9 @@ void MenuManager::initPart(int var1)
         settingsStringTrack = new SettingsStringRender("Track", field_345[field_370], this, levelNames[field_370], false, micro, gameMenuPlay, false);
         settingsStringLeague = new SettingsStringRender("League", field_371, this, leagueNames, false, micro, gameMenuPlay, false);
 
-        try {
+        if (field_370 >= 0 && field_370 < 4) {
             settingsStringTrack->setAvailableOptions(field_342[field_370]);
-        } catch (std::exception& var5) {
+        } else {
             settingsStringTrack->setAvailableOptions(0);
         }
 
@@ -212,9 +207,7 @@ void MenuManager::initPart(int var1)
 
             // Re-load the correct active pack data if not Original
             if (loadedPackIndex != 0) {
-                try {
-                    micro->levelLoader->load(packPaths[loadedPackIndex]);
-                } catch (...) {
+                if (!micro->levelLoader->load(packPaths[loadedPackIndex])) {
                     loadedPackIndex = 0;
                     settingStringPack->setCurentOptionPos(0);
                     std::string fallbackPackName = packNames[0];
@@ -223,15 +216,9 @@ void MenuManager::initPart(int var1)
                 }
                 this->levelNames = micro->levelLoader->levelNames;
 
-                try {
-                    recordStore->closeRecordStore();
-                } catch (...) {}
-                try {
-                    recordStore = RecordStore::openRecordStore("GDTRStates", true);
-                    isRecordStoreOpened = true;
-                } catch (...) {
-                    isRecordStoreOpened = false;
-                }
+                recordStore->closeRecordStore();
+                recordStore = RecordStore::openRecordStore("GDTRStates", true);
+                isRecordStoreOpened = recordStore != nullptr;
 
                 loadStateFromRecordStore();
 
@@ -367,22 +354,14 @@ void MenuManager::loadStateFromRecordStore()
 {
     recorcStoreRecordId = -1;
 
-    RecordEnumeration* records;
-    try {
-        records = recordStore->enumerateRecords(nullptr, nullptr, false);
-    } catch (RecordStoreNotOpenException& var8) {
-        return;
-    }
+    RecordEnumeration* records = recordStore->enumerateRecords(nullptr, nullptr, false);
+    if (!records) return;
 
     std::vector<int8_t> var3;
     if (records->numRecords() > 0) {
-        try {
-            var3 = records->nextRecord();
-            records->reset();
-            recorcStoreRecordId = records->nextRecordId();
-        } catch (RecordStoreException& var7) {
-            return;
-        }
+        var3 = records->nextRecord();
+        records->reset();
+        recorcStoreRecordId = records->nextRecordId();
 
         if (var3.size() <= 19) {
             for (std::size_t i = 0; i < var3.size(); ++i) {
@@ -842,11 +821,8 @@ void MenuManager::saveSmthToRecordStoreAndCloseIt()
     if (isRecordStoreOpened) {
         method_208();
 
-        try {
-            recordStore->closeRecordStore();
-            isRecordStoreOpened = false;
-        } catch (RecordStoreException& var1) {
-        }
+        recordStore->closeRecordStore();
+        isRecordStoreOpened = false;
     }
 
     currentGameMenu = nullptr;
@@ -876,17 +852,9 @@ void MenuManager::method_208()
     }
 
     if (recorcStoreRecordId == -1) {
-        try {
-            recorcStoreRecordId = recordStore->addRecord(field_278, 0, 19);
-        } catch (RecordStoreNotOpenException& var2) {
-        } catch (RecordStoreException& var3) {
-        }
+        recorcStoreRecordId = recordStore->addRecord(field_278, 0, 19);
     } else {
-        try {
-            recordStore->setRecord(recorcStoreRecordId, field_278, 0, 19);
-        } catch (RecordStoreNotOpenException& var4) {
-        } catch (RecordStoreException& var5) {
-        }
+        recordStore->setRecord(recorcStoreRecordId, field_278, 0, 19);
     }
 }
 
@@ -918,9 +886,7 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
         } else {
             method_208();
             if (isRecordStoreOpened) {
-                try {
-                    recordStore->closeRecordStore();
-                } catch (...) {}
+                recordStore->closeRecordStore();
             }
 
 
@@ -929,26 +895,16 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
             std::string packName = packNames[settingStringPack->getCurrentOptionPos()];
             RecordStore::setPackPrefix(packName == "Original" ? "" : packName + "_");
 
-            try {
-                recordStore = RecordStore::openRecordStore("GDTRStates", true);
-                isRecordStoreOpened = true;
-            } catch (...) {
-                isRecordStoreOpened = false;
-            }
+            recordStore = RecordStore::openRecordStore("GDTRStates", true);
+            isRecordStoreOpened = true;
 
-            try {
-                micro->levelLoader->load(packPaths[settingStringPack->getCurrentOptionPos()]);
-            } catch (...) {
+            if (!micro->levelLoader->load(packPaths[settingStringPack->getCurrentOptionPos()])) {
                 // Fallback to Original if loading fails
                 settingStringPack->setCurentOptionPos(0);
                 std::string fallbackPackName = packNames[0];
                 RecordStore::setPackPrefix(fallbackPackName == "Original" ? "" : fallbackPackName + "_");
-                try {
-                    recordStore = RecordStore::openRecordStore("GDTRStates", true);
-                    isRecordStoreOpened = true;
-                } catch (...) {
-                    isRecordStoreOpened = false;
-                }
+                recordStore = RecordStore::openRecordStore("GDTRStates", true);
+                isRecordStoreOpened = true;
                 micro->levelLoader->load(packPaths[0]);
             }
             this->levelNames = micro->levelLoader->levelNames;

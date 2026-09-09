@@ -26,7 +26,7 @@ void EmbedFileStream::read_impl(char* s, std::streamsize n)
 
 void EmbedFileStream::write_impl([[maybe_unused]] char* s, [[maybe_unused]] std::streamsize n)
 {
-    throw std::runtime_error("Write to buffer no supported!");
+    return;
 }
 
 bool EmbedFileStream::isOpen()

@@ -82,7 +82,7 @@ int64_t Micro::goLoadingStep()
     default:
         --gameLoadingStateStage;
 
-        // try {
+        //
         //     Thread.sleep(100L);
         // } catch (InterruptedException var3) {
         // }
@@ -221,7 +221,7 @@ void Micro::run()
         }
 
         bool var10000;
-        try {
+
             if (isInGameMenu) {
                 menuManager->method_201(1);
                 if (menuManager->method_196()) {
@@ -254,7 +254,7 @@ void Micro::run()
                     gameCanvas->repaint();
                     gameCanvas->serviceRepaints();
 
-                    // try {
+                    //
                     //     long var7 = 1000L;
                     //     if (this.field_246 > 0L) {
                     //         var7 = Math.min(this.field_246 - System.currentTimeMillis(), 1000L);
@@ -299,19 +299,17 @@ void Micro::run()
             }
 
             var10000 = field_249;
-        } catch (std::exception& var15) {
-            continue;
-        }
+
 
         if (!var10000) {
             break;
         }
 
-        try {
+
             gamePhysics->method_53();
             int64_t var1;
             if ((var1 = Time::currentTimeMillis()) - var3 < 30L) {
-                // try {
+                //
                 //     synchronized (this) {
                 //         wait(Math.max(30L - (var1 - var3), 1L));
                 //     }
@@ -325,8 +323,7 @@ void Micro::run()
             }
 
             gameCanvas->repaint();
-        } catch (std::exception& var14) {
-        }
+
     }
 
     destroyApp(true);
@@ -349,7 +346,7 @@ void Micro::goalLoop()
 
         for (int i = numPhysicsLoops; i > 0; --i) {
             if (gamePhysics->updatePhysics() == 5) {
-                // try {
+                //
                 //     long deltaTime;
                 //     if ((deltaTime = timeMs - System.currentTimeMillis()) > 0L) {
                 //         Thread.sleep(deltaTime);
@@ -371,7 +368,7 @@ void Micro::goalLoop()
         gamePhysics->method_53();
         int64_t var2;
         if ((var2 = Time::currentTimeMillis()) - var4 < 30L) {
-            // try {
+            //
             //     synchronized (this) {
             //         wait(Math.max(30L - (var2 - var4), 1L));
             //     }

@@ -37,7 +37,7 @@ private:
     void read_impl(char* s, std::streamsize n) override
     {
         if (m_pos + n > m_buffer.size()) {
-            throw std::runtime_error("BufferStream: end of stream");
+            return;
         }
         std::memcpy(s, m_buffer.data() + m_pos, n);
         m_pos += n;

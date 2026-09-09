@@ -40,13 +40,8 @@ int main(int argc, char** argv)
     SetupCallbacks();
 #endif
 
-    try {
-        std::unique_ptr<Micro> micro = std::make_unique<Micro>();
-        micro->startApp(argc, argv);
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
+    std::unique_ptr<Micro> micro = std::make_unique<Micro>();
+    micro->startApp(argc, argv);
 
     return EXIT_SUCCESS;
 };
