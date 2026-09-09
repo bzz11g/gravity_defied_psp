@@ -49,6 +49,12 @@ void LevelLoader::load(const std::string& mrgFilePath)
     FileStream* fileStream = nullptr;
     if (!mrgFilePath.empty()) {
         fileStream = new FileStream(mrgFilePath.c_str(), std::ios::in | std::ios::binary);
+        // Fallback paths if the absolute path didn't work
+        if (!fileStream->isOpen()) {
+            delete fileStream;
+            std::string fallback = "levels/" + mrgFilePath.substr(mrgFilePath.find_last_of("/\\") + 1);
+            fileStream = new FileStream(fallback.c_str(), std::ios::in | std::ios::binary);
+        }
     }
 
     if (fileStream == nullptr || !fileStream->isOpen()) {
@@ -56,6 +62,12 @@ void LevelLoader::load(const std::string& mrgFilePath)
             delete fileStream;
             fileStream = nullptr;
         }
+
+        // If it was a custom pack that failed, we should probably throw so MenuManager knows it failed!
+        if (!mrgFilePath.empty()) {
+            throw std::runtime_error("Failed to load custom level pack");
+        }
+
         EmbedFileStream* embedFileStream = new EmbedFileStream("levels.mrg");
         levelFileStream = static_cast<FileStream*>(embedFileStream);
     } else {

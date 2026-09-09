@@ -150,17 +150,16 @@ void Micro::destroyApp(bool var1)
 
 void Micro::startApp(int argc, char** argv)
 {
-    if (argc > 0 && argv[0] != nullptr) {
+    g_appDirPath = ".";
+    if (argc > 0 && argv != nullptr && argv[0] != nullptr) {
         std::string execPath(argv[0]);
         size_t lastSlash = execPath.find_last_of("/\\");
         if (lastSlash != std::string::npos) {
             g_appDirPath = execPath.substr(0, lastSlash);
-        } else {
-            g_appDirPath = ".";
         }
     }
 
-    if (argc > 1) {
+    if (argc > 1 && argv != nullptr && argv[1] != nullptr) {
         std::string argv1(argv[1]);
 
         if (argv1 == "-h" || argv1 == "--help") {
@@ -171,7 +170,7 @@ void Micro::startApp(int argc, char** argv)
         this->mrgFilePath = argv1;
     }
 
-    RecordStore::setRecordStoreDir(argv[0]);
+    RecordStore::setRecordStoreDir((argc > 0 && argv != nullptr && argv[0] != nullptr) ? argv[0] : "");
     RecordStore::init();
 
     field_249 = true;

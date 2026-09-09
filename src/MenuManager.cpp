@@ -212,7 +212,15 @@ void MenuManager::initPart(int var1)
 
             // Re-load the correct active pack data if not Original
             if (loadedPackIndex != 0) {
-                micro->levelLoader->load(packPaths[loadedPackIndex]);
+                try {
+                    micro->levelLoader->load(packPaths[loadedPackIndex]);
+                } catch (...) {
+                    loadedPackIndex = 0;
+                    settingStringPack->setCurentOptionPos(0);
+                    std::string fallbackPackName = packNames[0];
+                    RecordStore::setPackPrefix(fallbackPackName == "Original" ? "" : fallbackPackName + "_");
+                    micro->levelLoader->load(packPaths[0]);
+                }
                 this->levelNames = micro->levelLoader->levelNames;
 
                 try {
