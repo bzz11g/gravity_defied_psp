@@ -122,3 +122,21 @@ if(PSP)
         BACKGROUND_PATH "${CMAKE_CURRENT_SOURCE_DIR}/assets/PIC1.png"
     )
 endif()
+
+if(PSP)
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/embed_sfo.py "import sys\nwith open(sys.argv[1], 'rb') as f:\n    d = f.read()\nwith open(sys.argv[2], 'w') as f:\n    f.write('#pragma once\\n')\n    f.write('static const unsigned char default_sfo_data[] = {' + ','.join(hex(b) for b in d) + '};\\n')\n    f.write('static const unsigned int default_sfo_data_len = ' + str(len(d)) + ';\\n')\n")
+
+    add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/rms/sfo_data.h
+        COMMAND python3 ${CMAKE_CURRENT_BINARY_DIR}/embed_sfo.py ${CMAKE_CURRENT_SOURCE_DIR}/assets/PARAM.SFO ${CMAKE_CURRENT_SOURCE_DIR}/src/rms/sfo_data.h
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/PARAM.SFO
+        COMMENT "Embedding PARAM.SFO into sfo_data.h"
+    )
+
+    # Make the target depend on the generated header
+    set_source_files_properties(src/rms/PSPSavedata.cpp PROPERTIES OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/rms/sfo_data.h)
+
+    # We must trigger this custom command before building
+    add_custom_target(GenerateSFOHeader ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/rms/sfo_data.h)
+    add_dependencies(GravityDefied GenerateSFOHeader)
+endif()
