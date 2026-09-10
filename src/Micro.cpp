@@ -167,7 +167,9 @@ void Micro::startApp(int argc, char** argv)
             return;
         }
 
+#ifndef PSP
         this->mrgFilePath = argv1;
+#endif
     }
 
     RecordStore::setRecordStoreDir((argc > 0 && argv != nullptr && argv[0] != nullptr) ? argv[0] : "");

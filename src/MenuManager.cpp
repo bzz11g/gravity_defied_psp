@@ -168,6 +168,7 @@ void MenuManager::initPart(int var1)
         packNames.push_back("Original");
         packPaths.push_back("");
 
+#ifndef PSP
         {
             extern std::string g_appDirPath;
             std::string levelsDir = g_appDirPath.empty() ? "levels" : g_appDirPath + "/levels";
@@ -193,6 +194,7 @@ void MenuManager::initPart(int var1)
                 closedir(dir);
             }
         }
+#endif
 
         {
             int loadedPackIndex = method_217(17, 0);
