@@ -7,7 +7,7 @@
 
 #ifdef PSP
 #include <pspkernel.h>
-PSP_MODULE_INFO("GravityDefied", 0, 1, 0);
+PSP_MODULE_INFO("GravityDefied", 0, 1, 1);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 
 int exit_callback(int arg1, int arg2, void *common) {
