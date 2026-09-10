@@ -5,15 +5,16 @@
 #include <iostream>
 #include <cstring>
 #include <cstdio>
+#include <cstdint>
 #include <dirent.h>
 
+#include <unistd.h>
 #ifdef PSP
 #include <pspkernel.h>
 #elif defined(_WIN32)
 #include <direct.h>
 #else
 #include <sys/stat.h>
-#include <unistd.h>
 #endif
 
 #include "../utils/FileStream.h"
@@ -59,15 +60,74 @@ void RecordStore::setRecord(int recordId, std::vector<int8_t> arr, int offset, i
 
 void RecordStore::save()
 {
-    FileStream outStream(filePath, std::ios::out | std::ios::binary);
-    records->serialize(&outStream);
+    if (!records) {
+        return;
+    }
+
+    FILE* f = fopen(filePath.c_str(), "wb");
+    if (!f) {
+        log("Failed to open file for writing: " + filePath);
+        return;
+    }
+
+    int32_t currentPos = static_cast<int32_t>(records->getCurrentPos());
+    const auto& data = records->getData();
+    uint32_t numRecords = static_cast<uint32_t>(data.size());
+
+    fwrite(&currentPos, sizeof(int32_t), 1, f);
+    fwrite(&numRecords, sizeof(uint32_t), 1, f);
+
+    for (size_t i = 0; i < data.size(); ++i) {
+        uint32_t recSize = static_cast<uint32_t>(data[i].size());
+        fwrite(&recSize, sizeof(uint32_t), 1, f);
+        if (recSize > 0) {
+            fwrite(data[i].data(), 1, recSize, f);
+        }
+    }
+
+    fflush(f);
+    fclose(f);
 }
 
 RecordEnumerationImpl* RecordStore::load(const std::string& filePath)
 {
     RecordEnumerationImpl* temp = new RecordEnumerationImpl();
-    FileStream inStream(filePath, std::ios::in | std::ios::binary);
-    temp->deserialize(&inStream);
+    FILE* f = fopen(filePath.c_str(), "rb");
+    if (!f) {
+        return temp;
+    }
+
+    fseek(f, 0, SEEK_END);
+    long fileSize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    if (fileSize <= 0) {
+        fclose(f);
+        return temp;
+    }
+
+    int32_t currentPos = 0;
+    uint32_t numRecords = 0;
+    if (fread(&currentPos, sizeof(int32_t), 1, f) == 1 &&
+        fread(&numRecords, sizeof(uint32_t), 1, f) == 1) {
+
+        temp->setCurrentPos(currentPos);
+        for (uint32_t i = 0; i < numRecords; ++i) {
+            uint32_t recSize = 0;
+            if (fread(&recSize, sizeof(uint32_t), 1, f) == 1) {
+                if (recSize > 0) {
+                    std::vector<int8_t> buf(recSize);
+                    if (fread(buf.data(), 1, recSize, f) == recSize) {
+                        temp->addRecord(buf);
+                    }
+                } else {
+                    temp->addRecord(std::vector<int8_t>());
+                }
+            }
+        }
+    }
+
+    fclose(f);
     return temp;
 }
 
@@ -97,13 +157,17 @@ std::unique_ptr<RecordStore> RecordStore::createRecordStore(std::string name, bo
 
     FILE* f = fopen(filePath.c_str(), "rb");
     if (f != nullptr) {
+        fseek(f, 0, SEEK_END);
+        long sz = ftell(f);
         fclose(f);
-        return std::unique_ptr<RecordStore>(new RecordStore(filePath, load(filePath)));
+
+        if (sz > 0) {
+            return std::unique_ptr<RecordStore>(new RecordStore(filePath, load(filePath)));
+        }
     }
 
     if (createIfNecessary) {
         std::unique_ptr<RecordStore> rs(new RecordStore(filePath, new RecordEnumerationImpl()));
-        rs->save();
         return rs;
     } else {
         return nullptr;
@@ -147,16 +211,42 @@ void RecordStore::log(std::string s)
 
 void RecordStore::setRecordStoreDir(const char* progName)
 {
-    std::string appDir = "./";
+    char currentDir[256] = {0};
     if (progName != nullptr && progName[0] != '\0') {
-        std::string strProg(progName);
-        size_t lastSlash = strProg.find_last_of("/\\");
-        if (lastSlash != std::string::npos) {
-            appDir = strProg.substr(0, lastSlash + 1);
+        const char* lastSlash = std::strrchr(progName, '/');
+        if (!lastSlash) lastSlash = std::strrchr(progName, '\\');
+        if (lastSlash != nullptr) {
+            size_t len = lastSlash - progName + 1;
+            if (len < sizeof(currentDir)) {
+                std::strncpy(currentDir, progName, len);
+                currentDir[len] = '\0';
+            }
         }
     }
 
-    recordStoreDir = appDir + "save/";
+    if (currentDir[0] == '\0') {
+#ifdef PSP
+        if (getcwd(currentDir, sizeof(currentDir) - 1) != nullptr && currentDir[0] != '\0') {
+            size_t len = std::strlen(currentDir);
+            if (currentDir[len - 1] != '/' && currentDir[len - 1] != '\\') {
+                std::strcat(currentDir, "/");
+            }
+        } else {
+            std::strncpy(currentDir, "ms0:/PSP/GAME/GravityDefied/", sizeof(currentDir) - 1);
+        }
+#else
+        if (getcwd(currentDir, sizeof(currentDir) - 1) != nullptr && currentDir[0] != '\0') {
+            size_t len = std::strlen(currentDir);
+            if (currentDir[len - 1] != '/' && currentDir[len - 1] != '\\') {
+                std::strcat(currentDir, "/");
+            }
+        } else {
+            std::strncpy(currentDir, "./", sizeof(currentDir) - 1);
+        }
+#endif
+    }
+
+    recordStoreDir = std::string(currentDir) + "save/";
 
 #ifdef PSP
     sceIoMkdir(recordStoreDir.c_str(), 0777);
