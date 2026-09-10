@@ -11,7 +11,7 @@ PSP_MODULE_INFO("GravityDefied", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 
 int exit_callback(int arg1, int arg2, void *common) {
-    sceKernelExitGame();
+    Micro::field_249 = false;
     return 0;
 }
 
@@ -44,6 +44,10 @@ int main(int argc, char** argv)
         std::cerr << "Exception: " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
+
+#ifdef PSP
+    sceKernelExitGame();
+#endif
 
     return EXIT_SUCCESS;
 };

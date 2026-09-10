@@ -140,7 +140,10 @@ void Micro::destroyApp(bool var1)
     (void)var1;
     field_249 = false;
     field_242 = true;
-    menuManager->saveSmthToRecordStoreAndCloseIt();
+    if (menuManager != nullptr) {
+        menuManager->saveSmthToRecordStoreAndCloseIt();
+    }
+    RecordStore::flushToDisk();
 }
 
 void Micro::startApp(int argc, char** argv)

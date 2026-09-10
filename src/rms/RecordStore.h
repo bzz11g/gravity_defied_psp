@@ -1,9 +1,9 @@
 #pragma once
 
 #include <string>
-#include <filesystem>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 #include "RecordEnumerationImpl.h"
 
@@ -12,16 +12,21 @@ class RecordComparator;
 
 class RecordStore {
 private:
-    RecordStore(std::filesystem::path filePath, RecordEnumerationImpl* records);
-    void save();
-    static RecordEnumerationImpl* load(std::filesystem::path filePath);
+    RecordStore(std::string name, RecordEnumerationImpl* records);
+    static RecordEnumerationImpl* load();
     static std::unique_ptr<RecordStore> createRecordStore(std::string name, bool createIfNecessary);
     static void log(std::string s);
 
-    inline static std::filesystem::path recordStoreDir;
+    inline static std::string recordStoreDir;
     inline static std::unordered_map<std::string, std::unique_ptr<RecordStore>> opened;
-    std::filesystem::path filePath;
+    std::string name;
     std::unique_ptr<RecordEnumerationImpl> records;
+
+public:
+    static void saveAll();
+    static void init();
+    static void flushToDisk();
+
 
 public:
     inline static std::string packPrefix = "";
