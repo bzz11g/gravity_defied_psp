@@ -11,10 +11,10 @@ class LevelLoader;
 class Micro {
 private:
     int64_t goLoadingStep();
-    void destroyApp(bool var1);
     std::filesystem::path mrgFilePath;
 
 public:
+    void destroyApp(bool var1);
     GameCanvas* gameCanvas;
     LevelLoader* levelLoader;
     GamePhysics* gamePhysics;
