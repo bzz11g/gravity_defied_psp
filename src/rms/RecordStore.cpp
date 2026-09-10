@@ -3,22 +3,23 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
-#include <stdexcept>
-#include <numeric>
 #include <cstring>
+#include <cstdio>
+#include <dirent.h>
 
-#ifdef WIN32
-#include <libgen.h>
+#ifdef PSP
+#include <pspkernel.h>
+#elif defined(_WIN32)
+#include <direct.h>
 #else
+#include <sys/stat.h>
 #include <unistd.h>
-#include <pwd.h>
 #endif
 
-#include "RecordStoreException.h"
 #include "../utils/FileStream.h"
 #include "../utils/String.h"
 
-RecordStore::RecordStore(std::filesystem::path filePath, RecordEnumerationImpl* records)
+RecordStore::RecordStore(std::string filePath, RecordEnumerationImpl* records)
 {
     this->filePath = filePath;
     this->records.reset(records);
@@ -35,7 +36,7 @@ RecordEnumeration* RecordStore::enumerateRecords(RecordFilter* filter, RecordCom
 
 void RecordStore::closeRecordStore()
 {
-    // nothing
+    save();
 }
 
 int RecordStore::addRecord(std::vector<int8_t> arr, int offset, int numBytes)
@@ -62,7 +63,7 @@ void RecordStore::save()
     records->serialize(&outStream);
 }
 
-RecordEnumerationImpl* RecordStore::load(std::filesystem::path filePath)
+RecordEnumerationImpl* RecordStore::load(const std::string& filePath)
 {
     RecordEnumerationImpl* temp = new RecordEnumerationImpl();
     FileStream inStream(filePath, std::ios::in | std::ios::binary);
@@ -79,7 +80,11 @@ RecordStore* RecordStore::openRecordStore(std::string name, bool createIfNecessa
 {
     std::string prefixedName = packPrefix + name;
     if (opened.find(prefixedName) == opened.end()) {
-        opened[prefixedName] = createRecordStore(prefixedName, createIfNecessary);
+        auto store = createRecordStore(prefixedName, createIfNecessary);
+        if (!store) {
+            return nullptr;
+        }
+        opened[prefixedName] = std::move(store);
     }
 
     return opened[prefixedName].get();
@@ -88,29 +93,36 @@ RecordStore* RecordStore::openRecordStore(std::string name, bool createIfNecessa
 std::unique_ptr<RecordStore> RecordStore::createRecordStore(std::string name, bool createIfNecessary)
 {
     log("createRecordStore(" + name + ", " + std::to_string(createIfNecessary) + ")");
-    std::filesystem::path filePath = recordStoreDir / std::filesystem::path(name);
+    std::string filePath = recordStoreDir + name;
 
-    if (std::filesystem::exists(filePath)) {
+    FILE* f = fopen(filePath.c_str(), "rb");
+    if (f != nullptr) {
+        fclose(f);
         return std::unique_ptr<RecordStore>(new RecordStore(filePath, load(filePath)));
     }
 
     if (createIfNecessary) {
-        std::filesystem::create_directories(filePath.parent_path());
-
         std::unique_ptr<RecordStore> rs(new RecordStore(filePath, new RecordEnumerationImpl()));
         rs->save();
         return rs;
     } else {
-        throw RecordStoreException();
+        return nullptr;
     }
 }
 
 std::vector<std::string> RecordStore::listRecordStores()
 {
     std::vector<std::string> result;
-
-    for (const auto& entry : recordStoreDir)
-        result.push_back(entry.filename().string());
+    DIR* dir = opendir(recordStoreDir.c_str());
+    if (dir != nullptr) {
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != nullptr) {
+            if (std::strcmp(entry->d_name, ".") != 0 && std::strcmp(entry->d_name, "..") != 0) {
+                result.push_back(entry->d_name);
+            }
+        }
+        closedir(dir);
+    }
 
     log("listRecordStores() = {" + String::join(result, ", ") + "}");
 
@@ -120,7 +132,12 @@ std::vector<std::string> RecordStore::listRecordStores()
 void RecordStore::deleteRecordStore(std::string name)
 {
     log("deleteRecordStore(" + name + ")");
-    throw std::runtime_error("deleteRecordStore is not implemented");
+    std::string filePath = recordStoreDir + name;
+#ifdef PSP
+    sceIoRemove(filePath.c_str());
+#else
+    std::remove(filePath.c_str());
+#endif
 }
 
 void RecordStore::log(std::string s)
@@ -128,19 +145,24 @@ void RecordStore::log(std::string s)
     std::cout << s << std::endl;
 }
 
-void RecordStore::setRecordStoreDir([[maybe_unused]] const char* progName)
+void RecordStore::setRecordStoreDir(const char* progName)
 {
-#ifdef WIN32
-    const char* base = dirname(strdup(progName));
-    recordStoreDir = std::filesystem::path(base) / "recordStore";
+    std::string appDir = "./";
+    if (progName != nullptr && progName[0] != '\0') {
+        std::string strProg(progName);
+        size_t lastSlash = strProg.find_last_of("/\\");
+        if (lastSlash != std::string::npos) {
+            appDir = strProg.substr(0, lastSlash + 1);
+        }
+    }
+
+    recordStoreDir = appDir + "save/";
+
+#ifdef PSP
+    sceIoMkdir(recordStoreDir.c_str(), 0777);
+#elif defined(_WIN32)
+    _mkdir(recordStoreDir.c_str());
 #else
-    const char* homeDir = getenv("HOME");
-    if (!homeDir)
-        homeDir = getpwuid(getuid())->pw_dir;
-
-    if (!homeDir)
-        throw std::system_error(errno, std::system_category(), "Error getting home directory");
-
-    recordStoreDir = std::filesystem::path(homeDir) / ".GravityDefied";
+    mkdir(recordStoreDir.c_str(), 0777);
 #endif
 }
