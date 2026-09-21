@@ -18,16 +18,20 @@ private:
     static std::unique_ptr<RecordStore> createRecordStore(std::string name, bool createIfNecessary);
     static void log(std::string s);
 
-    inline static std::string recordStoreDir;
+    inline static std::string rootSaveDir;
     inline static std::unordered_map<std::string, std::unique_ptr<RecordStore>> opened;
     std::string filePath;
     std::unique_ptr<RecordEnumerationImpl> records;
+
+    static std::string getCurrentPackDir();
+    static void makeDir(const std::string& path);
 
 public:
     inline static std::string packPrefix = "";
     static void setPackPrefix(const std::string& prefix);
     static void setRecordStoreDir(const char* progName);
     static RecordStore* openRecordStore(std::string name, bool createIfNecessary);
+    static void saveAllOpened();
     void closeRecordStore();
     static void deleteRecordStore(std::string name);
     static std::vector<std::string> listRecordStores();

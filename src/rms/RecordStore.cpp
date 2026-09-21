@@ -6,6 +6,7 @@
 #include <cstring>
 #include <cstdio>
 #include <cstdint>
+#include <cctype>
 #include <dirent.h>
 
 #include <unistd.h>
@@ -58,11 +59,55 @@ void RecordStore::setRecord(int recordId, std::vector<int8_t> arr, int offset, i
     save();
 }
 
+std::string RecordStore::getCurrentPackDir()
+{
+    std::string pack = packPrefix;
+    if (pack.empty()) {
+        pack = "original";
+    } else {
+        if (pack.back() == '_') {
+            pack.pop_back();
+        }
+    }
+    std::string clean;
+    for (char c : pack) {
+        if (std::isalnum(static_cast<unsigned char>(c)) || c == '_' || c == '-') {
+            clean += c;
+        } else if (c == ' ') {
+            clean += '_';
+        }
+    }
+    if (clean.empty()) {
+        clean = "original";
+    }
+    return clean;
+}
+
+void RecordStore::makeDir(const std::string& path)
+{
+    if (path.empty()) return;
+#ifdef PSP
+    sceIoMkdir(path.c_str(), 0777);
+#elif defined(_WIN32)
+    _mkdir(path.c_str());
+#else
+    mkdir(path.c_str(), 0777);
+#endif
+}
+
 void RecordStore::save()
 {
     if (!records) {
         return;
     }
+
+    const auto& data = records->getData();
+    if (data.empty()) {
+        return;
+    }
+
+    makeDir(rootSaveDir);
+    makeDir(rootSaveDir + getCurrentPackDir());
 
     FILE* f = fopen(filePath.c_str(), "wb");
     if (!f) {
@@ -71,7 +116,6 @@ void RecordStore::save()
     }
 
     int32_t currentPos = static_cast<int32_t>(records->getCurrentPos());
-    const auto& data = records->getData();
     uint32_t numRecords = static_cast<uint32_t>(data.size());
 
     fwrite(&currentPos, sizeof(int32_t), 1, f);
@@ -87,6 +131,16 @@ void RecordStore::save()
 
     fflush(f);
     fclose(f);
+    log("Saved " + std::to_string(numRecords) + " records to " + filePath);
+}
+
+void RecordStore::saveAllOpened()
+{
+    for (auto& pair : opened) {
+        if (pair.second) {
+            pair.second->save();
+        }
+    }
 }
 
 RecordEnumerationImpl* RecordStore::load(const std::string& filePath)
@@ -138,22 +192,26 @@ void RecordStore::setPackPrefix(const std::string& prefix)
 
 RecordStore* RecordStore::openRecordStore(std::string name, bool createIfNecessary)
 {
-    std::string prefixedName = packPrefix + name;
-    if (opened.find(prefixedName) == opened.end()) {
-        auto store = createRecordStore(prefixedName, createIfNecessary);
+    std::string prefixedKey = packPrefix + name;
+    if (opened.find(prefixedKey) == opened.end()) {
+        auto store = createRecordStore(name, createIfNecessary);
         if (!store) {
             return nullptr;
         }
-        opened[prefixedName] = std::move(store);
+        opened[prefixedKey] = std::move(store);
     }
 
-    return opened[prefixedName].get();
+    return opened[prefixedKey].get();
 }
 
 std::unique_ptr<RecordStore> RecordStore::createRecordStore(std::string name, bool createIfNecessary)
 {
     log("createRecordStore(" + name + ", " + std::to_string(createIfNecessary) + ")");
-    std::string filePath = recordStoreDir + name;
+    std::string packDir = rootSaveDir + getCurrentPackDir() + "/";
+    makeDir(rootSaveDir);
+    makeDir(rootSaveDir + getCurrentPackDir());
+
+    std::string filePath = packDir + name;
 
     FILE* f = fopen(filePath.c_str(), "rb");
     if (f != nullptr) {
@@ -177,7 +235,8 @@ std::unique_ptr<RecordStore> RecordStore::createRecordStore(std::string name, bo
 std::vector<std::string> RecordStore::listRecordStores()
 {
     std::vector<std::string> result;
-    DIR* dir = opendir(recordStoreDir.c_str());
+    std::string packDir = rootSaveDir + getCurrentPackDir() + "/";
+    DIR* dir = opendir(packDir.c_str());
     if (dir != nullptr) {
         struct dirent* entry;
         while ((entry = readdir(dir)) != nullptr) {
@@ -196,7 +255,8 @@ std::vector<std::string> RecordStore::listRecordStores()
 void RecordStore::deleteRecordStore(std::string name)
 {
     log("deleteRecordStore(" + name + ")");
-    std::string filePath = recordStoreDir + name;
+    std::string packDir = rootSaveDir + getCurrentPackDir() + "/";
+    std::string filePath = packDir + name;
 #ifdef PSP
     sceIoRemove(filePath.c_str());
 #else
@@ -211,48 +271,43 @@ void RecordStore::log(std::string s)
 
 void RecordStore::setRecordStoreDir(const char* progName)
 {
-    char currentDir[256] = {0};
+    char basePath[256] = {0};
     if (progName != nullptr && progName[0] != '\0') {
         const char* lastSlash = std::strrchr(progName, '/');
         if (!lastSlash) lastSlash = std::strrchr(progName, '\\');
         if (lastSlash != nullptr) {
             size_t len = lastSlash - progName + 1;
-            if (len < sizeof(currentDir)) {
-                std::strncpy(currentDir, progName, len);
-                currentDir[len] = '\0';
+            if (len < sizeof(basePath)) {
+                std::strncpy(basePath, progName, len);
+                basePath[len] = '\0';
             }
         }
     }
 
-    if (currentDir[0] == '\0') {
+    if (basePath[0] == '\0') {
 #ifdef PSP
-        if (getcwd(currentDir, sizeof(currentDir) - 1) != nullptr && currentDir[0] != '\0') {
-            size_t len = std::strlen(currentDir);
-            if (currentDir[len - 1] != '/' && currentDir[len - 1] != '\\') {
-                std::strcat(currentDir, "/");
+        if (getcwd(basePath, sizeof(basePath) - 1) != nullptr && basePath[0] != '\0') {
+            size_t len = std::strlen(basePath);
+            if (basePath[len - 1] != '/' && basePath[len - 1] != '\\') {
+                std::strcat(basePath, "/");
             }
         } else {
-            std::strncpy(currentDir, "ms0:/PSP/GAME/GravityDefied/", sizeof(currentDir) - 1);
+            std::strncpy(basePath, "ms0:/PSP/GAME/GravityDefied/", sizeof(basePath) - 1);
         }
 #else
-        if (getcwd(currentDir, sizeof(currentDir) - 1) != nullptr && currentDir[0] != '\0') {
-            size_t len = std::strlen(currentDir);
-            if (currentDir[len - 1] != '/' && currentDir[len - 1] != '\\') {
-                std::strcat(currentDir, "/");
+        if (getcwd(basePath, sizeof(basePath) - 1) != nullptr && basePath[0] != '\0') {
+            size_t len = std::strlen(basePath);
+            if (basePath[len - 1] != '/' && basePath[len - 1] != '\\') {
+                std::strcat(basePath, "/");
             }
         } else {
-            std::strncpy(currentDir, "./", sizeof(currentDir) - 1);
+            std::strncpy(basePath, "./", sizeof(basePath) - 1);
         }
 #endif
     }
 
-    recordStoreDir = std::string(currentDir) + "save/";
+    rootSaveDir = std::string(basePath) + "save/";
 
-#ifdef PSP
-    sceIoMkdir(recordStoreDir.c_str(), 0777);
-#elif defined(_WIN32)
-    _mkdir(recordStoreDir.c_str());
-#else
-    mkdir(recordStoreDir.c_str(), 0777);
-#endif
+    makeDir(rootSaveDir);
+    makeDir(rootSaveDir + getCurrentPackDir());
 }
