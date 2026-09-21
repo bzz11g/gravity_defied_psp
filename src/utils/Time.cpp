@@ -1,17 +1,26 @@
-#include "time.h"
+#include "Time.h"
 
 #include <SDL2/SDL.h>
-#include <chrono>
+
+#if defined(PSP) || defined(__PSP__)
+#include <pspkernel.h>
+#endif
 
 namespace Time {
 int64_t currentTimeMillis()
 {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count();
+    return static_cast<int64_t>(SDL_GetTicks64());
 }
 
 void sleep(int64_t ms)
 {
-    SDL_Delay(ms);
+    if (ms <= 0) {
+        return;
+    }
+#if defined(PSP) || defined(__PSP__)
+    sceKernelDelayThread(static_cast<SceUInt>(ms * 1000));
+#else
+    SDL_Delay(static_cast<Uint32>(ms));
+#endif
 }
 }

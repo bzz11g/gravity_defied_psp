@@ -128,21 +128,21 @@ void Graphics::fillRect(int x, int y, int w, int h)
  * arcAngle - the angular extent of the arc, relative to the start angle
  */
 namespace {
-struct TrigLUT {
-    float cosVal[360];
-    float sinVal[360];
+static float g_cosVal[360];
+static float g_sinVal[360];
+static bool g_trigLUTInited = false;
 
-    TrigLUT()
-    {
+static void initTrigLUT()
+{
+    if (!g_trigLUTInited) {
         for (int i = 0; i < 360; ++i) {
             double rad = i * (3.14159265358979323846 / 180.0);
-            cosVal[i] = static_cast<float>(std::cos(rad));
-            sinVal[i] = static_cast<float>(std::sin(rad));
+            g_cosVal[i] = static_cast<float>(std::cos(rad));
+            g_sinVal[i] = static_cast<float>(std::sin(rad));
         }
+        g_trigLUTInited = true;
     }
-};
-
-static const TrigLUT g_trigLUT;
+}
 } // namespace
 
 void Graphics::drawArc(int x, int y, int width, int heigth, int startAngle, int arcAngle)
@@ -169,11 +169,15 @@ void Graphics::drawArc(int x, int y, int width, int heigth, int startAngle, int 
     SDL_Point points[64];
     int count = 0;
 
+    if (!g_trigLUTInited) {
+        initTrigLUT();
+    }
+
     int endAngle = startAngle + arcAngle;
     for (int angle = startAngle; angle < endAngle; angle += step) {
         int idx = ((angle % 360) + 360) % 360;
-        int px = x + static_cast<int>(xradius * g_trigLUT.cosVal[idx]);
-        int py = y - static_cast<int>(yradius * g_trigLUT.sinVal[idx]);
+        int px = x + static_cast<int>(xradius * g_cosVal[idx]);
+        int py = y - static_cast<int>(yradius * g_sinVal[idx]);
         points[count++] = { px, py };
         if (count >= 63) {
             break;
@@ -181,8 +185,8 @@ void Graphics::drawArc(int x, int y, int width, int heigth, int startAngle, int 
     }
 
     int endIdx = ((endAngle % 360) + 360) % 360;
-    int px = x + static_cast<int>(xradius * g_trigLUT.cosVal[endIdx]);
-    int py = y - static_cast<int>(yradius * g_trigLUT.sinVal[endIdx]);
+    int px = x + static_cast<int>(xradius * g_cosVal[endIdx]);
+    int py = y - static_cast<int>(yradius * g_sinVal[endIdx]);
     points[count++] = { px, py };
 
     if (count >= 2) {
