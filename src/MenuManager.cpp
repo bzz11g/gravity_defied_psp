@@ -567,7 +567,7 @@ void MenuManager::method_201(int var1)
                 var6 = var20;
             }
         } else {
-            var8 = 50;
+            var8 = 16;
             if ((var20 = Time::currentTimeMillis()) - var6 < (int64_t)var8) {
                 // try {
                 //     Object var21;

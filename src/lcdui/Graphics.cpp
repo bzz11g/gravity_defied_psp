@@ -1,6 +1,10 @@
 #include "Graphics.h"
 #include <memory>
 
+#if defined(PSP) || defined(__PSP__)
+#include <pspgu.h>
+#endif
+
 Graphics::Graphics(SDL_Renderer* renderer)
 {
     this->renderer = renderer;
@@ -71,8 +75,18 @@ std::shared_ptr<Font> Graphics::getFont() const
 
 void Graphics::setClip(int x, int y, int w, int h)
 {
-    SDL_Rect clipRect { x, y, w, h };
-    SDL_RenderSetClipRect(renderer, &clipRect);
+    if (w <= 0 || h <= 0 || (x <= 0 && y <= 0 && w >= 480 && h >= 272)) {
+        SDL_RenderSetClipRect(renderer, nullptr);
+#if defined(PSP) || defined(__PSP__)
+        sceGuScissor(0, 0, 480, 272);
+#endif
+    } else {
+        SDL_Rect clipRect { x, y, w, h };
+        SDL_RenderSetClipRect(renderer, &clipRect);
+#if defined(PSP) || defined(__PSP__)
+        sceGuScissor(x < 0 ? 0 : x, y < 0 ? 0 : y, (x + w > 480) ? 480 : (x + w), (y + h > 272) ? 272 : (y + h));
+#endif
+    }
 }
 
 void Graphics::drawChar(char c, int x, int y, int anchor)

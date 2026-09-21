@@ -6,6 +6,10 @@
 #include <stdexcept>
 #include <iostream>
 
+#if defined(PSP) || defined(__PSP__)
+#include <pspgu.h>
+#endif
+
 #include "Canvas.h"
 #include "../Micro.h"
 
@@ -64,6 +68,10 @@ CanvasImpl::~CanvasImpl()
 void CanvasImpl::clear()
 {
     SDL_SetRenderTarget(renderer, nullptr);
+    SDL_RenderSetClipRect(renderer, nullptr);
+#if defined(PSP) || defined(__PSP__)
+    sceGuScissor(0, 0, 480, 272);
+#endif
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
 }

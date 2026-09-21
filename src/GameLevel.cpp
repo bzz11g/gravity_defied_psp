@@ -65,8 +65,8 @@ int GameLevel::method_181(int var1)
 
 void GameLevel::setMinMaxX(int minX, int maxX)
 {
-    this->minX = minX << 16 >> 3;
-    this->maxX = maxX << 16 >> 3;
+    this->minX = (minX - 128) << 16 >> 3;
+    this->maxX = (maxX + 128) << 16 >> 3;
 }
 
 void GameLevel::method_183(int var1, int var2)
@@ -134,6 +134,9 @@ void GameLevel::renderLevel3D(GameCanvas* gameCanvas, int xF16, int yF16)
     var10 = (int)(((int64_t)var10 << 32) / (int64_t)(var11 >> 1 >> 1) >> 16);
     gameCanvas->setColor(0, 170, 0);
 
+    bool startFlagRendered = false;
+    bool finishFlagRendered = false;
+
     while (lineNo < pointsCount - 1) {
         int var4 = var9;
         int var5 = var10;
@@ -158,17 +161,35 @@ void GameLevel::renderLevel3D(GameCanvas* gameCanvas, int xF16, int yF16)
             // render far start flag
             gameCanvas->renderStartFlag((pointPositions[startFlagPoint][0] + var4) << 3 >> 16, (pointPositions[startFlagPoint][1] + var5) << 3 >> 16);
             gameCanvas->setColor(0, 170, 0);
+            startFlagRendered = true;
         }
         if (finishFlagPoint == lineNo) {
             // render far finish flag
             gameCanvas->renderFinishFlag((pointPositions[finishFlagPoint][0] + var4) << 3 >> 16, (pointPositions[finishFlagPoint][1] + var5) << 3 >> 16);
             gameCanvas->setColor(0, 170, 0);
+            finishFlagRendered = true;
         }
         if (pointPositions[lineNo][0] > maxX) {
             break;
         }
         ++lineNo;
     }
+
+    if (!startFlagRendered && startFlagPoint < pointsCount) {
+        int sx = (pointPositions[startFlagPoint][0] << 3 >> 16) + gameCanvas->getDx();
+        if (sx >= -64 && sx <= gameCanvas->getWidth() + 64) {
+            gameCanvas->renderStartFlag(pointPositions[startFlagPoint][0] << 3 >> 16, pointPositions[startFlagPoint][1] << 3 >> 16);
+            gameCanvas->setColor(0, 170, 0);
+        }
+    }
+    if (!finishFlagRendered && finishFlagPoint < pointsCount) {
+        int fx = (pointPositions[finishFlagPoint][0] << 3 >> 16) + gameCanvas->getDx();
+        if (fx >= -64 && fx <= gameCanvas->getWidth() + 64) {
+            gameCanvas->renderFinishFlag(pointPositions[finishFlagPoint][0] << 3 >> 16, pointPositions[finishFlagPoint][1] << 3 >> 16);
+            gameCanvas->setColor(0, 170, 0);
+        }
+    }
+
     gameCanvas->drawLine(pointPositions[pointsCount - 1][0] << 3 >> 16, pointPositions[pointsCount - 1][1] << 3 >> 16, (pointPositions[pointsCount - 1][0] + var9) << 3 >> 16, (pointPositions[pointsCount - 1][1] + var10) << 3 >> 16);
     if (LevelLoader::isEnabledShadows) {
         renderShadow(gameCanvas, var7, var8);
@@ -183,20 +204,41 @@ void GameLevel::renderTrackNearestGreenLine(GameCanvas* gameCanvas)
     if (pointNo > 0) {
         --pointNo;
     }
+
+    bool startFlagRendered = false;
+    bool finishFlagRendered = false;
+
     while (pointNo < pointsCount - 1) {
         gameCanvas->drawLine(pointPositions[pointNo][0] << 3 >> 16, pointPositions[pointNo][1] << 3 >> 16, pointPositions[pointNo + 1][0] << 3 >> 16, pointPositions[pointNo + 1][1] << 3 >> 16);
         if (startFlagPoint == pointNo) {
             gameCanvas->renderStartFlag(pointPositions[startFlagPoint][0] << 3 >> 16, pointPositions[startFlagPoint][1] << 3 >> 16);
             gameCanvas->setColor(0, 255, 0);
+            startFlagRendered = true;
         }
         if (finishFlagPoint == pointNo) {
             gameCanvas->renderFinishFlag(pointPositions[finishFlagPoint][0] << 3 >> 16, pointPositions[finishFlagPoint][1] << 3 >> 16);
             gameCanvas->setColor(0, 255, 0);
+            finishFlagRendered = true;
         }
         if (pointPositions[pointNo][0] > maxX) {
             break;
         }
         ++pointNo;
+    }
+
+    if (!startFlagRendered && startFlagPoint < pointsCount) {
+        int sx = (pointPositions[startFlagPoint][0] << 3 >> 16) + gameCanvas->getDx();
+        if (sx >= -64 && sx <= gameCanvas->getWidth() + 64) {
+            gameCanvas->renderStartFlag(pointPositions[startFlagPoint][0] << 3 >> 16, pointPositions[startFlagPoint][1] << 3 >> 16);
+            gameCanvas->setColor(0, 255, 0);
+        }
+    }
+    if (!finishFlagRendered && finishFlagPoint < pointsCount) {
+        int fx = (pointPositions[finishFlagPoint][0] << 3 >> 16) + gameCanvas->getDx();
+        if (fx >= -64 && fx <= gameCanvas->getWidth() + 64) {
+            gameCanvas->renderFinishFlag(pointPositions[finishFlagPoint][0] << 3 >> 16, pointPositions[finishFlagPoint][1] << 3 >> 16);
+            gameCanvas->setColor(0, 255, 0);
+        }
     }
 }
 
