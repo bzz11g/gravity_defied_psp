@@ -86,12 +86,16 @@ std::string RecordStore::getCurrentPackDir()
 void RecordStore::makeDir(const std::string& path)
 {
     if (path.empty()) return;
+    std::string dirPath = path;
+    while (dirPath.length() > 1 && (dirPath.back() == '/' || dirPath.back() == '\\')) {
+        dirPath.pop_back();
+    }
 #ifdef PSP
-    sceIoMkdir(path.c_str(), 0777);
+    sceIoMkdir(dirPath.c_str(), 0777);
 #elif defined(_WIN32)
-    _mkdir(path.c_str());
+    _mkdir(dirPath.c_str());
 #else
-    mkdir(path.c_str(), 0777);
+    mkdir(dirPath.c_str(), 0777);
 #endif
 }
 
