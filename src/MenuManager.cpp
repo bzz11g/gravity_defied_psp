@@ -38,14 +38,9 @@ void MenuManager::initPart(int var1)
             field_278[var11] = -127;
         }
 
-        try {
-            recordStore = RecordStore::openRecordStore("GDTRStates", true);
-            isRecordStoreOpened = true;
-            return;
-        } catch (RecordStoreException& var9) {
-            isRecordStoreOpened = false;
-            return;
-        }
+        recordStore = RecordStore::openRecordStore("GDTRStates", true);
+        isRecordStoreOpened = (recordStore != nullptr);
+        return;
     case 2:
         loadStateFromRecordStore();
         return;
@@ -72,9 +67,9 @@ void MenuManager::initPart(int var1)
             }
         }
 
-        try {
-            field_345.at(field_370) = field_369;
-        } catch (std::exception& var6) {
+        if (field_370 >= 0 && field_370 < static_cast<int>(field_345.size())) {
+            field_345[field_370] = field_369;
+        } else {
             field_370 = 0;
             field_369 = 0;
             field_345[field_370] = field_369;
@@ -137,9 +132,9 @@ void MenuManager::initPart(int var1)
         settingsStringTrack = new SettingsStringRender("Track", field_345[field_370], this, levelNames[field_370], false, micro, gameMenuPlay, false);
         settingsStringLeague = new SettingsStringRender("League", field_371, this, leagueNames, false, micro, gameMenuPlay, false);
 
-        try {
+        if (field_370 >= 0 && field_370 < 4) {
             settingsStringTrack->setAvailableOptions(field_342[field_370]);
-        } catch (std::exception& var5) {
+        } else {
             settingsStringTrack->setAvailableOptions(0);
         }
 
@@ -285,23 +280,16 @@ void MenuManager::initPart(int var1)
 void MenuManager::loadStateFromRecordStore()
 {
     recorcStoreRecordId = -1;
+    if (!recordStore) return;
 
-    RecordEnumeration* records;
-    try {
-        records = recordStore->enumerateRecords(nullptr, nullptr, false);
-    } catch (RecordStoreNotOpenException& var8) {
-        return;
-    }
+    RecordEnumeration* records = recordStore->enumerateRecords(nullptr, nullptr, false);
+    if (!records) return;
 
     std::vector<int8_t> var3;
     if (records->numRecords() > 0) {
-        try {
-            var3 = records->nextRecord();
-            records->reset();
-            recorcStoreRecordId = records->nextRecordId();
-        } catch (RecordStoreException& var7) {
-            return;
-        }
+        var3 = records->nextRecord();
+        records->reset();
+        recorcStoreRecordId = records->nextRecordId();
 
         if (var3.size() <= 19) {
             for (std::size_t i = 0; i < var3.size(); ++i) {
@@ -539,7 +527,7 @@ void MenuManager::method_201(int var1)
     int64_t currentTimeMillis = Time::currentTimeMillis();
     micro->gameCanvas->isDrawingTime = false;
     int64_t var6 = 0L;
-    int8_t var8 = 50;
+    int8_t var8 = 30;
     micro->gamePhysics->method_53();
     micro->gameToMenu();
 
@@ -554,30 +542,15 @@ void MenuManager::method_201(int var1)
             micro->gamePhysics->method_53();
             repaint();
             if ((var20 = Time::currentTimeMillis()) - var6 < (int64_t)var8) {
-                // try {
-                //     synchronized (field_359) {
-                //         field_359.wait((int64_t) var8 - (var20 - var6) < 1L ? 1L : (int64_t) var8 - (var20 - var6));
-                //     }
-                // } catch (InterruptedException var16) {
-                // }
                 Time::sleep((int64_t)var8 - (var20 - var6) < 1L ? 1L : (int64_t)var8 - (var20 - var6));
-
                 var6 = Time::currentTimeMillis();
             } else {
                 var6 = var20;
             }
         } else {
-            var8 = 50;
+            var8 = 30;
             if ((var20 = Time::currentTimeMillis()) - var6 < (int64_t)var8) {
-                // try {
-                //     Object var21;
-                //     synchronized (var21 = new Object()) {
-                //         var21.wait((int64_t) var8 - (var20 - var6) < 1L ? 1L : (int64_t) var8 - (var20 - var6));
-                //     }
-                // } catch (InterruptedException var14) {
-                // }
                 Time::sleep((int64_t)var8 - (var20 - var6) < 1L ? 1L : (int64_t)var8 - (var20 - var6));
-
                 var6 = Time::currentTimeMillis();
             } else {
                 var6 = var20;
@@ -760,11 +733,9 @@ void MenuManager::saveSmthToRecordStoreAndCloseIt()
 {
     if (isRecordStoreOpened) {
         method_208();
-
-        try {
+        if (recordStore) {
             recordStore->closeRecordStore();
             isRecordStoreOpened = false;
-        } catch (RecordStoreException& var1) {
         }
     }
 
@@ -773,6 +744,8 @@ void MenuManager::saveSmthToRecordStoreAndCloseIt()
 
 void MenuManager::method_208()
 {
+    if (!recordStore) return;
+
     copyThreeBytesFromArr(16, field_341);
 
     setValue(0, (int8_t)perspectiveSetting->getCurrentOptionPos());
@@ -792,17 +765,9 @@ void MenuManager::method_208()
     }
 
     if (recorcStoreRecordId == -1) {
-        try {
-            recorcStoreRecordId = recordStore->addRecord(field_278, 0, 19);
-        } catch (RecordStoreNotOpenException& var2) {
-        } catch (RecordStoreException& var3) {
-        }
+        recorcStoreRecordId = recordStore->addRecord(field_278, 0, 19);
     } else {
-        try {
-            recordStore->setRecord(recorcStoreRecordId, field_278, 0, 19);
-        } catch (RecordStoreNotOpenException& var4) {
-        } catch (RecordStoreException& var5) {
-        }
+        recordStore->setRecord(recorcStoreRecordId, field_278, 0, 19);
     }
 }
 
@@ -833,21 +798,15 @@ void MenuManager::processMenu(IGameMenuElement* menuElement)
             gameMenuPacks->method_83(settingStringPack->getCurrentOptionPos());
         } else {
             method_208();
-            if (isRecordStoreOpened) {
-                try {
-                    recordStore->closeRecordStore();
-                } catch (...) {}
+            if (isRecordStoreOpened && recordStore) {
+                recordStore->closeRecordStore();
             }
 
             std::string packName = packNames[settingStringPack->getCurrentOptionPos()];
             RecordStore::setPackPrefix(packName == "Original" ? "" : packName + "_");
 
-            try {
-                recordStore = RecordStore::openRecordStore("GDTRStates", true);
-                isRecordStoreOpened = true;
-            } catch (...) {
-                isRecordStoreOpened = false;
-            }
+            recordStore = RecordStore::openRecordStore("GDTRStates", true);
+            isRecordStoreOpened = (recordStore != nullptr);
 
             micro->levelLoader->load(packPaths[settingStringPack->getCurrentOptionPos()]);
             this->levelNames = micro->levelLoader->levelNames;

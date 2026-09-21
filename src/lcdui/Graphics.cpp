@@ -1,6 +1,10 @@
 #include "Graphics.h"
 #include <memory>
 
+#if defined(PSP) || defined(__PSP__)
+#include <pspgu.h>
+#endif
+
 Graphics::Graphics(SDL_Renderer* renderer)
 {
     this->renderer = renderer;
@@ -27,11 +31,10 @@ void Graphics::drawString(const std::string& s, int x, int y, int anchor)
     if (textCache.find(key) != textCache.end()) {
         message = textCache[key];
     } else {
-        if (textCache.size() > 1024) {
-            for (auto& pair : textCache) {
-                SDL_DestroyTexture(pair.second);
-            }
-            textCache.clear();
+        if (textCache.size() > 128) {
+            auto it = textCache.begin();
+            SDL_DestroyTexture(it->second);
+            textCache.erase(it);
         }
         SDL_Surface* surfaceMessage = TTF_RenderText_Blended(font->getTtfFont(), s.c_str(), currentColor);
         message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
@@ -39,9 +42,10 @@ void Graphics::drawString(const std::string& s, int x, int y, int anchor)
         SDL_FreeSurface(surfaceMessage);
     }
 
-    int width, height;
-    if (TTF_SizeText(font->getTtfFont(), s.c_str(), &width, &height) == -1)
-        throw std::runtime_error(TTF_GetError());
+    int width = 0, height = 0;
+    if (font && font->getTtfFont()) {
+        TTF_SizeText(font->getTtfFont(), s.c_str(), &width, &height);
+    }
 
     x = getAnchorX(x, width, anchor);
     y = getAnchorY(y, height, anchor);
@@ -71,8 +75,18 @@ std::shared_ptr<Font> Graphics::getFont() const
 
 void Graphics::setClip(int x, int y, int w, int h)
 {
-    SDL_Rect clipRect { x, y, w, h };
-    SDL_RenderSetClipRect(renderer, &clipRect);
+    if (w <= 0 || h <= 0 || (x <= 0 && y <= 0 && w >= 480 && h >= 272)) {
+        SDL_RenderSetClipRect(renderer, nullptr);
+#if defined(PSP) || defined(__PSP__)
+        sceGuScissor(0, 0, 480, 272);
+#endif
+    } else {
+        SDL_Rect clipRect { x, y, w, h };
+        SDL_RenderSetClipRect(renderer, &clipRect);
+#if defined(PSP) || defined(__PSP__)
+        sceGuScissor(x < 0 ? 0 : x, y < 0 ? 0 : y, (x + w > 480) ? 480 : (x + w), (y + h > 272) ? 272 : (y + h));
+#endif
+    }
 }
 
 void Graphics::drawChar(char c, int x, int y, int anchor)
@@ -276,7 +290,7 @@ int Graphics::getAnchorX(int x, int size, int anchor)
     if ((anchor & HCENTER) != 0) {
         return x - size / 2;
     }
-    throw std::runtime_error("unknown xanchor = " + std::to_string(anchor));
+    return x;
 }
 
 int Graphics::getAnchorY(int y, int size, int anchor)
@@ -290,5 +304,5 @@ int Graphics::getAnchorY(int y, int size, int anchor)
     if ((anchor & VCENTER) != 0) {
         return y - size / 2;
     }
-    throw std::runtime_error("unknown yanchor = " + std::to_string(anchor));
+    return y;
 }

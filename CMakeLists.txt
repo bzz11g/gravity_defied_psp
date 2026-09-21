@@ -110,6 +110,7 @@ endif()
 file(COPY assets/levels.mrg DESTINATION ${CMAKE_BINARY_DIR})
 
 if(PSP)
+    target_compile_options(GravityDefied PRIVATE -fno-exceptions -fno-rtti)
     target_link_libraries(GravityDefied PRIVATE
                           pspctrl pspgu pspgum pspdisplay psppower psprtc m stdc++)
 

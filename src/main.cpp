@@ -5,10 +5,14 @@
 
 #include "Micro.h"
 
-#ifdef PSP
+#if defined(PSP) || defined(__PSP__)
 #include <pspkernel.h>
 PSP_MODULE_INFO("GravityDefied", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
+PSP_HEAP_SIZE_KB(-1024);
+#endif
+
+#ifdef PSP
 
 int exit_callback(int arg1, int arg2, void *common) {
     (void)arg1;
@@ -40,17 +44,12 @@ int main(int argc, char** argv)
     SetupCallbacks();
 #endif
 
-    try {
-        std::unique_ptr<Micro> micro = std::make_unique<Micro>();
-        micro->startApp(argc, argv);
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
+    std::unique_ptr<Micro> micro = std::make_unique<Micro>();
+    micro->startApp(argc, argv);
 
 #ifdef PSP
     sceKernelExitGame();
 #endif
 
     return EXIT_SUCCESS;
-};
+}

@@ -9,35 +9,23 @@ void RecordManager::method_8(int var1, int var2)
 {
     resetRecordsTime();
 
-    try {
-        str = std::to_string(var1) + std::to_string(var2);
-        recordStore = RecordStore::openRecordStore(str, true);
-    } catch (RecordStoreException& var9) {
+    str = std::to_string(var1) + std::to_string(var2);
+    recordStore = RecordStore::openRecordStore(str, true);
+    if (!recordStore) {
         return;
     }
 
     packedRecordInfoRecordId = -1;
 
-    RecordEnumeration* recordEnum;
-    try {
-        recordEnum = recordStore->enumerateRecords(nullptr, nullptr, false);
-    } catch (RecordStoreNotOpenException& var8) {
+    RecordEnumeration* recordEnum = recordStore->enumerateRecords(nullptr, nullptr, false);
+    if (!recordEnum) {
         return;
     }
 
     if (recordEnum->numRecords() > 0) {
-        std::vector<int8_t> var4;
-        try {
-            var4 = recordEnum->nextRecord();
-            recordEnum->reset();
-            packedRecordInfoRecordId = recordEnum->nextRecordId();
-        } catch (RecordStoreNotOpenException& var5) {
-            return;
-        } catch (InvalidRecordIDException& var6) {
-            return;
-        } catch (RecordStoreException& var7) {
-            return;
-        }
+        std::vector<int8_t> var4 = recordEnum->nextRecord();
+        recordEnum->reset();
+        packedRecordInfoRecordId = recordEnum->nextRecordId();
 
         loadRecordInfo(var4);
         recordEnum->destroy();
@@ -156,19 +144,12 @@ std::vector<std::string> RecordManager::getRecordDescription(int var1)
 
 void RecordManager::writeRecordInfo()
 {
+    if (!recordStore) return;
     getLevelInfo(packedRecordInfo);
     if (packedRecordInfoRecordId == -1) {
-        try {
-            packedRecordInfoRecordId = recordStore->addRecord(packedRecordInfo, 0, 96);
-        } catch (RecordStoreNotOpenException& var1) {
-        } catch (RecordStoreException& var2) {
-        }
+        packedRecordInfoRecordId = recordStore->addRecord(packedRecordInfo, 0, 96);
     } else {
-        try {
-            recordStore->setRecord(packedRecordInfoRecordId, packedRecordInfo, 0, 96);
-        } catch (RecordStoreNotOpenException& var3) {
-        } catch (RecordStoreException& var4) {
-        }
+        recordStore->setRecord(packedRecordInfoRecordId, packedRecordInfo, 0, 96);
     }
 }
 
@@ -216,11 +197,7 @@ void RecordManager::deleteRecordStores()
 
     for (std::size_t i = 0; i < names.size(); ++i) {
         if (names[i] != "GDTRStates") {
-            try {
-                // RecordStore *var10000 = recordStore;
-                RecordStore::deleteRecordStore(names[i]);
-            } catch (RecordStoreException& var3) {
-            }
+            RecordStore::deleteRecordStore(names[i]);
         }
     }
 }
@@ -228,10 +205,6 @@ void RecordManager::deleteRecordStores()
 void RecordManager::closeRecordStore()
 {
     if (recordStore != nullptr) {
-        try {
-            recordStore->closeRecordStore();
-            return;
-        } catch (RecordStoreException& var1) {
-        }
+        recordStore->closeRecordStore();
     }
 }
