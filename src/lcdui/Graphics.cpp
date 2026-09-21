@@ -127,10 +127,26 @@ void Graphics::fillRect(int x, int y, int w, int h)
  * startAngle - the beginning angle
  * arcAngle - the angular extent of the arc, relative to the start angle
  */
+namespace {
+struct TrigLUT {
+    float cosVal[360];
+    float sinVal[360];
+
+    TrigLUT()
+    {
+        for (int i = 0; i < 360; ++i) {
+            double rad = i * (3.14159265358979323846 / 180.0);
+            cosVal[i] = static_cast<float>(std::cos(rad));
+            sinVal[i] = static_cast<float>(std::sin(rad));
+        }
+    }
+};
+
+static const TrigLUT g_trigLUT;
+} // namespace
+
 void Graphics::drawArc(int x, int y, int width, int heigth, int startAngle, int arcAngle)
 {
-    // Draws an elliptical arc left-top at (x, y), with axes given by
-    // xradius and yradius, traveling from startAngle to endangle.
     int xradius = width / 2, yradius = heigth / 2;
     x += xradius;
     y += yradius;
@@ -142,17 +158,35 @@ void Graphics::drawArc(int x, int y, int width, int heigth, int startAngle, int 
         return;
     }
 
-    std::vector<SDL_Point> points;
-    points.reserve(arcAngle + 1);
-
-    for (int angle = startAngle; angle <= startAngle + arcAngle; angle++) {
-        int px = x + int(xradius * cos(angle * PI_CONV));
-        int py = y - int(yradius * sin(angle * PI_CONV));
-        points.push_back({ px, py });
+    int maxRadius = xradius > yradius ? xradius : yradius;
+    int step = 15;
+    if (maxRadius > 30) {
+        step = 10;
+    } else if (maxRadius < 8) {
+        step = 30;
     }
 
-    if (points.size() >= 2) {
-        SDL_RenderDrawLines(renderer, points.data(), static_cast<int>(points.size()));
+    SDL_Point points[64];
+    int count = 0;
+
+    int endAngle = startAngle + arcAngle;
+    for (int angle = startAngle; angle < endAngle; angle += step) {
+        int idx = ((angle % 360) + 360) % 360;
+        int px = x + static_cast<int>(xradius * g_trigLUT.cosVal[idx]);
+        int py = y - static_cast<int>(yradius * g_trigLUT.sinVal[idx]);
+        points[count++] = { px, py };
+        if (count >= 63) {
+            break;
+        }
+    }
+
+    int endIdx = ((endAngle % 360) + 360) % 360;
+    int px = x + static_cast<int>(xradius * g_trigLUT.cosVal[endIdx]);
+    int py = y - static_cast<int>(yradius * g_trigLUT.sinVal[endIdx]);
+    points[count++] = { px, py };
+
+    if (count >= 2) {
+        SDL_RenderDrawLines(renderer, points, count);
     }
 }
 
