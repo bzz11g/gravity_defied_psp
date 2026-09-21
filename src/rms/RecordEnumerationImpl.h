@@ -24,6 +24,10 @@ public:
     int nextRecordId();
     void destroy();
 
+    int getCurrentPos() const { return currentPos; }
+    void setCurrentPos(int pos) { currentPos = pos; }
+    const std::vector<std::vector<int8_t>>& getData() const { return data; }
+
     void serialize(FileStream* outStream);
     void deserialize(FileStream* inStream);
 

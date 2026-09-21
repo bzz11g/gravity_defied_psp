@@ -1,3 +1,4 @@
+#include <dirent.h>
 #include "MenuManager.h"
 #include "rms/RecordStoreException.h"
 #include "rms/RecordStoreNotOpenException.h"
@@ -157,20 +158,17 @@ void MenuManager::initPart(int var1)
         packPaths.push_back("");
 
         {
-            std::filesystem::path appDir = std::filesystem::current_path(); // We can use current path since we're in app dir
-            std::filesystem::path levelsDir = appDir / "levels";
-
-            if (std::filesystem::exists(levelsDir) && std::filesystem::is_directory(levelsDir)) {
-                for (const auto& entry : std::filesystem::directory_iterator(levelsDir)) {
-                    if (entry.is_regular_file()) {
-                        std::string ext = entry.path().extension().string();
-                        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-                        if (ext == ".mrg") {
-                            packNames.push_back(entry.path().stem().string());
-                            packPaths.push_back(entry.path().string());
-                        }
+            DIR* dir = opendir("levels");
+            if (dir != nullptr) {
+                struct dirent* entry;
+                while ((entry = readdir(dir)) != nullptr) {
+                    std::string name = entry->d_name;
+                    if (name.length() > 4 && name.substr(name.length() - 4) == ".mrg") {
+                        packNames.push_back(name.substr(0, name.length() - 4));
+                        packPaths.push_back("levels/" + name);
                     }
                 }
+                closedir(dir);
             }
         }
 

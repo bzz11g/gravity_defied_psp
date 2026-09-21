@@ -22,7 +22,10 @@ int RecordEnumerationImpl::numRecords()
 
 std::vector<int8_t> RecordEnumerationImpl::nextRecord()
 {
-    return data[currentPos++];
+    if (currentPos < static_cast<int>(data.size())) {
+        return data[currentPos++];
+    }
+    return std::vector<int8_t>();
 }
 
 int RecordEnumerationImpl::addRecord(std::vector<int8_t> bytes)
@@ -33,10 +36,11 @@ int RecordEnumerationImpl::addRecord(std::vector<int8_t> bytes)
 
 void RecordEnumerationImpl::setRecord(int index, std::vector<int8_t> bytes)
 {
-    if (static_cast<int>(data.size()) <= index) {
-        throw RecordStoreException();
+    if (index >= 0 && index < static_cast<int>(data.size())) {
+        data[index] = bytes;
+    } else {
+        data.push_back(bytes);
     }
-    data[index] = bytes;
 }
 
 void RecordEnumerationImpl::reset()
@@ -46,10 +50,10 @@ void RecordEnumerationImpl::reset()
 
 int RecordEnumerationImpl::nextRecordId()
 {
-    if (currentPos >= static_cast<int>(data.size())) {
-        throw RecordStoreException();
+    if (currentPos > 0 && currentPos <= static_cast<int>(data.size())) {
+        return currentPos - 1;
     }
-    return currentPos;
+    return -1;
 }
 
 void RecordEnumerationImpl::destroy()

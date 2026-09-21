@@ -140,23 +140,28 @@ void Micro::destroyApp(bool var1)
     (void)var1;
     field_249 = false;
     field_242 = true;
-    menuManager->saveSmthToRecordStoreAndCloseIt();
+    if (menuManager != nullptr) {
+        menuManager->saveSmthToRecordStoreAndCloseIt();
+    }
+    RecordStore::saveAllOpened();
 }
 
 void Micro::startApp(int argc, char** argv)
 {
-    if (argc > 1) {
+    const char* progName = (argc > 0 && argv != nullptr && argv[0] != nullptr) ? argv[0] : nullptr;
+
+    if (argc > 1 && argv != nullptr && argv[1] != nullptr) {
         std::string argv1(argv[1]);
 
         if (argv1 == "-h" || argv1 == "--help") {
-            showHelp(argv[0]);
+            showHelp(progName != nullptr ? progName : "GravityDefied");
             return;
         }
 
         this->mrgFilePath = argv1;
     }
 
-    RecordStore::setRecordStoreDir(argv[0]);
+    RecordStore::setRecordStoreDir(progName);
 
     field_249 = true;
     // if (thread == null) {

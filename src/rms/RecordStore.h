@@ -1,9 +1,9 @@
 #pragma once
 
 #include <string>
-#include <filesystem>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 #include "RecordEnumerationImpl.h"
 
@@ -12,22 +12,26 @@ class RecordComparator;
 
 class RecordStore {
 private:
-    RecordStore(std::filesystem::path filePath, RecordEnumerationImpl* records);
+    RecordStore(std::string filePath, RecordEnumerationImpl* records);
     void save();
-    static RecordEnumerationImpl* load(std::filesystem::path filePath);
+    static RecordEnumerationImpl* load(const std::string& filePath);
     static std::unique_ptr<RecordStore> createRecordStore(std::string name, bool createIfNecessary);
     static void log(std::string s);
 
-    inline static std::filesystem::path recordStoreDir;
+    inline static std::string rootSaveDir;
     inline static std::unordered_map<std::string, std::unique_ptr<RecordStore>> opened;
-    std::filesystem::path filePath;
+    std::string filePath;
     std::unique_ptr<RecordEnumerationImpl> records;
+
+    static std::string getCurrentPackDir();
+    static void makeDir(const std::string& path);
 
 public:
     inline static std::string packPrefix = "";
     static void setPackPrefix(const std::string& prefix);
     static void setRecordStoreDir(const char* progName);
     static RecordStore* openRecordStore(std::string name, bool createIfNecessary);
+    static void saveAllOpened();
     void closeRecordStore();
     static void deleteRecordStore(std::string name);
     static std::vector<std::string> listRecordStores();
