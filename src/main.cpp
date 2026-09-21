@@ -9,7 +9,7 @@
 #include <pspkernel.h>
 PSP_MODULE_INFO("GravityDefied", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
-PSP_HEAP_SIZE_KB(18432);
+PSP_HEAP_SIZE_KB(-1024);
 #endif
 
 #ifdef PSP
