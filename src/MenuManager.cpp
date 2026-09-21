@@ -567,22 +567,6 @@ void MenuManager::method_201(int var1)
                 var6 = var20;
             }
         } else {
-            var8 = 16;
-            if ((var20 = Time::currentTimeMillis()) - var6 < (int64_t)var8) {
-                // try {
-                //     Object var21;
-                //     synchronized (var21 = new Object()) {
-                //         var21.wait((int64_t) var8 - (var20 - var6) < 1L ? 1L : (int64_t) var8 - (var20 - var6));
-                //     }
-                // } catch (InterruptedException var14) {
-                // }
-                Time::sleep((int64_t)var8 - (var20 - var6) < 1L ? 1L : (int64_t)var8 - (var20 - var6));
-
-                var6 = Time::currentTimeMillis();
-            } else {
-                var6 = var20;
-            }
-
             if (Micro::isInGameMenu) {
                 repaint();
             }

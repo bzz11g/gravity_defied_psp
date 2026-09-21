@@ -18,7 +18,7 @@ CanvasImpl::CanvasImpl(Canvas* canvas)
     this->canvas = canvas;
 
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        throw std::runtime_error(SDL_GetError());
+        std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
     }
 
     SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
@@ -27,11 +27,11 @@ CanvasImpl::CanvasImpl(Canvas* canvas)
     }
 
     if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
-        throw std::runtime_error(IMG_GetError());
+        std::cerr << "IMG_Init failed: " << IMG_GetError() << std::endl;
     }
 
     if (TTF_Init() == -1) {
-        throw std::runtime_error(TTF_GetError());
+        std::cerr << "TTF_Init failed: " << TTF_GetError() << std::endl;
     }
 
     window = SDL_CreateWindow(
@@ -42,18 +42,20 @@ CanvasImpl::CanvasImpl(Canvas* canvas)
         SDL_WINDOW_SHOWN);
 
     if (!window) {
-        throw std::runtime_error(SDL_GetError());
+        std::cerr << "SDL_CreateWindow failed: " << SDL_GetError() << std::endl;
     }
 
     renderer = SDL_CreateRenderer(
         window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     if (!renderer) {
-        throw std::runtime_error(SDL_GetError());
+        std::cerr << "SDL_CreateRenderer failed: " << SDL_GetError() << std::endl;
     }
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderClear(renderer);
+    if (renderer) {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_RenderClear(renderer);
+    }
 }
 
 CanvasImpl::~CanvasImpl()

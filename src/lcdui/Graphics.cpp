@@ -43,9 +43,10 @@ void Graphics::drawString(const std::string& s, int x, int y, int anchor)
         SDL_FreeSurface(surfaceMessage);
     }
 
-    int width, height;
-    if (TTF_SizeText(font->getTtfFont(), s.c_str(), &width, &height) == -1)
-        throw std::runtime_error(TTF_GetError());
+    int width = 0, height = 0;
+    if (font && font->getTtfFont()) {
+        TTF_SizeText(font->getTtfFont(), s.c_str(), &width, &height);
+    }
 
     x = getAnchorX(x, width, anchor);
     y = getAnchorY(y, height, anchor);
@@ -290,7 +291,7 @@ int Graphics::getAnchorX(int x, int size, int anchor)
     if ((anchor & HCENTER) != 0) {
         return x - size / 2;
     }
-    throw std::runtime_error("unknown xanchor = " + std::to_string(anchor));
+    return x;
 }
 
 int Graphics::getAnchorY(int y, int size, int anchor)
@@ -304,5 +305,5 @@ int Graphics::getAnchorY(int y, int size, int anchor)
     if ((anchor & VCENTER) != 0) {
         return y - size / 2;
     }
-    throw std::runtime_error("unknown yanchor = " + std::to_string(anchor));
+    return y;
 }

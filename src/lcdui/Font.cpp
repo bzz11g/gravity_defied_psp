@@ -1,6 +1,7 @@
 #include "Font.h"
 
 #include <stdexcept>
+#include <iostream>
 
 CMRC_DECLARE(assets);
 
@@ -11,7 +12,7 @@ Font::Font(FontStyle style, FontSize pointSize)
         cmrc::file fileData = internalFs.open("FontSansSerif.ttf");
         SDL_RWops* raw = SDL_RWFromConstMem(fileData.begin(), fileData.size());
         if (!raw) {
-            throw std::runtime_error(SDL_GetError());
+            std::cerr << "Font load error: " << SDL_GetError() << std::endl;
         }
 
         ttfRwOps = raw;
@@ -52,9 +53,10 @@ int Font::charWidth(char c)
 
 int Font::stringWidth(const std::string& s)
 {
-    int width, height;
-    if (TTF_SizeText(ttfFont, s.c_str(), &width, &height) == -1)
-        throw std::runtime_error(TTF_GetError());
+    int width = 0, height = 0;
+    if (ttfFont && TTF_SizeText(ttfFont, s.c_str(), &width, &height) == -1) {
+        std::cerr << "TTF_SizeText failed: " << TTF_GetError() << std::endl;
+    }
     return width;
 }
 
@@ -73,6 +75,6 @@ int Font::getRealFontSize(FontSize size)
     case SIZE_SMALL:
         return 11;
     default:
-        throw std::runtime_error("unknown font size: " + std::to_string(size));
+        return 14;
     }
 }

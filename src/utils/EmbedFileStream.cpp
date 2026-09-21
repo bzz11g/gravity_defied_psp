@@ -1,7 +1,7 @@
 #include "EmbedFileStream.h"
 
 #include <cstring>
-#include <exception>
+#include <iostream>
 
 CMRC_DECLARE(assets);
 
@@ -26,7 +26,7 @@ void EmbedFileStream::read_impl(char* s, std::streamsize n)
 
 void EmbedFileStream::write_impl([[maybe_unused]] char* s, [[maybe_unused]] std::streamsize n)
 {
-    throw std::runtime_error("Write to buffer no supported!");
+    std::cerr << "Write to EmbedFileStream not supported!" << std::endl;
 }
 
 bool EmbedFileStream::isOpen()

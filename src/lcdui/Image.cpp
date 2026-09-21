@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <iostream>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -13,7 +14,7 @@ Image::Image(int width, int height)
 {
     SDL_Surface* surf = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
     if (!surf) {
-        throw std::runtime_error(SDL_GetError());
+        std::cerr << "SDL_CreateRGBSurface failed: " << SDL_GetError() << std::endl;
     }
 
     this->surface = surf;
@@ -26,19 +27,22 @@ Image::Image(const std::string& embeddedPath)
 
     SDL_RWops* raw = SDL_RWFromConstMem(fileData.begin(), fileData.size());
     if (!raw) {
-        throw std::runtime_error(SDL_GetError());
+        std::cerr << "SDL_RWFromConstMem failed: " << SDL_GetError() << std::endl;
+        return;
     }
 
     SDL_Surface* surf = IMG_Load_RW(raw, SDL_TRUE);
     if (!surf) {
-        throw std::runtime_error(IMG_GetError());
+        std::cerr << "IMG_Load_RW failed: " << IMG_GetError() << std::endl;
+        return;
     }
 
     SDL_Surface* surf_conv = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGBA32, 0);
     SDL_FreeSurface(surf);
 
     if (!surf_conv) {
-        throw std::runtime_error(SDL_GetError());
+        std::cerr << "SDL_ConvertSurfaceFormat failed: " << SDL_GetError() << std::endl;
+        return;
     }
 
     this->surface = surf_conv;
