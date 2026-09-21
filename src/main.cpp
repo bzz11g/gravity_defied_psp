@@ -7,7 +7,6 @@
 
 #ifdef PSP
 #include <pspkernel.h>
-#include <psppower.h>
 PSP_MODULE_INFO("GravityDefied", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 
@@ -39,7 +38,6 @@ int main(int argc, char** argv)
 {
 #ifdef PSP
     SetupCallbacks();
-    scePowerSetClockFrequency(333, 333, 166);
 #endif
 
     std::unique_ptr<Micro> micro = std::make_unique<Micro>();

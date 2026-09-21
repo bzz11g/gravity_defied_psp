@@ -8,6 +8,7 @@
 
 #if defined(PSP) || defined(__PSP__)
 #include <pspgu.h>
+#include <psppower.h>
 #endif
 
 #include "Canvas.h"
@@ -53,6 +54,9 @@ CanvasImpl::CanvasImpl(Canvas* canvas)
     }
 
     if (renderer) {
+#if defined(PSP) || defined(__PSP__)
+        scePowerSetClockFrequency(333, 333, 166);
+#endif
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderClear(renderer);
     }
