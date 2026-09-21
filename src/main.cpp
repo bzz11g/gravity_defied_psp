@@ -5,10 +5,14 @@
 
 #include "Micro.h"
 
-#ifdef PSP
+#if defined(PSP) || defined(__PSP__)
 #include <pspkernel.h>
 PSP_MODULE_INFO("GravityDefied", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
+PSP_HEAP_SIZE_KB(18432);
+#endif
+
+#ifdef PSP
 
 int exit_callback(int arg1, int arg2, void *common) {
     (void)arg1;

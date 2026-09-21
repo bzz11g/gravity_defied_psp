@@ -31,7 +31,7 @@ void Graphics::drawString(const std::string& s, int x, int y, int anchor)
     if (textCache.find(key) != textCache.end()) {
         message = textCache[key];
     } else {
-        if (textCache.size() > 512) {
+        if (textCache.size() > 48) {
             auto it = textCache.begin();
             SDL_DestroyTexture(it->second);
             textCache.erase(it);
