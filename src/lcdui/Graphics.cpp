@@ -127,11 +127,26 @@ void Graphics::fillRect(int x, int y, int w, int h)
  * startAngle - the beginning angle
  * arcAngle - the angular extent of the arc, relative to the start angle
  */
+namespace {
+static float g_cosVal[360];
+static float g_sinVal[360];
+static bool g_trigLUTInited = false;
+
+static void initTrigLUT()
+{
+    if (!g_trigLUTInited) {
+        for (int i = 0; i < 360; ++i) {
+            double rad = i * (3.14159265358979323846 / 180.0);
+            g_cosVal[i] = static_cast<float>(std::cos(rad));
+            g_sinVal[i] = static_cast<float>(std::sin(rad));
+        }
+        g_trigLUTInited = true;
+    }
+}
+} // namespace
+
 void Graphics::drawArc(int x, int y, int width, int heigth, int startAngle, int arcAngle)
 {
-    // Draws an elliptical arc left-top at (x, y), with axes given by
-    // xradius and yradius, traveling from startAngle to endangle.
-    // Bresenham-based if complete
     int xradius = width / 2, yradius = heigth / 2;
     x += xradius;
     y += yradius;
@@ -139,17 +154,43 @@ void Graphics::drawArc(int x, int y, int width, int heigth, int startAngle, int 
         return;
     }
 
-    // draw complete ellipse if (0, 360) specified
-    // if (startAngle == 0 && arcAngle == 360) {
-    //     _ellipse(x, y, xradius, yradius);
-    //     return;
-    // }
+    if (arcAngle <= 0) {
+        return;
+    }
 
-    for (int angle = startAngle; angle < startAngle + arcAngle; angle++) {
-        drawLine(x + int(xradius * cos(angle * PI_CONV)),
-            y - int(yradius * sin(angle * PI_CONV)),
-            x + int(xradius * cos((angle + 1) * PI_CONV)),
-            y - int(yradius * sin((angle + 1) * PI_CONV)));
+    int maxRadius = xradius > yradius ? xradius : yradius;
+    int step = 15;
+    if (maxRadius > 30) {
+        step = 10;
+    } else if (maxRadius < 8) {
+        step = 30;
+    }
+
+    SDL_Point points[64];
+    int count = 0;
+
+    if (!g_trigLUTInited) {
+        initTrigLUT();
+    }
+
+    int endAngle = startAngle + arcAngle;
+    for (int angle = startAngle; angle < endAngle; angle += step) {
+        int idx = ((angle % 360) + 360) % 360;
+        int px = x + static_cast<int>(xradius * g_cosVal[idx]);
+        int py = y - static_cast<int>(yradius * g_sinVal[idx]);
+        points[count++] = { px, py };
+        if (count >= 63) {
+            break;
+        }
+    }
+
+    int endIdx = ((endAngle % 360) + 360) % 360;
+    int px = x + static_cast<int>(xradius * g_cosVal[endIdx]);
+    int py = y - static_cast<int>(yradius * g_sinVal[endIdx]);
+    points[count++] = { px, py };
+
+    if (count >= 2) {
+        SDL_RenderDrawLines(renderer, points, count);
     }
 }
 
