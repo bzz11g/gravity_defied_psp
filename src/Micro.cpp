@@ -185,11 +185,12 @@ void Micro::run()
         restart(true);
     }
 
-    int64_t lastPhysicsTime = Time::currentTimeMillis();
+    int64_t var3 = 0L;
 
     while (field_249) {
+        int var5;
         if (gamePhysics->method_21() != menuManager->method_210()) {
-            int var5 = gameCanvas->loadSprites(menuManager->method_210());
+            var5 = gameCanvas->loadSprites(menuManager->method_210());
             gamePhysics->method_22(var5);
             menuManager->method_211(var5);
         }
@@ -199,74 +200,75 @@ void Micro::run()
             if (menuManager->method_196()) {
                 restart(true);
             }
-            lastPhysicsTime = Time::currentTimeMillis();
-            continue;
         }
 
-        int64_t now = Time::currentTimeMillis();
-
-        if (now - lastPhysicsTime >= 30LL) {
-            lastPhysicsTime = now;
-
-            for (int i = numPhysicsLoops; i > 0; --i) {
-                if (field_248) {
-                    gameTimeMs += 20L;
-                }
-
-                if (timeMs == 0L) {
-                    timeMs = Time::currentTimeMillis();
-                }
-
-                int var5 = gamePhysics->updatePhysics();
-
-                if (var5 == 3 && field_246 == 0L) {
-                    field_246 = Time::currentTimeMillis() + 3000L;
-                    gameCanvas->scheduleGameTimerTask("Crashed", 3000);
-                    gameCanvas->repaint();
-                    gameCanvas->serviceRepaints();
-                }
-
-                if (field_246 != 0L && field_246 < Time::currentTimeMillis()) {
-                    restart(true);
-                    lastPhysicsTime = Time::currentTimeMillis();
-                    break;
-                }
-
-                if (var5 == 5) {
-                    gameCanvas->scheduleGameTimerTask("Crashed", 3000);
-                    gameCanvas->repaint();
-                    gameCanvas->serviceRepaints();
-
-                    restart(true);
-                    lastPhysicsTime = Time::currentTimeMillis();
-                    break;
-                } else if (var5 == 4) {
-                    timeMs = 0L;
-                    gameTimeMs = 0L;
-                } else if (var5 == 1 || var5 == 2) {
-                    if (var5 == 2) {
-                        gameTimeMs -= 10L;
-                    }
-
-                    goalLoop();
-                    lastPhysicsTime = Time::currentTimeMillis();
-                    menuManager->method_215(gameTimeMs / 10L);
-                    menuManager->method_201(2);
-                    if (menuManager->method_196()) {
-                        restart(true);
-                        lastPhysicsTime = Time::currentTimeMillis();
-                    }
-
-                    if (!field_249) {
-                        break;
-                    }
-                }
-
-                field_248 = var5 != 4;
+        for (int i = numPhysicsLoops; i > 0; --i) {
+            if (field_248) {
+                gameTimeMs += 20L;
             }
+
+            if (timeMs == 0L) {
+                timeMs = Time::currentTimeMillis();
+            }
+
+            if ((var5 = gamePhysics->updatePhysics()) == 3 && field_246 == 0L) {
+                field_246 = Time::currentTimeMillis() + 3000L;
+                gameCanvas->scheduleGameTimerTask("Crashed", 3000);
+                gameCanvas->repaint();
+                gameCanvas->serviceRepaints();
+            }
+
+            if (field_246 != 0L && field_246 < Time::currentTimeMillis()) {
+                restart(true);
+            }
+
+            if (var5 == 5) {
+                gameCanvas->scheduleGameTimerTask("Crashed", 3000);
+                gameCanvas->repaint();
+                gameCanvas->serviceRepaints();
+
+                int64_t var7 = 1000L;
+                if (field_246 > 0L) {
+                    var7 = std::min(field_246 - Time::currentTimeMillis(), static_cast<int64_t>(1000));
+                }
+
+                if (var7 > 0L) {
+                    Time::sleep(var7);
+                }
+
+                restart(true);
+            } else if (var5 == 4) {
+                timeMs = 0L;
+                gameTimeMs = 0L;
+            } else if (var5 == 1 || var5 == 2) {
+                if (var5 == 2) {
+                    gameTimeMs -= 10L;
+                }
+
+                goalLoop();
+                menuManager->method_215(gameTimeMs / 10L);
+                menuManager->method_201(2);
+                if (menuManager->method_196()) {
+                    restart(true);
+                }
+
+                if (!field_249) {
+                    break;
+                }
+            }
+
+            field_248 = var5 != 4;
         }
 
         gamePhysics->method_53();
+        int64_t var1;
+        if ((var1 = Time::currentTimeMillis()) - var3 < 30L) {
+            Time::sleep(std::max(30LL - (var1 - var3), 1LL));
+            var3 = Time::currentTimeMillis();
+        } else {
+            var3 = var1;
+        }
+
         gameCanvas->repaint();
     }
 
@@ -275,33 +277,37 @@ void Micro::run()
 
 void Micro::goalLoop()
 {
+    int64_t var4 = 0L;
     if (!gamePhysics->field_69) {
         gameCanvas->scheduleGameTimerTask("Wheelie!", 1000);
     } else {
         gameCanvas->scheduleGameTimerTask("Finished", 1000);
     }
 
-    int64_t endTime = Time::currentTimeMillis() + 1000L;
-    int64_t lastPhysicsTime = Time::currentTimeMillis();
-
-    while (Time::currentTimeMillis() < endTime) {
+    for (int64_t timeMs = Time::currentTimeMillis() + 1000L; timeMs > Time::currentTimeMillis(); gameCanvas->repaint()) {
         if (isInGameMenu) {
             gameCanvas->repaint();
             return;
         }
 
-        int64_t now = Time::currentTimeMillis();
-        if (now - lastPhysicsTime >= 30LL) {
-            lastPhysicsTime = now;
-            for (int i = numPhysicsLoops; i > 0; --i) {
-                if (gamePhysics->updatePhysics() == 5) {
-                    return;
+        for (int i = numPhysicsLoops; i > 0; --i) {
+            if (gamePhysics->updatePhysics() == 5) {
+                int64_t deltaTime;
+                if ((deltaTime = timeMs - Time::currentTimeMillis()) > 0L) {
+                    Time::sleep(deltaTime);
                 }
+                return;
             }
         }
 
         gamePhysics->method_53();
-        gameCanvas->repaint();
+        int64_t var2;
+        if ((var2 = Time::currentTimeMillis()) - var4 < 30L) {
+            Time::sleep(std::max(30LL - (var2 - var4), 1LL));
+            var4 = Time::currentTimeMillis();
+        } else {
+            var4 = var2;
+        }
     }
 }
 

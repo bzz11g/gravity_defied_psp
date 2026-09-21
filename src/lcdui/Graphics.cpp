@@ -31,11 +31,10 @@ void Graphics::drawString(const std::string& s, int x, int y, int anchor)
     if (textCache.find(key) != textCache.end()) {
         message = textCache[key];
     } else {
-        if (textCache.size() > 1024) {
-            for (auto& pair : textCache) {
-                SDL_DestroyTexture(pair.second);
-            }
-            textCache.clear();
+        if (textCache.size() > 512) {
+            auto it = textCache.begin();
+            SDL_DestroyTexture(it->second);
+            textCache.erase(it);
         }
         SDL_Surface* surfaceMessage = TTF_RenderText_Blended(font->getTtfFont(), s.c_str(), currentColor);
         message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
