@@ -131,7 +131,6 @@ void Graphics::drawArc(int x, int y, int width, int heigth, int startAngle, int 
 {
     // Draws an elliptical arc left-top at (x, y), with axes given by
     // xradius and yradius, traveling from startAngle to endangle.
-    // Bresenham-based if complete
     int xradius = width / 2, yradius = heigth / 2;
     x += xradius;
     y += yradius;
@@ -139,17 +138,21 @@ void Graphics::drawArc(int x, int y, int width, int heigth, int startAngle, int 
         return;
     }
 
-    // draw complete ellipse if (0, 360) specified
-    // if (startAngle == 0 && arcAngle == 360) {
-    //     _ellipse(x, y, xradius, yradius);
-    //     return;
-    // }
+    if (arcAngle <= 0) {
+        return;
+    }
 
-    for (int angle = startAngle; angle < startAngle + arcAngle; angle++) {
-        drawLine(x + int(xradius * cos(angle * PI_CONV)),
-            y - int(yradius * sin(angle * PI_CONV)),
-            x + int(xradius * cos((angle + 1) * PI_CONV)),
-            y - int(yradius * sin((angle + 1) * PI_CONV)));
+    std::vector<SDL_Point> points;
+    points.reserve(arcAngle + 1);
+
+    for (int angle = startAngle; angle <= startAngle + arcAngle; angle++) {
+        int px = x + int(xradius * cos(angle * PI_CONV));
+        int py = y - int(yradius * sin(angle * PI_CONV));
+        points.push_back({ px, py });
+    }
+
+    if (points.size() >= 2) {
+        SDL_RenderDrawLines(renderer, points.data(), static_cast<int>(points.size()));
     }
 }
 
