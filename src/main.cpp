@@ -1,9 +1,9 @@
 #include <memory>
 #include <string>
+#include <stdexcept>
 #include <iostream>
 
 #include "Micro.h"
-#include "psp/pspSetup.h"
 
 #if defined(PSP) || defined(__PSP__)
 #include <pspkernel.h>
@@ -12,14 +12,44 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 PSP_HEAP_SIZE_KB(-1024);
 #endif
 
+#ifdef PSP
+
+int exit_callback(int arg1, int arg2, void *common) {
+    (void)arg1;
+    (void)arg2;
+    (void)common;
+    Micro::field_249 = false;
+    return 0;
+}
+
+int CallbackThread(SceSize args, void *argp) {
+    int cbid = sceKernelCreateCallback("Exit Callback", exit_callback, NULL);
+    sceKernelRegisterExitCallback(cbid);
+    sceKernelSleepThreadCB();
+    return 0;
+}
+
+int SetupCallbacks(void) {
+    int thid = sceKernelCreateThread("update_thread", CallbackThread, 0x11, 0xFA0, 0, 0);
+    if(thid >= 0) {
+        sceKernelStartThread(thid, 0, 0);
+    }
+    return thid;
+}
+#endif
+
 int main(int argc, char** argv)
 {
-    InitGame();
+#ifdef PSP
+    SetupCallbacks();
+#endif
 
     std::unique_ptr<Micro> micro = std::make_unique<Micro>();
     micro->startApp(argc, argv);
 
-    ExitGame();
+#ifdef PSP
+    sceKernelExitGame();
+#endif
 
-    return 0;
+    return EXIT_SUCCESS;
 }

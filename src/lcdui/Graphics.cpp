@@ -1,107 +1,66 @@
 #include "Graphics.h"
+#include <memory>
 
-namespace {
-const int INSIDE = 0;
-const int LEFT_BIT = 1;
-const int RIGHT_BIT = 2;
-const int BOTTOM_BIT = 4;
-const int TOP_BIT = 8;
+#if defined(PSP) || defined(__PSP__)
+#include <pspgu.h>
+#endif
 
-static int computeOutCode(double x, double y, double xmin, double ymin, double xmax, double ymax) {
-    int code = INSIDE;
-    if (x < xmin)      code |= LEFT_BIT;
-    else if (x > xmax) code |= RIGHT_BIT;
-    if (y < ymin)      code |= BOTTOM_BIT;
-    else if (y > ymax) code |= TOP_BIT;
-    return code;
-}
-
-static bool clipLine(int& x1, int& y1, int& x2, int& y2, int xmin = -10, int ymin = -10, int xmax = 490, int ymax = 282) {
-    double x0 = x1, y0 = y1;
-    double x1_d = x2, y1_d = y2;
-
-    int outcode0 = computeOutCode(x0, y0, xmin, ymin, xmax, ymax);
-    int outcode1 = computeOutCode(x1_d, y1_d, xmin, ymin, xmax, ymax);
-    bool accept = false;
-
-    while (true) {
-        if (!(outcode0 | outcode1)) {
-            accept = true;
-            break;
-        } else if (outcode0 & outcode1) {
-            break;
-        } else {
-            double x = 0, y = 0;
-            int outcodeOut = outcode0 ? outcode0 : outcode1;
-
-            if (outcodeOut & TOP_BIT) {
-                x = x0 + (x1_d - x0) * (ymax - y0) / (y1_d - y0);
-                y = ymax;
-            } else if (outcodeOut & BOTTOM_BIT) {
-                x = x0 + (x1_d - x0) * (ymin - y0) / (y1_d - y0);
-                y = ymin;
-            } else if (outcodeOut & RIGHT_BIT) {
-                y = y0 + (y1_d - y0) * (xmax - x0) / (x1_d - x0);
-                x = xmax;
-            } else if (outcodeOut & LEFT_BIT) {
-                y = y0 + (y1_d - y0) * (xmin - x0) / (x1_d - x0);
-                x = xmin;
-            }
-
-            if (outcodeOut == outcode0) {
-                x0 = x;
-                y0 = y;
-                outcode0 = computeOutCode(x0, y0, xmin, ymin, xmax, ymax);
-            } else {
-                x1_d = x;
-                y1_d = y;
-                outcode1 = computeOutCode(x1_d, y1_d, xmin, ymin, xmax, ymax);
-            }
-        }
-    }
-
-    if (accept) {
-        x1 = static_cast<int>(std::round(x0));
-        y1 = static_cast<int>(std::round(y0));
-        x2 = static_cast<int>(std::round(x1_d));
-        y2 = static_cast<int>(std::round(y1_d));
-        return true;
-    }
-    return false;
-}
-}
-
-Graphics::Graphics()
+Graphics::Graphics(SDL_Renderer* renderer)
 {
-    this->currentColor = G2D_RGBA(0, 0, 0, 255);
+    this->renderer = renderer;
+    this->currentColor = { 0, 0, 0, 255 };
     this->font = nullptr;
 }
 
 Graphics::~Graphics()
 {
+    for (auto& pair : textCache) {
+        SDL_DestroyTexture(pair.second);
+    }
+    textCache.clear();
 }
 
 void Graphics::drawString(const std::string& s, int x, int y, int anchor)
 {
-    if (!font || !font->getIntraFont()) return;
-    int width = font->stringWidth(s);
-    int height = font->getHeight();
+    std::string key = std::to_string(font->getHeight()) + "_" +
+                      std::to_string(currentColor.r) + "_" +
+                      std::to_string(currentColor.g) + "_" +
+                      std::to_string(currentColor.b) + "_" + s;
+
+    SDL_Texture* message = nullptr;
+    if (textCache.find(key) != textCache.end()) {
+        message = textCache[key];
+    } else {
+        if (textCache.size() > 128) {
+            auto it = textCache.begin();
+            SDL_DestroyTexture(it->second);
+            textCache.erase(it);
+        }
+        SDL_Surface* surfaceMessage = TTF_RenderText_Blended(font->getTtfFont(), s.c_str(), currentColor);
+        message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+        textCache[key] = message;
+        SDL_FreeSurface(surfaceMessage);
+    }
+
+    int width = 0, height = 0;
+    if (font && font->getTtfFont()) {
+        TTF_SizeText(font->getTtfFont(), s.c_str(), &width, &height);
+    }
 
     x = getAnchorX(x, width, anchor);
     y = getAnchorY(y, height, anchor);
+    SDL_Rect dstRect { x, y, width, height };
 
-    if (x + width < -10 || x > 490 || y + height < -10 || y > 282) {
-        return;
-    }
-
-    intraFont* ifont = font->getIntraFont();
-    intraFontSetStyle(ifont, font->getScale(), currentColor, 0, 0.0f, INTRAFONT_ALIGN_LEFT);
-    intraFontPrint(ifont, x, y + height, s.c_str());
+    SDL_RenderCopy(renderer, message, nullptr, &dstRect);
 }
 
 void Graphics::setColor(int r, int g, int b)
 {
-    currentColor = G2D_RGBA(r, g, b, 255);
+    currentColor.r = r;
+    currentColor.g = g;
+    currentColor.b = b;
+    currentColor.a = 255;
+    SDL_SetRenderDrawColor(renderer, (Uint8)r, (Uint8)g, (Uint8)b, 255);
 }
 
 void Graphics::setFont(std::shared_ptr<Font> font)
@@ -117,17 +76,16 @@ std::shared_ptr<Font> Graphics::getFont() const
 void Graphics::setClip(int x, int y, int w, int h)
 {
     if (w <= 0 || h <= 0 || (x <= 0 && y <= 0 && w >= 480 && h >= 272)) {
-        g2dResetScissor();
+        SDL_RenderSetClipRect(renderer, nullptr);
+#if defined(PSP) || defined(__PSP__)
+        sceGuScissor(0, 0, 480, 272);
+#endif
     } else {
-        int cx = x < 0 ? 0 : x;
-        int cy = y < 0 ? 0 : y;
-        int cw = (x + w > 480) ? (480 - cx) : (x + w - cx);
-        int ch = (y + h > 272) ? (272 - cy) : (y + h - cy);
-        if (cw > 0 && ch > 0) {
-            g2dSetScissor(cx, cy, cw, ch);
-        } else {
-            g2dSetScissor(0, 0, 0, 0);
-        }
+        SDL_Rect clipRect { x, y, w, h };
+        SDL_RenderSetClipRect(renderer, &clipRect);
+#if defined(PSP) || defined(__PSP__)
+        sceGuScissor(x < 0 ? 0 : x, y < 0 ? 0 : y, (x + w > 480) ? 480 : (x + w), (y + h > 272) ? 272 : (y + h));
+#endif
     }
 }
 
@@ -138,90 +96,187 @@ void Graphics::drawChar(char c, int x, int y, int anchor)
 
 void Graphics::fillRect(int x, int y, int w, int h)
 {
-    if (w <= 0 || h <= 0) return;
-    if (x + w < -10 || x > 490 || y + h < -10 || y > 282) return;
-
-    g2dBeginRects(NULL);
-    g2dSetColor(currentColor);
-    g2dSetCoordXY(x, y);
-    g2dSetScaleWH(w, h);
-    g2dAdd();
-    g2dEnd();
+    SDL_Rect rect { x, y, w, h };
+    SDL_RenderFillRect(renderer, &rect);
 }
 
-void Graphics::drawArc(int x, int y, int width, int height, int startAngle, int arcAngle)
+/**
+ * Draws the outline of a circular or elliptical arc covering the specified rectangle,
+ * using the current color and stroke style. The resulting arc begins at startAngle
+ * and extends for arcAngle degrees, using the current color. Angles are interpreted
+ * such that 0 degrees is at the 3 o'clock position. A positive value indicates a
+ * counter-clockwise rotation while a negative value indicates a clockwise rotation.
+ *
+ * The center of the arc is the center of the rectangle whose origin is (x, y) and
+ * whose size is specified by the width and height arguments.
+ *
+ * The resulting arc covers an area width + 1 pixels wide by height + 1 pixels tall.
+ * If either width or height is less than zero, nothing is drawn.
+ *
+ * The angles are specified relative to the non-square extents of the bounding rectangle
+ * such that 45 degrees always falls on the line from the center of the ellipse to the
+ * upper right corner of the bounding rectangle. As a result, if the bounding rectangle
+ * is noticeably longer in one axis than the other, the angles to the start and end of
+ * the arc segment will be skewed farther along the longer axis of the bounds.
+ *
+ * Parameters:
+ * x - the x coordinate of the upper-left corner of the arc to be drawn
+ * y - the y coordinate of the upper-left corner of the arc to be drawn
+ * width - the width of the arc to be drawn
+ * height - the height of the arc to be drawn
+ * startAngle - the beginning angle
+ * arcAngle - the angular extent of the arc, relative to the start angle
+ */
+void Graphics::drawArc(int x, int y, int width, int heigth, int startAngle, int arcAngle)
 {
-    if (x + width < -10 || x > 490 || y + height < -10 || y > 282) return;
-
-    int rx = width / 2;
-    int ry = height / 2;
-    int cx = x + rx;
-    int cy = y + ry;
-    if (rx <= 0 && ry <= 0) return;
-
-    int step = 10;
-    for (int angle = startAngle; angle < startAngle + arcAngle; angle += step) {
-        int a1 = angle;
-        int a2 = (angle + step > startAngle + arcAngle) ? (startAngle + arcAngle) : (angle + step);
-        float rad1 = a1 * PI_CONV;
-        float rad2 = a2 * PI_CONV;
-        int px1 = static_cast<int>(cx + rx * cos(rad1));
-        int py1 = static_cast<int>(cy - ry * sin(rad1));
-        int px2 = static_cast<int>(cx + rx * cos(rad2));
-        int py2 = static_cast<int>(cy - ry * sin(rad2));
-        drawLine(px1, py1, px2, py2);
+    // Draws an elliptical arc left-top at (x, y), with axes given by
+    // xradius and yradius, traveling from startAngle to endangle.
+    // Bresenham-based if complete
+    int xradius = width / 2, yradius = heigth / 2;
+    x += xradius;
+    y += yradius;
+    if (xradius == 0 && yradius == 0) {
+        return;
     }
+
+    // draw complete ellipse if (0, 360) specified
+    // if (startAngle == 0 && arcAngle == 360) {
+    //     _ellipse(x, y, xradius, yradius);
+    //     return;
+    // }
+
+    for (int angle = startAngle; angle < startAngle + arcAngle; angle++) {
+        drawLine(x + int(xradius * cos(angle * PI_CONV)),
+            y - int(yradius * sin(angle * PI_CONV)),
+            x + int(xradius * cos((angle + 1) * PI_CONV)),
+            y - int(yradius * sin((angle + 1) * PI_CONV)));
+    }
+}
+
+// void Graphics::fillArc(int x, int y, int w, int h, int startAngle, int arcAngle) {
+//     // NOTE this impl assumes startAngle < arcAngle
+//     int  _x, _y,      // circle centered point
+//         xx,yy,rr,   // x^2,y^2,r^2
+//         ux,uy,      // u
+//         vx,vy,      // v
+//         sx,sy;      // pixel position
+
+//     arcAngle += startAngle;
+
+//     (void)w; (void)h;
+//     int r = 30; // TODO
+//     rr = r*r;
+//     ux = double(r)*cos(double(startAngle)*PI_CONV);
+//     uy = double(r)*sin(double(startAngle)*PI_CONV);
+//     vx = double(r)*cos(double(arcAngle)*PI_CONV);
+//     vy = double(r)*sin(double(arcAngle)*PI_CONV);
+
+//     if (abs(arcAngle - startAngle) < 180) { // small pie
+//         for (_y = -r, yy = _y*_y, sy = y + _y; _y <= +r; _y++, yy = _y*_y, sy++)
+//             for (_x = -r, xx = _x*_x, sx = x + _x; _x <= +r; _x++, xx = _x*_x, sx++)
+//                 if (xx + yy <= rr)           // inside circle
+//                     if (((_x*uy) - (_y*ux) <= 0)  // x,y is above a0 in clockwise direction
+//                         && ((_x*vy) - (_y*vx) >= 0)) // x,y is below a1 in counter clockwise direction
+//                         _putpixel(sx, sy);
+//     } else { // big pie
+//         for (_y = -r, yy = _y*_y, sy = y + _y; _y <= +r; _y++, yy = _y*_y, sy++)
+//             for (_x = -r, xx = _x*_x, sx = x + _x; _x <= +r; _x++, xx = _x*_x, sx++)
+//                 if (xx + yy <= rr)           // inside circle
+//                     if (((_x*uy) - (_y*ux) <= 0)  // x,y is above a0 in clockwise direction
+//                         || ((_x*vy) - (_y*vx) >= 0)) // x,y is below a1 in counter clockwise direction
+//                         _putpixel(sx, sy);
+//     }
+// }
+
+// int norm_ang(int angle) {
+// // reduce the angle
+// angle =  angle % 360;
+
+// // force it to be the positive remainder, so that 0 <= angle < 360
+// angle = (angle + 360) % 360;
+
+// // force into the minimum absolute value residue class, so that -180 < angle <= 180
+// if (angle > 180)
+//     angle -= 360;
+// return angle;
+// }
+
+int to_360(int ang)
+{
+    // if (ang != 0 && ang % 360 == 0) {
+    //     ang = 360;
+    // } else {
+    //     ang %= 360;
+    // }
+    if (ang >= 0 && ang <= 360) {
+        return ang;
+    }
+    if (ang < 0) {
+        ang += 360;
+    }
+    return ang;
 }
 
 void Graphics::fillArc(int x, int y, int w, int h, int startAngle, int arcAngle)
 {
-    (void)startAngle; (void)arcAngle;
-    if (x + w < -10 || x > 490 || y + h < -10 || y > 282) return;
+    int endAngle = startAngle + arcAngle;
+    // startAngle = norm_ang(startAngle);
+    // endAngle = norm_ang(endAngle);
+    // SDL_Log("startAngle = %d, endAngle = %d\n", startAngle, endAngle);
+    double a = w / 2.0, b = h / 2.0;
+    double e = sqrt(1.0 - (b * b) / (a * a));
+    for (int _y = y - b; _y < y + b; _y++) {
+        for (int _x = x - a; _x < x + a; _x++) {
+            // _putpixel(_x, _y);
+            // std::cout << atan2(_y, _x) << "\n";
+            // SDL_Log("_y = %d, _x = %d atan2 = %lf\n", _y, _x, atan2(_y - y, _x - x));
+            // if (atan2(_y - y, _x - x) >= startAngle*PI_CONV && atan2(_y - y, _x - x) <= endAngle*PI_CONV) {
+            //     _putpixel(_x, _y);
+            // }
+            // if (atan2(_y - y, _x - x) < 3.14/2.0) {
+            //     _putpixel(_x, _y);
+            // }
+            double ang = atan2(-(_y - y), _x - x); // cuz in screen y grows downwards (in maths y grows upwards)
 
-    int rx = w / 2;
-    int ry = h / 2;
-    int cx = x + rx;
-    int cy = y + ry;
-    if (rx <= 0 || ry <= 0) return;
+            // double rad = b/sqrt(1 - e*e*cos(ang)*cos(ang));
+            // double dist = sqrt((_x - x)*(_x - x) + (_y - y)*(_y - y));
+            double rad = b * b / (1 - e * e * cos(ang) * cos(ang));
+            double dist = ((_x - x) * (_x - x) + (_y - y) * (_y - y));
 
-    for (int dy = -ry; dy <= ry; dy++) {
-        float dx_max = rx * sqrt(1.0f - (float)(dy * dy) / (float)(ry * ry));
-        int x1 = cx - (int)dx_max;
-        int x2 = cx + (int)dx_max;
-        int py = cy + dy;
-        drawLine(x1, py, x2, py);
+            int ang2 = to_360(ang / PI_CONV);
+
+            if (ang2 >= to_360(startAngle)
+                && ang2 <= to_360(endAngle)
+                && dist <= rad) {
+                _putpixel(_x, _y);
+            }
+
+            if (endAngle > 360) {
+                if (ang2 < endAngle % 360 && dist <= rad) {
+                    _putpixel(_x, _y);
+                }
+            }
+        }
     }
+}
+
+void Graphics::_putpixel(int x, int y)
+{
+    SDL_RenderDrawPoint(renderer, x, y);
 }
 
 void Graphics::drawLine(int x1, int y1, int x2, int y2)
 {
-    if (!clipLine(x1, y1, x2, y2)) {
-        return;
-    }
-
-    g2dBeginLines((g2dLine_Mode)0);
-    g2dSetColor(currentColor);
-    g2dSetCoordXY(x1, y1); g2dAdd();
-    g2dSetCoordXY(x2, y2); g2dAdd();
-    g2dEnd();
+    SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
 }
 
 void Graphics::drawImage(Image* const image, int x, int y, int anchor)
 {
-    if (!image || !image->getG2DImage()) return;
-    int w = image->getWidth();
-    int h = image->getHeight();
-    x = getAnchorX(x, w, anchor);
-    y = getAnchorY(y, h, anchor);
-
-    if (x + w < -10 || x > 490 || y + h < -10 || y > 282) return;
-
-    g2dBeginRects(image->getG2DImage());
-    g2dSetColor(WHITE);
-    g2dSetCoordXY(x, y);
-    g2dSetScaleWH(w, h);
-    g2dAdd();
-    g2dEnd();
+    SDL_Texture* texture = image->getTexture(renderer);
+    x = getAnchorX(x, image->getWidth(), anchor);
+    y = getAnchorY(y, image->getHeight(), anchor);
+    SDL_Rect dstRect { x, y, image->getWidth(), image->getHeight() };
+    SDL_RenderCopy(renderer, texture, 0, &dstRect);
 }
 
 int Graphics::getAnchorX(int x, int size, int anchor)
