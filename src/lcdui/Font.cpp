@@ -1,50 +1,49 @@
 #include "Font.h"
+
+#include <stdexcept>
 #include <iostream>
+
+CMRC_DECLARE(assets);
 
 Font::Font(FontStyle style, FontSize pointSize)
 {
-    (void)style;
-    this->scale = getScaleForSize(pointSize);
-    this->font = intraFontLoadTTF("assets/FontSansSerif.ttf", INTRAFONT_CACHE_MED, 14.0f * this->scale);
-    if (!this->font) {
-        this->font = intraFontLoad("flash0:/font/ltn0.pgf", INTRAFONT_CACHE_MED);
-    }
-    if (this->font) {
-        this->height = intraFontTextHeight(this->font);
-        if (this->height <= 0) {
-            this->height = static_cast<int>(14.0f * this->scale);
+    if (!ttfRwOps) {
+        cmrc::embedded_filesystem internalFs = cmrc::assets::get_filesystem();
+        cmrc::file fileData = internalFs.open("FontSansSerif.ttf");
+        SDL_RWops* raw = SDL_RWFromConstMem(fileData.begin(), fileData.size());
+        if (!raw) {
+            std::cerr << "Font load error: " << SDL_GetError() << std::endl;
         }
-    } else {
-        this->height = static_cast<int>(14.0f * this->scale);
+
+        ttfRwOps = raw;
     }
+
+    int realSize = getRealFontSize(pointSize);
+    TTF_Font* font = TTF_OpenFontRW(ttfRwOps, SDL_TRUE, realSize);
+    TTF_SetFontHinting(font, TTF_HINTING_NORMAL);
+    TTF_SetFontStyle(font, style);
+    this->ttfFont = font;
+    this->height = realSize;
 }
 
 Font::~Font()
 {
-    if (this->font) {
-        intraFontUnload(this->font);
-        this->font = nullptr;
-    }
+    TTF_CloseFont(ttfFont);
 }
 
 int Font::getBaselinePosition() const
 {
-    return this->height;
+    return height;
 }
 
 int Font::getHeight() const
 {
-    return this->height;
+    return height;
 }
 
-intraFont* Font::getIntraFont() const
+TTF_Font* Font::getTtfFont() const
 {
-    return this->font;
-}
-
-float Font::getScale() const
-{
-    return this->scale;
+    return ttfFont;
 }
 
 int Font::charWidth(char c)
@@ -54,8 +53,11 @@ int Font::charWidth(char c)
 
 int Font::stringWidth(const std::string& s)
 {
-    if (!font) return static_cast<int>(s.length() * 8 * scale);
-    return static_cast<int>(intraFontMeasureText(font, s.c_str()));
+    int width = 0, height = 0;
+    if (ttfFont && TTF_SizeText(ttfFont, s.c_str(), &width, &height) == -1) {
+        std::cerr << "TTF_SizeText failed: " << TTF_GetError() << std::endl;
+    }
+    return width;
 }
 
 int Font::substringWidth(const std::string& string, int offset, int len)
@@ -63,16 +65,16 @@ int Font::substringWidth(const std::string& string, int offset, int len)
     return stringWidth(string.substr(offset, len));
 }
 
-float Font::getScaleForSize(FontSize size)
+int Font::getRealFontSize(FontSize size)
 {
     switch (size) {
     case SIZE_LARGE:
-        return 1.2f;
+        return 26;
     case SIZE_MEDIUM:
-        return 0.9f;
+        return 14;
     case SIZE_SMALL:
-        return 0.7f;
+        return 11;
     default:
-        return 0.9f;
+        return 14;
     }
 }

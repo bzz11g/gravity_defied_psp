@@ -1,27 +1,86 @@
 #include "CanvasImpl.h"
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+#include <stdexcept>
+#include <iostream>
+
+#if defined(PSP) || defined(__PSP__)
+#include <pspgu.h>
+#endif
+
 #include "Canvas.h"
 #include "../Micro.h"
-#include "psp/glib2d.h"
-#include <pspctrl.h>
-#include <pspdisplay.h>
 
-CanvasImpl::CanvasImpl(Canvas* canvas) : canvas(canvas)
+CanvasImpl::CanvasImpl(Canvas* canvas)
 {
+    this->canvas = canvas;
+
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+        std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
+    }
+
+    SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+    if (SDL_NumJoysticks() > 0) {
+        SDL_GameControllerOpen(0);
+    }
+
+    if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+        std::cerr << "IMG_Init failed: " << IMG_GetError() << std::endl;
+    }
+
+    if (TTF_Init() == -1) {
+        std::cerr << "TTF_Init failed: " << TTF_GetError() << std::endl;
+    }
+
+    window = SDL_CreateWindow(
+        0,
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
+        width, height,
+        SDL_WINDOW_SHOWN);
+
+    if (!window) {
+        std::cerr << "SDL_CreateWindow failed: " << SDL_GetError() << std::endl;
+    }
+
+    renderer = SDL_CreateRenderer(
+        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+    if (!renderer) {
+        std::cerr << "SDL_CreateRenderer failed: " << SDL_GetError() << std::endl;
+    }
+
+    if (renderer) {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_RenderClear(renderer);
+    }
 }
 
 CanvasImpl::~CanvasImpl()
 {
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    IMG_Quit();
+    TTF_Quit();
 }
 
 void CanvasImpl::clear()
 {
-    g2dClear(WHITE);
+    SDL_SetRenderTarget(renderer, nullptr);
+    SDL_RenderSetClipRect(renderer, nullptr);
+#if defined(PSP) || defined(__PSP__)
+    sceGuScissor(0, 0, 480, 272);
+#endif
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderClear(renderer);
 }
 
 void CanvasImpl::repaint()
 {
-    g2dFlip(G2D_VSYNC);
-    sceDisplayWaitVblankStart();
+    SDL_RenderPresent(renderer);
 }
 
 int CanvasImpl::getWidth()
@@ -34,94 +93,174 @@ int CanvasImpl::getHeight()
     return height;
 }
 
+SDL_Renderer* CanvasImpl::getRenderer()
+{
+    return renderer;
+}
+
 void CanvasImpl::processEvents()
 {
-    SceCtrlData pad;
-    sceCtrlPeekBufferPositive(&pad, 1);
+    SDL_Event e;
 
-    uint32_t currentButtons = pad.Buttons;
-    uint32_t pressedButtons = currentButtons & ~lastButtons;
-    uint32_t releasedButtons = lastButtons & ~currentButtons;
-    lastButtons = currentButtons;
-
-    bool isMenu = Micro::isInGameMenu;
-
-    auto mapButtonToKey = [isMenu](uint32_t btn) -> int {
-        switch (btn) {
-        case PSP_CTRL_UP: return Canvas::Keys::UP;
-        case PSP_CTRL_DOWN: return Canvas::Keys::DOWN;
-        case PSP_CTRL_LEFT: return Canvas::Keys::LEFT;
-        case PSP_CTRL_RIGHT: return Canvas::Keys::RIGHT;
-
-        case PSP_CTRL_CROSS:
-            return isMenu ? static_cast<int>(Canvas::Keys::FIRE) : static_cast<int>('8');
-        case PSP_CTRL_CIRCLE:
-            return isMenu ? 0 : static_cast<int>('6');
-        case PSP_CTRL_SQUARE:
-            return isMenu ? 0 : static_cast<int>('4');
-        case PSP_CTRL_TRIANGLE:
-            return isMenu ? 0 : static_cast<int>('2');
-
-        case PSP_CTRL_LTRIGGER:
-            return isMenu ? 0 : static_cast<int>('1');
-        case PSP_CTRL_RTRIGGER:
-            return isMenu ? 0 : static_cast<int>('3');
-
-        case PSP_CTRL_START:
-            return isMenu ? static_cast<int>(Canvas::Keys::FIRE) : 0;
-        default:
-            return 0;
-        }
-    };
-
-    uint32_t buttons[] = {
-        PSP_CTRL_UP, PSP_CTRL_DOWN, PSP_CTRL_LEFT, PSP_CTRL_RIGHT,
-        PSP_CTRL_CROSS, PSP_CTRL_CIRCLE, PSP_CTRL_SQUARE, PSP_CTRL_TRIANGLE,
-        PSP_CTRL_LTRIGGER, PSP_CTRL_RTRIGGER, PSP_CTRL_START
-    };
-
-    for (uint32_t btn : buttons) {
-        if (pressedButtons & btn) {
-            int keyCode = mapButtonToKey(btn);
+    while (SDL_PollEvent(&e) != 0) {
+        switch (e.type) {
+        case SDL_QUIT:
+            exit(0); // IMPROVE This is a super dumb way to finish the game, but it works
+            break;
+        case SDL_KEYDOWN: {
+            int keyCode = convertKeyCharToKeyCode(e.key.keysym.sym);
+            // std::cout << "Key pressed: " << keyCode << std::endl;
             if (keyCode != 0) {
                 canvas->publicKeyPressed(keyCode);
             }
-        }
-        if (releasedButtons & btn) {
-            int keyCode = mapButtonToKey(btn);
+        } break;
+        case SDL_KEYUP: {
+            int sdlCode = e.key.keysym.sym;
+            int keyCode = convertKeyCharToKeyCode(sdlCode);
+            // std::cout << "Key released: " << keyCode << std::endl;
             if (keyCode != 0) {
                 canvas->publicKeyReleased(keyCode);
-            } else if ((btn == PSP_CTRL_CIRCLE && isMenu) || (btn == PSP_CTRL_START && !isMenu)) {
+            } else {
+                if (sdlCode == SDLK_ESCAPE) {
+                    // std::cout << "ESC released" << std::endl;
+                    canvas->pressedEsc();
+                }
+            }
+        } break;
+        case SDL_CONTROLLERAXISMOTION: {
+            if (e.caxis.axis == SDL_CONTROLLER_AXIS_LEFTX) {
+                if (e.caxis.value < -8000) {
+                    canvas->publicKeyPressed(Canvas::Keys::LEFT);
+                    canvas->publicKeyReleased(Canvas::Keys::RIGHT);
+                } else if (e.caxis.value > 8000) {
+                    canvas->publicKeyPressed(Canvas::Keys::RIGHT);
+                    canvas->publicKeyReleased(Canvas::Keys::LEFT);
+                } else {
+                    canvas->publicKeyReleased(Canvas::Keys::LEFT);
+                    canvas->publicKeyReleased(Canvas::Keys::RIGHT);
+                }
+            } else if (e.caxis.axis == SDL_CONTROLLER_AXIS_LEFTY) {
+                if (e.caxis.value < -8000) {
+                    canvas->publicKeyPressed(Canvas::Keys::UP);
+                    canvas->publicKeyReleased(Canvas::Keys::DOWN);
+                } else if (e.caxis.value > 8000) {
+                    canvas->publicKeyPressed(Canvas::Keys::DOWN);
+                    canvas->publicKeyReleased(Canvas::Keys::UP);
+                } else {
+                    canvas->publicKeyReleased(Canvas::Keys::UP);
+                    canvas->publicKeyReleased(Canvas::Keys::DOWN);
+                }
+            }
+        } break;
+        case SDL_CONTROLLERBUTTONDOWN: {
+            int keyCode = 0;
+            bool isMenu = Micro::isInGameMenu;
+
+            switch (e.cbutton.button) {
+                case SDL_CONTROLLER_BUTTON_DPAD_UP: keyCode = Canvas::Keys::UP; break;
+                case SDL_CONTROLLER_BUTTON_DPAD_DOWN: keyCode = Canvas::Keys::DOWN; break;
+                case SDL_CONTROLLER_BUTTON_DPAD_LEFT: keyCode = Canvas::Keys::LEFT; break;
+                case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: keyCode = Canvas::Keys::RIGHT; break;
+
+                case SDL_CONTROLLER_BUTTON_A: // Cross (X)
+                    keyCode = Canvas::Keys::FIRE;
+                    if (!isMenu) keyCode = '8'; // Brake/Reverse
+                    break;
+                case SDL_CONTROLLER_BUTTON_B: // Circle (O)
+                    if (!isMenu) keyCode = '6'; // Lean Forward
+                    break;
+                case SDL_CONTROLLER_BUTTON_X: // Square
+                    if (!isMenu) keyCode = '4'; // Lean Backward
+                    break;
+                case SDL_CONTROLLER_BUTTON_Y: // Triangle
+                    if (!isMenu) keyCode = '2'; // Accelerate
+                    break;
+
+                case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+                    if (!isMenu) keyCode = '1'; // Gas + Lean Backward
+                    break;
+                case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+                    if (!isMenu) keyCode = '3'; // Gas + Lean Forward
+                    break;
+
+                case SDL_CONTROLLER_BUTTON_START:
+                    if (isMenu) keyCode = Canvas::Keys::FIRE;
+                    // In-game START triggers Pause, not handled directly as J2ME key if we can trigger menu
+                    break;
+            }
+            if (keyCode != 0) {
+                canvas->publicKeyPressed(keyCode);
+            }
+        } break;
+        case SDL_CONTROLLERBUTTONUP: {
+            int keyCode = 0;
+            bool isMenu = Micro::isInGameMenu;
+
+            switch (e.cbutton.button) {
+                case SDL_CONTROLLER_BUTTON_DPAD_UP: keyCode = Canvas::Keys::UP; break;
+                case SDL_CONTROLLER_BUTTON_DPAD_DOWN: keyCode = Canvas::Keys::DOWN; break;
+                case SDL_CONTROLLER_BUTTON_DPAD_LEFT: keyCode = Canvas::Keys::LEFT; break;
+                case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: keyCode = Canvas::Keys::RIGHT; break;
+
+                case SDL_CONTROLLER_BUTTON_A:
+                    keyCode = Canvas::Keys::FIRE;
+                    if (!isMenu) keyCode = '8';
+                    break;
+                case SDL_CONTROLLER_BUTTON_B:
+                    if (!isMenu) keyCode = '6';
+                    break;
+                case SDL_CONTROLLER_BUTTON_X:
+                    if (!isMenu) keyCode = '4';
+                    break;
+                case SDL_CONTROLLER_BUTTON_Y:
+                    if (!isMenu) keyCode = '2';
+                    break;
+
+                case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+                    if (!isMenu) keyCode = '1';
+                    break;
+                case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+                    if (!isMenu) keyCode = '3';
+                    break;
+
+                case SDL_CONTROLLER_BUTTON_START:
+                    if (isMenu) keyCode = Canvas::Keys::FIRE;
+                    break;
+            }
+            if (keyCode != 0) {
+                canvas->publicKeyReleased(keyCode);
+            } else if (e.cbutton.button == SDL_CONTROLLER_BUTTON_B && isMenu) {
+                canvas->pressedEsc();
+            } else if (e.cbutton.button == SDL_CONTROLLER_BUTTON_START && !isMenu) {
                 canvas->pressedEsc();
             }
+        } break;
+        default:
+            break;
         }
     }
+}
 
-    // Analog stick polling
-    bool analogLeft = pad.Lx < 40;
-    bool analogRight = pad.Lx > 216;
-    bool analogUp = pad.Ly < 40;
-    bool analogDown = pad.Ly > 216;
-
-    if (analogLeft && !lastAnalogLeft) canvas->publicKeyPressed(Canvas::Keys::LEFT);
-    if (!analogLeft && lastAnalogLeft) canvas->publicKeyReleased(Canvas::Keys::LEFT);
-
-    if (analogRight && !lastAnalogRight) canvas->publicKeyPressed(Canvas::Keys::RIGHT);
-    if (!analogRight && lastAnalogRight) canvas->publicKeyReleased(Canvas::Keys::RIGHT);
-
-    if (analogUp && !lastAnalogUp) canvas->publicKeyPressed(Canvas::Keys::UP);
-    if (!analogUp && lastAnalogUp) canvas->publicKeyReleased(Canvas::Keys::UP);
-
-    if (analogDown && !lastAnalogDown) canvas->publicKeyPressed(Canvas::Keys::DOWN);
-    if (!analogDown && lastAnalogDown) canvas->publicKeyReleased(Canvas::Keys::DOWN);
-
-    lastAnalogLeft = analogLeft;
-    lastAnalogRight = analogRight;
-    lastAnalogUp = analogUp;
-    lastAnalogDown = analogDown;
+int CanvasImpl::convertKeyCharToKeyCode(SDL_Keycode keyCode)
+{
+    switch (keyCode) {
+    case SDLK_RETURN:
+        return Canvas::Keys::FIRE;
+    case SDLK_LEFT:
+        return Canvas::Keys::LEFT;
+    case SDLK_RIGHT:
+        return Canvas::Keys::RIGHT;
+    case SDLK_UP:
+        return Canvas::Keys::UP;
+    case SDLK_DOWN:
+        return Canvas::Keys::DOWN;
+    default:
+        std::cout << "unknown keyEvent: " << keyCode << std::endl;
+        return 0;
+    }
 }
 
 void CanvasImpl::setWindowTitle(const std::string& title)
 {
-    (void)title;
+    SDL_SetWindowTitle(window, title.c_str());
 }

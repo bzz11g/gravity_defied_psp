@@ -1,12 +1,7 @@
-#include "Time.h"
+#include "time.h"
 
+#include <SDL2/SDL.h>
 #include <chrono>
-
-#if defined(PSP) || defined(__PSP__)
-#include <pspthreadman.h>
-#else
-#include <thread>
-#endif
 
 namespace Time {
 int64_t currentTimeMillis()
@@ -17,10 +12,6 @@ int64_t currentTimeMillis()
 
 void sleep(int64_t ms)
 {
-#if defined(PSP) || defined(__PSP__)
-    sceKernelDelayThread(ms * 1000);
-#else
-    std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-#endif
+    SDL_Delay(ms);
 }
 }
