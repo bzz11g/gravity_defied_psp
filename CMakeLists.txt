@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.24)
 project(gravity_defied_cpp C CXX)
 
+execute_process(
+    COMMAND psp-config --psp-prefix
+    OUTPUT_VARIABLE PSP_PREFIX_DIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
 set(SOURCES
     src/utils/Time.cpp
     src/utils/EmbedFileStream.cpp
@@ -63,8 +69,8 @@ target_include_directories(GravityDefied PRIVATE
                            src
                            src/psp
                            src/psp/intra
-                           ${PSP_PREFIX}/psp/include/freetype2
-                           /home/jules/pspdev/psp/include/freetype2)
+                           ${PSP_PREFIX_DIR}/include/freetype2
+                           $ENV{PSPDEV}/psp/include/freetype2)
 
 set_target_properties(GravityDefied PROPERTIES LINK_FLAGS_RELEASE -s)
 
