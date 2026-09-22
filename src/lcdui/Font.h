@@ -1,10 +1,7 @@
 #pragma once
 
 #include <string>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-
-#include <cmrc/cmrc.hpp>
+#include "psp/intra/intraFont.h"
 
 class Font {
 public:
@@ -15,9 +12,9 @@ public:
     };
 
     enum FontStyle {
-        STYLE_PLAIN = TTF_STYLE_NORMAL,
-        STYLE_BOLD = TTF_STYLE_BOLD,
-        STYLE_ITALIC = TTF_STYLE_ITALIC
+        STYLE_PLAIN = 0,
+        STYLE_BOLD = 1,
+        STYLE_ITALIC = 2
     };
 
     enum FontFace {
@@ -29,15 +26,16 @@ public:
 
     int getBaselinePosition() const;
     int getHeight() const;
-    TTF_Font* getTtfFont() const;
+    intraFont* getIntraFont() const;
+    float getScale() const;
     int charWidth(char c);
     int stringWidth(const std::string& s);
     int substringWidth(const std::string& string, int offset, int len);
 
 private:
-    static inline SDL_RWops* ttfRwOps = nullptr;
-    TTF_Font* ttfFont;
-    int height;
+    intraFont* font = nullptr;
+    float scale = 1.0f;
+    int height = 14;
 
-    static int getRealFontSize(FontSize size);
+    static float getScaleForSize(FontSize size);
 };

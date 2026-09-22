@@ -1,12 +1,11 @@
 #pragma once
 
 #include <string>
-#include <SDL2/SDL.h>
+#include "psp/glib2d.h"
 
 class Image {
 private:
-    SDL_Surface* surface;
-    SDL_Texture* texture = nullptr;
+    g2dImage* image = nullptr;
 
 public:
     Image(const std::string& embeddedPath);
@@ -15,6 +14,5 @@ public:
 
     int getWidth() const;
     int getHeight() const;
-    SDL_Surface* getSurface() const;
-    SDL_Texture* getTexture(SDL_Renderer* renderer);
+    g2dImage* getG2DImage() const;
 };

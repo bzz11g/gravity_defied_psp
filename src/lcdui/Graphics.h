@@ -1,29 +1,19 @@
 #pragma once
 #include <memory>
-#include <stdexcept>
-#include <cmath>
-#include <iostream>
 #include <string>
+#include <cmath>
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-
+#include "psp/glib2d.h"
+#include "psp/intra/intraFont.h"
 #include "Image.h"
 #include "Font.h"
-#include <unordered_map>
 
-constexpr auto PI_CONV = 3.1415926 / 180.0;
-
-class Image;
+constexpr auto PI_CONV = 3.14159265358979323846 / 180.0;
 
 class Graphics {
 private:
-    SDL_Renderer* renderer;
     std::shared_ptr<Font> font;
-    SDL_Color currentColor;
-    std::unordered_map<std::string, SDL_Texture*> textCache;
-    // void _ellipse(int cx, int cy, int xradius, int yradius);
-    void _putpixel(int x, int y);
+    g2dColor currentColor;
 
 public:
     ~Graphics();
@@ -36,7 +26,7 @@ public:
         BOTTOM = 32,
         BASELINE = 64
     };
-    Graphics(SDL_Renderer* renderer);
+    Graphics();
     void drawString(const std::string& s, int x, int y, int anchor);
     void setColor(int r, int g, int b);
     void setFont(std::shared_ptr<Font> font);
