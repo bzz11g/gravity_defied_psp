@@ -1,24 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 project(gravity_defied_cpp C CXX)
 
-unset(ENV{PKG_CONFIG_PATH})
-
-if(WIN32)
-    include(cmake/mingw-sdl2.cmake)
-    download_mingw_sdl2(
-        "2.26.1"    # SDL2
-        "2.20.1"    # SDL2_ttf
-        "2.6.2"     # SDL2_image
-    )
-endif()
-
-find_package(PkgConfig REQUIRED)
-
-pkg_search_module(SDL2 REQUIRED IMPORTED_TARGET sdl2)
-pkg_search_module(SDL2_TTF REQUIRED IMPORTED_TARGET SDL2_ttf)
-pkg_search_module(SDL2_IMAGE REQUIRED IMPORTED_TARGET SDL2_image)
-
-# Create a sources variable with a link to all cpp files to compile
 set(SOURCES
     src/utils/Time.cpp
     src/utils/EmbedFileStream.cpp
@@ -46,6 +28,10 @@ set(SOURCES
     src/lcdui/FontStorage.cpp
     src/rms/RecordEnumerationImpl.cpp
     src/rms/RecordStore.cpp
+    src/psp/glib2d.c
+    src/psp/intra/intraFont.c
+    src/psp/intra/libccc.c
+    src/psp/pspSetup.cpp
 )
 
 include(cmake/CMakeRC.cmake)
@@ -68,52 +54,29 @@ cmrc_add_resource_library(Assets
     assets/FontSansSerif.ttf
 )
 
-# Compile resources when building for Windows.
-if(WIN32)
-    enable_language(RC)
-    list(APPEND SOURCES winres/res.rc)
-endif()
-
 add_executable(GravityDefied ${SOURCES})
 
 target_compile_features(GravityDefied PRIVATE cxx_std_17)
-target_compile_options(GravityDefied PRIVATE -Wall -Wextra)
+target_compile_options(GravityDefied PRIVATE -Wall -Wextra -fno-exceptions -fno-rtti)
 
 target_include_directories(GravityDefied PRIVATE
-                           ${SDL2_INCLUDE_DIRS}
-                           ${SDL2_TTF_INCLUDE_DIRS}
-                           ${SDL2_IMAGE_INCLUDE_DIRS})
-
-target_link_directories(GravityDefied PRIVATE
-                        ${SDL2_LIBRARY_DIRS}
-                        ${SDL2_TTF_LIBRARY_DIRS}
-                        ${SDL2_IMAGE_LIBRARY_DIRS})
+                           src
+                           src/psp
+                           src/psp/intra
+                           ${PSP_PREFIX}/psp/include/freetype2
+                           /home/jules/pspdev/psp/include/freetype2)
 
 set_target_properties(GravityDefied PROPERTIES LINK_FLAGS_RELEASE -s)
 
-if(WIN32)
-    target_link_options(GravityDefied PRIVATE -static -mwindows)
-    target_link_libraries(GravityDefied PRIVATE
-                         ${SDL2_STATIC_LIBRARIES} 
-                         ${SDL2_TTF_STATIC_LIBRARIES}
-                         ${SDL2_IMAGE_STATIC_LIBRARIES} 
-                         Assets::Assets)
-else()
-    target_link_libraries(GravityDefied PRIVATE
-                          ${SDL2_LIBRARIES}
-                          ${SDL2_TTF_LIBRARIES}
-                          ${SDL2_IMAGE_LIBRARIES}
-                          Assets::Assets)
-endif()
+target_link_libraries(GravityDefied PRIVATE
+                      png jpeg bz2 pspgu pspgum pspdisplay pspge pspctrl psppower psprtc pspvram
+                      freetype z m stdc++
+                      Assets::Assets)
 
 # Copy assets to the build directory
 file(COPY assets/levels.mrg DESTINATION ${CMAKE_BINARY_DIR})
 
-if(PSP)
-    target_compile_options(GravityDefied PRIVATE -fno-exceptions -fno-rtti)
-    target_link_libraries(GravityDefied PRIVATE
-                          pspctrl pspgu pspgum pspdisplay psppower psprtc m stdc++)
-
+if(PSP OR DEFINED ENV{PSPDEV})
     create_pbp_file(
         TARGET GravityDefied
         TITLE "Gravity Defied: Trial Racing"
