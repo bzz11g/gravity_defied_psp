@@ -1,80 +1,43 @@
 #include "Image.h"
-
-#include <stdexcept>
-#include <string>
-#include <iostream>
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 #include <cmrc/cmrc.hpp>
+#include <iostream>
 
 CMRC_DECLARE(assets);
 
 Image::Image(int width, int height)
 {
-    SDL_Surface* surf = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, 0);
-    if (!surf) {
-        std::cerr << "SDL_CreateRGBSurface failed: " << SDL_GetError() << std::endl;
-    }
-
-    this->surface = surf;
+    this->image = g2dTexCreatePlaceholder(width, height);
 }
 
 Image::Image(const std::string& embeddedPath)
 {
     cmrc::embedded_filesystem embeddedFs = cmrc::assets::get_filesystem();
-    cmrc::file fileData = embeddedFs.open(embeddedPath);
-
-    SDL_RWops* raw = SDL_RWFromConstMem(fileData.begin(), fileData.size());
-    if (!raw) {
-        std::cerr << "SDL_RWFromConstMem failed: " << SDL_GetError() << std::endl;
-        return;
+    if (embeddedFs.exists(embeddedPath)) {
+        cmrc::file fileData = embeddedFs.open(embeddedPath);
+        this->image = g2dTexLoad(NULL, (unsigned char*)fileData.begin(), fileData.size(), G2D_SWIZZLE);
+    } else {
+        this->image = nullptr;
     }
-
-    SDL_Surface* surf = IMG_Load_RW(raw, SDL_TRUE);
-    if (!surf) {
-        std::cerr << "IMG_Load_RW failed: " << IMG_GetError() << std::endl;
-        return;
-    }
-
-    SDL_Surface* surf_conv = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGBA32, 0);
-    SDL_FreeSurface(surf);
-
-    if (!surf_conv) {
-        std::cerr << "SDL_ConvertSurfaceFormat failed: " << SDL_GetError() << std::endl;
-        return;
-    }
-
-    this->surface = surf_conv;
 }
 
 Image::~Image()
 {
-    SDL_FreeSurface(this->surface);
-    if (this->texture) {
-        SDL_DestroyTexture(this->texture);
+    if (this->image) {
+        g2dTexFree(&this->image);
     }
 }
 
-SDL_Texture* Image::getTexture(SDL_Renderer* renderer)
+g2dImage* Image::getG2DImage() const
 {
-    if (!this->texture) {
-        this->texture = SDL_CreateTextureFromSurface(renderer, this->surface);
-    }
-    return this->texture;
+    return this->image;
 }
 
 int Image::getWidth() const
 {
-    return this->surface->w;
+    return this->image ? this->image->w : 0;
 }
 
 int Image::getHeight() const
 {
-    return this->surface->h;
-}
-
-SDL_Surface* Image::getSurface() const
-{
-    return this->surface;
+    return this->image ? this->image->h : 0;
 }

@@ -1,10 +1,8 @@
 #pragma once
 
 #include <memory>
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
+#include <string>
+#include <cstdint>
 
 class Canvas;
 
@@ -12,13 +10,14 @@ class CanvasImpl {
 private:
     Canvas* canvas;
 
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-
     const int width = 480;
     const int height = 272;
 
-    static int convertKeyCharToKeyCode(SDL_Keycode keyCode);
+    uint32_t lastButtons = 0;
+    bool lastAnalogLeft = false;
+    bool lastAnalogRight = false;
+    bool lastAnalogUp = false;
+    bool lastAnalogDown = false;
 
 public:
     CanvasImpl(Canvas* canvas);
@@ -29,7 +28,6 @@ public:
     int getWidth();
     int getHeight();
 
-    SDL_Renderer* getRenderer();
     void processEvents();
     void setWindowTitle(const std::string& title);
 };
