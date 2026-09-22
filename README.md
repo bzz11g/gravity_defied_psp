@@ -48,26 +48,9 @@ Controls replicate the authentic J2ME mobile phone keypad layout:
 
 * **L Trigger:** Gas + Lean Backward (`KEY_NUM1`)
 * **R Trigger:** Gas + Lean Forward (`KEY_NUM3`)
-* **START:** Pause / Resume
-* **HOME / PS:** Standard PSP firmware exit dialog
 
-# Authors
+---
 
-### PSP Homebrew port
-* **[bzz11g](https://github.com/bzz11g)**
-* **jules.google.com**
+## Acknowledgements
 
-### Gravity Defied Cpp authors
-* **[rgimad](https://github.com/rgimad)** - idea & coding
-* **[AntonEvmenenko](https://github.com/AntonEvmenenko)** - coding
-* **[Max Logaev](https://github.com/mxlgv)** - coding
-
-### Codebrew GDTR Authors
-
-* **Tors Björn Henrik Johansson** - system/game logic/interface, testing, levels design
-* **Set Elis Norman** - graphics/physics/mathematics/system/tools programming, levels design
-* **Per David Jacobsson** - physics programming, game graphics, levels design
-
-For more information, please visit official site of Codebrew Software: [codebrew.se](http://codebrew.se)
-
-# Contributing
+* **[antim0118](https://github.com/antim0118)** — For the gLib2D over sceGu rendering approach and libraries.
